@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Optional;
 
 public class GachaScreen extends Screen {
+    private static final float SLIDE_SPEED = 2f;
     private final Screen originalScreen;
     private final ResourceKey<LootTable> lootTableResourceKey;
     private final List<DisplayEntry> entries;
     private final List<ReelWidget> reelWidgets = new ArrayList<>();
     private int currentPage;
     private int pageSize;
-    private static final float SLIDE_SPEED = 2f;
     private int blinkTicks;
 
 
@@ -186,7 +186,7 @@ public class GachaScreen extends Screen {
         alpha = 0.3f + 0.7f * alpha;
         guiGraphics.setColor(1, 1, 1, alpha);
         guiGraphics.drawString(font, text, (width - font.width(text)) / 2, height - 30, 0xFFFFFF, true);
-        guiGraphics.setColor(1,1,1,1);
+        guiGraphics.setColor(1, 1, 1, 1);
     }
 
 
