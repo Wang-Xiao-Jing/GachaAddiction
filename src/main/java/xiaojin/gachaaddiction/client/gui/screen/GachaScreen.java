@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -69,10 +70,17 @@ public class GachaScreen extends Screen {
         if (!(originalScreen instanceof MenuAccess<?> menuAccess)) {
             return;
         }
-        NonNullList<ItemStack> items = menuAccess.getMenu().getItems();
-        List<ItemStack> newItems = items.stream().filter(itemStack1 -> !itemStack1.isEmpty()).toList();
+        AbstractContainerMenu menu = menuAccess.getMenu();
+        NonNullList<ItemStack> items = menu.getItems();
+
+        // 排除玩家本身的物品
+        if (minecraft != null && minecraft.player != null) {
+            items.removeAll(minecraft.player.inventoryMenu.getItems());
+        }
+        items.removeIf(ItemStack::isEmpty);
+
         clearReels();
-        buildReelWidgets(newItems);
+        buildReelWidgets(items);
         initReels();
     }
 
@@ -189,7 +197,6 @@ public class GachaScreen extends Screen {
         guiGraphics.setColor(1, 1, 1, 1);
     }
 
-
     @Override
     public boolean isPauseScreen() {
         return false;
@@ -212,48 +219,24 @@ public class GachaScreen extends Screen {
         public static final float SPEED = 0.5f;
         public static final float ITEM_SPACING = 18f;
         public static final int VISIBLE_COUNT = 5;
-        public static final Easing EASING = Easing.APPROACH;
-        public static final float MIN_SCALE = 1.0f;
-        public static final float MAX_SCALE = 1.2f;
         public static final float MIN_ALPHA = 0.0f;
         public static final float MAX_ALPHA = 1.0f;
 
-        public enum Easing {
-            LINEAR,
-            EASE_OUT_CUBIC,
-            EASE_IN_OUT_QUAD,
-            APPROACH;
+        public static float apply(float t) {
+            if (t < 0.65f) return t;
+            float local = (t - 0.65f) / 0.35f;
+            float p = 1f - local;
+            return 0.65f + 0.35f * (local * (1f + local * (1f - local)));
+        }
 
-            public float apply(float t) {
-                return switch (this) {
-                    case LINEAR -> t;
-                    case EASE_OUT_CUBIC -> {
-                        float p = 1f - t;
-                        yield 1f - p * p * p;
-                    }
-                    case EASE_IN_OUT_QUAD -> {
-                        if (t < 0.5f) yield 2f * t * t;
-                        float p = -2f * t + 2f;
-                        yield 1f - p * p / 2f;
-                    }
-                    case APPROACH -> {
-                        if (t < 0.65f) yield t;
-                        float local = (t - 0.65f) / 0.35f;
-                        float p = 1f - local;
-                        yield 0.65f + 0.35f * (local * (1f + local * (1f - local)));
-                    }
-                };
-            }
-
-            public float getSpeedFactor(float t) {
-                if (this != APPROACH || t < 0.65f) return 1f;
-                float local = (t - 0.65f) / 0.35f;
-                return Math.max(0.1f, 1f - local * local);
-            }
+        public static float getSpeedFactor(float t) {
+            if (t < 0.65f) return 1f;
+            float local = (t - 0.65f) / 0.35f;
+            return Math.max(0.1f, 1f - local * local);
         }
     }
 
-    public static class ReelWidget extends AbstractWidget {
+    public class ReelWidget extends AbstractWidget {
         private final ItemStack result;
         private final List<ItemStack> decoys;
         private final int resultIndex;
@@ -263,9 +246,11 @@ public class GachaScreen extends Screen {
         private float progress;
         private int lastPassedIndex;
         private boolean soundPlayed;
+        private boolean exitStarted;
+        private float exitProgress;
 
         public ReelWidget(ItemStack result, List<ItemStack> decoys, int resultIndex) {
-            super(0, 0, 16, 0, Component.empty());
+            super(0, 0, 32, 32, Component.empty());
             this.result = result;
             this.decoys = decoys;
             this.resultIndex = resultIndex;
@@ -273,6 +258,12 @@ public class GachaScreen extends Screen {
 
         @Override
         protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            this.isHovered = guiGraphics.containsPointInScissor(mouseX, mouseY)
+                    && mouseX >= this.getX() - getWidth() / 2
+                    && mouseY >= this.getY() - getHeight() / 2
+                    && mouseX < this.getX() + getWidth() / 2
+                    && mouseY < this.getY() + getHeight() / 2;
+
             tickAnimation(partialTick);
 
             PoseStack poseStack = guiGraphics.pose();
@@ -280,16 +271,29 @@ public class GachaScreen extends Screen {
             poseStack.translate(getX(), getY(), 0);
 
             renderItems(guiGraphics, poseStack);
-            renderSelectionIndicator(guiGraphics, poseStack);
+            renderBox(guiGraphics, poseStack, result);
+            renderExitAnimation(guiGraphics, poseStack);
 
             poseStack.popPose();
+
+            renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
+        }
+
+        @Override
+        public boolean isMouseOver(double mouseX, double mouseY) {
+            return this.active
+                    && this.visible
+                    && mouseX >= this.getX() - (double) getWidth() / 2
+                    && mouseY >= this.getY() - (double) getHeight() / 2
+                    && mouseX < this.getX() + (double) getWidth() / 2
+                    && mouseY < this.getY() + (double) getHeight() / 2;
         }
 
         private void tickAnimation(float partialTick) {
             float target = -resultIndex + (ReelConfig.VISIBLE_COUNT - 1) / 2f;
 
             if (!complete) {
-                float speedMul = ReelConfig.EASING.getSpeedFactor(progress);
+                float speedMul = ReelConfig.getSpeedFactor(progress);
                 progress += (partialTick * ReelConfig.SPEED * speedMul) / decoys.size();
                 if (progress >= 1f) {
                     progress = Math.min(progress, 1f);
@@ -297,11 +301,17 @@ public class GachaScreen extends Screen {
                 }
             }
 
-            float eased = ReelConfig.EASING.apply(progress);
+            float eased = ReelConfig.apply(progress);
             visualOffset = target * eased;
 
             playPassSound();
             playCompleteSound();
+            if (complete && soundPlayed && !exitStarted) {
+                exitStarted = true;
+            }
+            if (exitStarted) {
+                exitProgress = Math.min(exitProgress + partialTick * 0.075f, 1f);
+            }
         }
 
         private void playPassSound() {
@@ -309,14 +319,14 @@ public class GachaScreen extends Screen {
             if (passedIndex == lastPassedIndex) return;
             lastPassedIndex = passedIndex;
             if (!complete) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             }
         }
 
         private void playCompleteSound() {
             if (!complete || soundPlayed) return;
             soundPlayed = true;
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F, 2));
+            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F, 2));
         }
 
         private void renderItems(GuiGraphics guiGraphics, PoseStack poseStack) {
@@ -338,7 +348,12 @@ public class GachaScreen extends Screen {
 
                 poseStack.translate(0f, ReelConfig.ITEM_SPACING * clamped, 0f);
                 poseStack.scale(scale, scale, scale);
-                guiGraphics.renderFakeItem(decoys.get(i), -8, -8);
+                if (i == resultIndex && complete) {
+                    guiGraphics.renderItem(result, -8, -8);
+                    guiGraphics.renderItemDecorations(font, result, -8, -8);
+                } else {
+                    guiGraphics.renderFakeItem(decoys.get(i), -8, -8);
+                }
 
                 guiGraphics.setColor(1f, 1f, 1f, 1f);
                 poseStack.popPose();
@@ -347,14 +362,35 @@ public class GachaScreen extends Screen {
             poseStack.popPose();
         }
 
-        private void renderSelectionIndicator(GuiGraphics guiGraphics, PoseStack poseStack) {
+        private void renderExitAnimation(GuiGraphics guiGraphics, PoseStack poseStack) {
+            if (!exitStarted) {
+                return;
+            }
+            float scale = 1.0f + 0.6f * exitProgress;
+            float alpha = 1.0f - exitProgress;
+            if (scale <= 0 || alpha <= 0) {
+                return;
+            }
+
+            RenderSystem.enableBlend();
+            guiGraphics.setColor(1f, 1f, 1f, alpha);
+            poseStack.scale(scale, scale, scale);
+            guiGraphics.renderFakeItem(result, -8, -8);
+
+            renderBox(guiGraphics, poseStack, result);
+
+            guiGraphics.setColor(1f, 1f, 1f, 1f);
+            RenderSystem.disableBlend();
+        }
+
+        private void renderBox(GuiGraphics guiGraphics, PoseStack poseStack, ItemStack stack) {
             poseStack.pushPose();
-            poseStack.translate(0, 0, 10000);
+            poseStack.translate(0, 0, 1000);
             poseStack.scale(1.25f, 1.25f, 1.25f);
             int i = 18 / 2;
             int color;
             if (complete) {
-                color = getRarityColor(result);
+                color = getRarityColor(stack);
             } else {
                 color = 0xffffffff;
             }
@@ -362,6 +398,21 @@ public class GachaScreen extends Screen {
             guiGraphics.hLine(-i, i - 1, i - 1, color);
             guiGraphics.vLine(-i, -i, i - 1, color);
             guiGraphics.vLine(i - 1, -i, i - 1, color);
+            poseStack.popPose();
+        }
+
+        @Override
+        protected boolean isValidClickButton(int button) {
+            return false;
+        }
+
+        private void renderItemTooltip(GuiGraphics guiGraphics, PoseStack poseStack, int mouseX, int mouseY) {
+            if (!isHovered || !complete) {
+                return;
+            }
+            poseStack.pushPose();
+            poseStack.translate(0, 0, 1000);
+            guiGraphics.renderTooltip(font, result, mouseX, mouseY);
             poseStack.popPose();
         }
 
