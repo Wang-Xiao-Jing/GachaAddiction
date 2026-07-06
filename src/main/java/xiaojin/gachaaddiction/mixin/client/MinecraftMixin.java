@@ -29,28 +29,4 @@ public abstract class MinecraftMixin {
 
         guiScreen1.set(originalScreen);
     }
-
-//    @WrapOperation(method = "setScreen",
-//            at = @At(value = "FIELD",
-//                    target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;",
-//                    opcode = Opcodes.PUTFIELD))
-//    private void gachaaddiction$setScreen1(
-//            Minecraft instance,
-//            Screen value,
-//            Operation<Void> original,
-//            @Local(ordinal = 0, argsOnly = true) LocalRef<Screen> guiScreen) {
-//        if (!(value instanceof GachaScreen gachaScreen)) {
-//            original.call(instance, value);
-//            return;
-//        }
-//
-//        Screen originalScreen = gachaScreen.getOriginalScreen();
-//        if (originalScreen == null) {
-//            original.call(instance, value);
-//            return;
-//        }
-//
-//        guiScreen.set(originalScreen);
-//        original.call(instance, originalScreen);
-//    }
 }

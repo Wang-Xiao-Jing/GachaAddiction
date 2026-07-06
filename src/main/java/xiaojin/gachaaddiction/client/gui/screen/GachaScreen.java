@@ -2,8 +2,6 @@ package xiaojin.gachaaddiction.client.gui.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -17,12 +15,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.storage.loot.LootTable;
 import org.lwjgl.glfw.GLFW;
-import org.yanbwe.raritycore.api.RarityCoreAPI;
-import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.util.DisplayEntry;
+import xiaojin.gachaaddiction.util.RarityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,32 +34,11 @@ public class GachaScreen extends Screen {
     private int pageSize;
     private int blinkTicks;
 
-
     public GachaScreen(Screen originalScreen, ResourceKey<LootTable> lootTableResourceKey, List<DisplayEntry> entries) {
         super(Component.empty());
         this.originalScreen = originalScreen;
         this.lootTableResourceKey = lootTableResourceKey;
         this.entries = entries;
-    }
-
-    private static int getRarityColor(ItemStack itemStack) {
-        if (GachaAddiction.RARITYCORE_LOADED) {
-            return RarityCoreAPI.getColor(RarityCoreAPI.getRarity(itemStack)) | 0xFF000000;
-        }
-
-        Rarity rarity = itemStack.getRarity();
-        Integer color = rarity.color().getColor();
-        if (color != null) {
-            return color | 0xFF000000;
-        }
-        return ChatFormatting.GRAY.getColor() | 0xFF000000;
-    }
-
-    private static int getRarityLevel(ItemStack itemStack) {
-        if (GachaAddiction.RARITYCORE_LOADED) {
-            return RarityCoreAPI.getRarity(itemStack);
-        }
-        return itemStack.getRarity().ordinal();
     }
 
     public void initializeContents() {
@@ -114,10 +89,22 @@ public class GachaScreen extends Screen {
     }
 
     private ReelWidget createReelWidget(ItemStack itemStack, RandomSource random) {
-        int rarityLevel = getRarityLevel(itemStack);
-        int decoyCount = 20 + random.nextInt(rarityLevel * 2, rarityLevel * ReelConfig.VISIBLE_COUNT);
+        int rarityLevel = RarityUtil.getRarityLevel(itemStack);
+        int decoyCount = 20;
+        if (rarityLevel < 0) {
+            decoyCount -= random.nextInt(Math.min(10, -rarityLevel * 2));
+        } else if (rarityLevel > 0) {
+            int min = rarityLevel * 2;
+            int max = rarityLevel * ReelConfig.VISIBLE_COUNT;
+            if (max > min) decoyCount += random.nextInt(min, max);
+        }
+
         List<ItemStack> decoys = DisplayEntry.generateGachaResult(entries, decoyCount, random);
-        int resultIndex = random.nextInt(20, decoys.size()) - ReelConfig.VISIBLE_COUNT;
+
+        int resultIndex = decoys.size() > ReelConfig.VISIBLE_COUNT
+                ? random.nextInt(decoys.size() - ReelConfig.VISIBLE_COUNT) + ReelConfig.VISIBLE_COUNT
+                : Math.max(0, decoys.size() - 1);
+
         decoys.add(resultIndex, itemStack.getItem().getDefaultInstance());
         return new ReelWidget(itemStack, decoys, resultIndex);
     }
@@ -144,7 +131,6 @@ public class GachaScreen extends Screen {
             addRenderableWidget(w);
         }
     }
-
 
     public Screen getOriginalScreen() {
         return originalScreen;
@@ -183,11 +169,7 @@ public class GachaScreen extends Screen {
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTransparentBackground(guiGraphics);
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.flush();
 
         Component text = Component.translatable("gui.gachaaddiction.skip_hint");
         float alpha = (float) ((Math.sin((blinkTicks + partialTick) * 0.15f) + 1.0) / 2.0);
@@ -195,6 +177,12 @@ public class GachaScreen extends Screen {
         guiGraphics.setColor(1, 1, 1, alpha);
         guiGraphics.drawString(font, text, (width - font.width(text)) / 2, height - 30, 0xFFFFFF, true);
         guiGraphics.setColor(1, 1, 1, 1);
+        guiGraphics.flush();
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -269,14 +257,12 @@ public class GachaScreen extends Screen {
             PoseStack poseStack = guiGraphics.pose();
             poseStack.pushPose();
             poseStack.translate(getX(), getY(), 0);
-
             renderItems(guiGraphics, poseStack);
             renderBox(guiGraphics, poseStack, result);
             renderExitAnimation(guiGraphics, poseStack);
-
             poseStack.popPose();
-
             renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
+            guiGraphics.flush();
         }
 
         @Override
@@ -331,8 +317,6 @@ public class GachaScreen extends Screen {
 
         private void renderItems(GuiGraphics guiGraphics, PoseStack poseStack) {
             poseStack.pushPose();
-            poseStack.translate(0, 0, 0);
-            RenderSystem.enableBlend();
             for (int i = 0; i < decoys.size(); i++) {
                 float value = (i + visualOffset) - ((ReelConfig.VISIBLE_COUNT - 1) / 2f);
                 float clamped = Math.clamp(value, -ReelConfig.VISIBLE_COUNT, ReelConfig.VISIBLE_COUNT);
@@ -344,22 +328,41 @@ public class GachaScreen extends Screen {
                 if (alpha <= 0f || scale <= 0f) continue;
 
                 poseStack.pushPose();
-                guiGraphics.setColor(1f, 1f, 1f, alpha);
-
-                poseStack.translate(0f, ReelConfig.ITEM_SPACING * clamped, 0f);
-                poseStack.scale(scale, scale, scale);
-                if (i == resultIndex && complete) {
-                    guiGraphics.renderItem(result, -8, -8);
-                    guiGraphics.renderItemDecorations(font, result, -8, -8);
-                } else {
-                    guiGraphics.renderFakeItem(decoys.get(i), -8, -8);
-                }
-
-                guiGraphics.setColor(1f, 1f, 1f, 1f);
+                int finalI = i;
+                alphaDraw(guiGraphics, () -> {
+                    poseStack.translate(0f, ReelConfig.ITEM_SPACING * clamped, 0f);
+                    poseStack.scale(scale, scale, scale);
+                    if (finalI == resultIndex && complete) {
+                        guiGraphics.renderItem(result, -8, -8);
+                        guiGraphics.renderItemDecorations(font, result, -8, -8);
+                    } else {
+                        guiGraphics.renderFakeItem(decoys.get(finalI), -8, -8);
+                    }
+                }, alpha);
                 poseStack.popPose();
             }
-            RenderSystem.disableBlend();
             poseStack.popPose();
+            guiGraphics.flush();
+        }
+
+        private void alphaDraw(GuiGraphics guiGraphics, Runnable runnable, float alpha) {
+            if (alpha < 0.999F) {
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
+                guiGraphics.setColor(1.0F, 1.0F, 1.0F, alpha);
+                RenderSystem.enableBlend();
+                RenderSystem.defaultBlendFunc();
+                RenderSystem.disableDepthTest();
+                runnable.run();
+                guiGraphics.flush();
+                RenderSystem.enableDepthTest();
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                RenderSystem.disableBlend();
+            } else {
+                RenderSystem.disableDepthTest();
+                runnable.run();
+                RenderSystem.enableDepthTest();
+            }
         }
 
         private void renderExitAnimation(GuiGraphics guiGraphics, PoseStack poseStack) {
@@ -372,15 +375,11 @@ public class GachaScreen extends Screen {
                 return;
             }
 
-            RenderSystem.enableBlend();
-            guiGraphics.setColor(1f, 1f, 1f, alpha);
-            poseStack.scale(scale, scale, scale);
-            guiGraphics.renderFakeItem(result, -8, -8);
-
-            renderBox(guiGraphics, poseStack, result);
-
-            guiGraphics.setColor(1f, 1f, 1f, 1f);
-            RenderSystem.disableBlend();
+            alphaDraw(guiGraphics, () -> {
+                poseStack.scale(scale, scale, scale);
+                renderBox(guiGraphics, poseStack, result);
+                guiGraphics.renderFakeItem(result, -8, -8);
+            }, alpha);
         }
 
         private void renderBox(GuiGraphics guiGraphics, PoseStack poseStack, ItemStack stack) {
@@ -390,7 +389,7 @@ public class GachaScreen extends Screen {
             int i = 18 / 2;
             int color;
             if (complete) {
-                color = getRarityColor(stack);
+                color = RarityUtil.getRarityColor(stack) | 0xFF000000;
             } else {
                 color = 0xffffffff;
             }
@@ -418,11 +417,6 @@ public class GachaScreen extends Screen {
 
         @Override
         protected void updateWidgetNarration(NarrationElementOutput output) {
-        }
-
-        public void stopImmediately() {
-//            visualOffset = -resultIndex + (ReelConfig.VISIBLE_COUNT - 1) / 2f;
-            complete = true;
         }
 
         public void skipToEnd() {

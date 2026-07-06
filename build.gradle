@@ -74,6 +74,14 @@ repositories {
         url 'https://jitpack.io'
         content { includeGroup "com.github.rtyley" }
     }
+    maven {
+        name "magicTeam MavenReleases"
+        url "https://maven.confluence.ink/releases"
+    }
+    maven {
+        name "magicTeam MavenSnapshots"
+        url "https://maven.confluence.ink/snapshots"
+    }
 }
 
 base {
@@ -140,8 +148,13 @@ dependencies {
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
-    implementation "maven.modrinth:raritycore:${raritycore_version}"
-    implementation "maven.modrinth:colortooltips:${colortooltips_version}"
+
+    compileOnly "maven.modrinth:raritycore:${raritycore_version}"
+    runtimeOnly "maven.modrinth:raritycore:${raritycore_version}"
+    compileOnly "maven.modrinth:colortooltips:${colortooltips_version}"
+    runtimeOnly "maven.modrinth:colortooltips:${colortooltips_version}"
+
+    implementation "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

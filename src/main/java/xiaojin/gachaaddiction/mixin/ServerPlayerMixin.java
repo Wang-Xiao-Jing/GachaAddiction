@@ -14,18 +14,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootTable;
-import noobanidus.mods.lootr.common.api.IOpeners;
-import noobanidus.mods.lootr.common.api.data.ILootrInfo;
-import noobanidus.mods.lootr.common.api.data.inventory.ILootrInventory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
-import xiaojin.gachaaddiction.mixed.IILootrInventory;
 import xiaojin.gachaaddiction.util.DisplayEntry;
 import xiaojin.gachaaddiction.util.LootDisplayCache;
+import xiaojin.gachaaddiction.util.LootrUtil;
 import xiaojin.gachaaddiction.util.ModUtil;
 
 import java.util.function.Consumer;
@@ -39,7 +35,7 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "lambda$openMenu$15", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/MenuProvider;writeClientSideData(Lnet/minecraft/world/inventory/AbstractContainerMenu;Lnet/minecraft/network/RegistryFriendlyByteBuf;)V"))
     private static void gachaaddiction$openMenu(MenuProvider menu, AbstractContainerMenu abstractcontainermenu, Consumer<RegistryFriendlyByteBuf> extraDataWriter, RegistryFriendlyByteBuf buffer, CallbackInfo ci) {
-        if (!(menu instanceof RandomizableContainer) && !(GachaAddiction.LOOTR_LOADED && menu instanceof ILootrInventory)) {
+        if (!(menu instanceof RandomizableContainer) && !LootrUtil.isInstanceofILootrInventory(menu)) {
             buffer.writeByte(0b000);
             return;
         }
@@ -68,22 +64,21 @@ public abstract class ServerPlayerMixin extends Player {
             Operation<AbstractContainerMenu> original
     ) {
         boolean isInit = true;
-        ResourceKey<LootTable> lootTable = null;
+        ResourceKey<LootTable> lootTableKey = null;
 
         if (instance instanceof RandomizableContainer randomizableContainer) {
-            lootTable = randomizableContainer.getLootTable();
-            isInit = lootTable == null;
-        } else if (GachaAddiction.LOOTR_LOADED && instance instanceof ILootrInventory iLootrInventory) {
-            ILootrInfo info = iLootrInventory.getInfo();
-            lootTable = info.getInfoLootTable();
-            isInit = IILootrInventory.of(iLootrInventory).gachaaddiction$isOpen();
+            lootTableKey = randomizableContainer.getLootTable();
+            isInit = lootTableKey == null;
+        } else if (LootrUtil.isInstanceofILootrInventory(instance)) {
+            lootTableKey = LootrUtil.getInfoLootTable(instance);
+            isInit = LootrUtil.isOpen(instance);
         }
 
         AbstractContainerMenu menu = original.call(instance, i, inventory, player);
         IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(menu);
 
         iMenu.gachaaddiction$setIsInit(isInit);
-        iMenu.gachaaddiction$setLootTableKey(lootTable);
+        iMenu.gachaaddiction$setLootTableKey(lootTableKey);
 
         return menu;
     }
