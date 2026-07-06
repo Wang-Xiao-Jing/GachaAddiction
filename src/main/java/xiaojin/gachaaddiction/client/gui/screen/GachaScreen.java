@@ -13,7 +13,6 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
@@ -26,17 +25,17 @@ import xiaojin.gachaaddiction.util.DisplayEntry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class GachaScreen extends Screen {
     private final Screen originalScreen;
     private final ResourceKey<LootTable> lootTableResourceKey;
     private final List<DisplayEntry> entries;
     private final List<ReelWidget> reelWidgets = new ArrayList<>();
-    private boolean isRemoved;
     private int currentPage;
     private int pageSize;
-    private float slideProgress = 1f;
     private static final float SLIDE_SPEED = 2f;
+    private int blinkTicks;
 
 
     public GachaScreen(Screen originalScreen, ResourceKey<LootTable> lootTableResourceKey, List<DisplayEntry> entries) {
@@ -48,15 +47,15 @@ public class GachaScreen extends Screen {
 
     private static int getRarityColor(ItemStack itemStack) {
         if (GachaAddiction.RARITYCORE_LOADED) {
-            return RarityCoreAPI.getColor(RarityCoreAPI.getRarity(itemStack));
+            return RarityCoreAPI.getColor(RarityCoreAPI.getRarity(itemStack)) | 0xFF000000;
         }
 
         Rarity rarity = itemStack.getRarity();
         Integer color = rarity.color().getColor();
         if (color != null) {
-            return color;
+            return color | 0xFF000000;
         }
-        return ChatFormatting.GRAY.getColor();
+        return ChatFormatting.GRAY.getColor() | 0xFF000000;
     }
 
     private static int getRarityLevel(ItemStack itemStack) {
@@ -72,18 +71,8 @@ public class GachaScreen extends Screen {
         }
         NonNullList<ItemStack> items = menuAccess.getMenu().getItems();
         List<ItemStack> newItems = items.stream().filter(itemStack1 -> !itemStack1.isEmpty()).toList();
-        for (var v : reelWidgets) {
-            removeWidget(v);
-        }
-        reelWidgets.clear();
-        RandomSource random = RandomSource.create();
-        for (ItemStack itemStack : newItems) {
-            int rarityLevel = getRarityLevel(itemStack);
-            List<ItemStack> decoys = DisplayEntry.generateGachaResult(entries, 20 + random.nextInt(rarityLevel * 2, rarityLevel * ReelConfig.VISIBLE_COUNT), random);
-            int resultIndex = random.nextInt(20, decoys.size()) - ReelConfig.VISIBLE_COUNT;
-            decoys.add(resultIndex, itemStack.getItem().getDefaultInstance());
-            reelWidgets.add(new ReelWidget(itemStack, decoys, resultIndex));
-        }
+        clearReels();
+        buildReelWidgets(newItems);
         initReels();
     }
 
@@ -94,44 +83,92 @@ public class GachaScreen extends Screen {
     }
 
     private void initReels() {
-        initilizePage(0);
+        initializePage(0);
     }
 
-    private void initilizePage(int page) {
+    private void removeAllReelWidgets() {
         children().removeIf(w -> w instanceof ReelWidget);
         renderables.removeIf(w -> w instanceof ReelWidget);
+    }
 
+    private void clearReels() {
+        for (var v : reelWidgets) {
+            removeWidget(v);
+        }
+        reelWidgets.clear();
+    }
+
+    private void buildReelWidgets(List<ItemStack> items) {
+        RandomSource random = RandomSource.create();
+        for (ItemStack itemStack : items) {
+            reelWidgets.add(createReelWidget(itemStack, random));
+        }
+    }
+
+    private ReelWidget createReelWidget(ItemStack itemStack, RandomSource random) {
+        int rarityLevel = getRarityLevel(itemStack);
+        int decoyCount = 20 + random.nextInt(rarityLevel * 2, rarityLevel * ReelConfig.VISIBLE_COUNT);
+        List<ItemStack> decoys = DisplayEntry.generateGachaResult(entries, decoyCount, random);
+        int resultIndex = random.nextInt(20, decoys.size()) - ReelConfig.VISIBLE_COUNT;
+        decoys.add(resultIndex, itemStack.getItem().getDefaultInstance());
+        return new ReelWidget(itemStack, decoys, resultIndex);
+    }
+
+    private void initializePage(int page) {
+        removeAllReelWidgets();
         pageSize = Math.max(1, width / 3 * 2 / 32);
         int from = page * pageSize;
         int to = Math.min(from + pageSize, reelWidgets.size());
 
         if (from >= reelWidgets.size()) {
-//            this.isRemoved = true;
-//            onClose();
-//            Minecraft.getInstance().setScreen(null);
             return;
         }
 
         List<ReelWidget> pageWidgets = reelWidgets.subList(from, to);
         int totalWidth = pageWidgets.size() * 32;
-        int startX = (width - totalWidth) / 2;
+        int startX = (width - totalWidth) / 2 + 16;
 
         for (int i = 0; i < pageWidgets.size(); i++) {
             ReelWidget w = pageWidgets.get(i);
-            w.setBaseX(startX + i * 32);
+            int x = startX + i * 32;
+            w.setX(x);
             w.setY(height / 2);
-            w.visible = true;
             addRenderableWidget(w);
         }
     }
 
-    @Override
-    public void removed() {
-        super.removed();
-    }
 
     public Screen getOriginalScreen() {
         return originalScreen;
+    }
+
+    private boolean handleSpaceKey() {
+        List<ReelWidget> limit = reelWidgets.stream().skip((long) currentPage * pageSize).limit(pageSize).toList();
+        boolean allDone = limit.stream().allMatch(ReelWidget::isComplete);
+        if (!allDone) {
+            Optional<ReelWidget> first = limit.stream().filter(reelWidget -> !reelWidget.isComplete()).findFirst();
+            if (first.isEmpty()) {
+                return false;
+            }
+            first.get().skipToEnd();
+            return true;
+        }
+
+        int nextFrom = (currentPage + 1) * pageSize;
+        if (nextFrom >= reelWidgets.size()) {
+            closeGacha();
+        } else {
+            currentPage++;
+        }
+
+        removeAllReelWidgets();
+        initializePage(currentPage);
+
+        return true;
+    }
+
+    private void closeGacha() {
+        onClose();
     }
 
     @Override
@@ -141,9 +178,17 @@ public class GachaScreen extends Screen {
     }
 
     @Override
-    public void onClose() {
-        super.onClose();
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        Component text = Component.literal("按 空格 键进行跳过");
+        float alpha = (float) ((Math.sin((blinkTicks + partialTick) * 0.15f) + 1.0) / 2.0);
+        alpha = 0.3f + 0.7f * alpha;
+        guiGraphics.setColor(1, 1, 1, alpha);
+        guiGraphics.drawString(font, text, (width - font.width(text)) / 2, height - 30, 0xFFFFFF, true);
+        guiGraphics.setColor(1,1,1,1);
     }
+
 
     @Override
     public boolean isPauseScreen() {
@@ -152,48 +197,12 @@ public class GachaScreen extends Screen {
 
     @Override
     public void tick() {
-        if (slideProgress >= 1f) return;
-        slideProgress += (1f / 20f) * SLIDE_SPEED;
-        float eased = slideProgress < 0.5f ? 2f * slideProgress * slideProgress : 1f - (float) Math.pow(-2f * slideProgress + 2f, 2) / 2f;
-        float offset = -eased * width;
-        int from = currentPage * pageSize;
-        int to = Math.min(from + pageSize, reelWidgets.size());
-        for (int i = from; i < to; i++) {
-            ReelWidget w = reelWidgets.get(i);
-            w.setX((int) (w.getBaseX() + offset));
-        }
-        if (slideProgress >= 1f) {
-            finishSlide();
-        }
-    }
-
-    private void finishSlide() {
-        children().removeIf(w -> w instanceof ReelWidget);
-        renderables.removeIf(w -> w instanceof ReelWidget);
-        initilizePage(currentPage);
-        slideProgress = 1f;
+        blinkTicks++;
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_SPACE) {
-            boolean allDone = reelWidgets.stream().skip(currentPage * pageSize).limit(pageSize).allMatch(ReelWidget::isComplete);
-            if (allDone) {
-                int nextFrom = (currentPage + 1) * pageSize;
-                if (nextFrom >= reelWidgets.size()) {
-                    this.isRemoved = true;
-                    onClose();
-                    Minecraft.getInstance().setScreen(null);
-                } else {
-                    currentPage++;
-                    slideProgress = 0f;
-                }
-                return true;
-            }
-        }
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
-            this.isRemoved = true;
-            onClose();
+        if (keyCode == GLFW.GLFW_KEY_SPACE && handleSpaceKey()) {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
@@ -252,8 +261,6 @@ public class GachaScreen extends Screen {
         private float visualOffset;
         private boolean complete;
         private float progress;
-        private final float randomOffset;
-        private int baseX;
         private int lastPassedIndex;
         private boolean soundPlayed;
 
@@ -262,12 +269,24 @@ public class GachaScreen extends Screen {
             this.result = result;
             this.decoys = decoys;
             this.resultIndex = resultIndex;
-            this.randomOffset = 0;
         }
 
         @Override
         protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            float target = -(resultIndex + randomOffset) + (ReelConfig.VISIBLE_COUNT - 1) / 2f;
+            tickAnimation(partialTick);
+
+            PoseStack poseStack = guiGraphics.pose();
+            poseStack.pushPose();
+            poseStack.translate(getX(), getY(), 0);
+
+            renderItems(guiGraphics, poseStack);
+            renderSelectionIndicator(guiGraphics, poseStack);
+
+            poseStack.popPose();
+        }
+
+        private void tickAnimation(float partialTick) {
+            float target = -resultIndex + (ReelConfig.VISIBLE_COUNT - 1) / 2f;
 
             if (!complete) {
                 float speedMul = ReelConfig.EASING.getSpeedFactor(progress);
@@ -281,23 +300,26 @@ public class GachaScreen extends Screen {
             float eased = ReelConfig.EASING.apply(progress);
             visualOffset = target * eased;
 
+            playPassSound();
+            playCompleteSound();
+        }
+
+        private void playPassSound() {
             int passedIndex = (int) Math.floor(-visualOffset);
-            if (passedIndex != lastPassedIndex) {
-                lastPassedIndex = passedIndex;
-                if (!complete) {
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                }
+            if (passedIndex == lastPassedIndex) return;
+            lastPassedIndex = passedIndex;
+            if (!complete) {
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             }
+        }
 
-            if (complete && !soundPlayed) {
-                soundPlayed = true;
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F));
-            }
+        private void playCompleteSound() {
+            if (!complete || soundPlayed) return;
+            soundPlayed = true;
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F, 2));
+        }
 
-            PoseStack poseStack = guiGraphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(getX(), getY(), 0);
-
+        private void renderItems(GuiGraphics guiGraphics, PoseStack poseStack) {
             poseStack.pushPose();
             poseStack.translate(0, 0, 0);
             RenderSystem.enableBlend();
@@ -323,12 +345,23 @@ public class GachaScreen extends Screen {
             }
             RenderSystem.disableBlend();
             poseStack.popPose();
+        }
 
+        private void renderSelectionIndicator(GuiGraphics guiGraphics, PoseStack poseStack) {
             poseStack.pushPose();
             poseStack.translate(0, 0, 10000);
             poseStack.scale(1.25f, 1.25f, 1.25f);
-            guiGraphics.blitSprite(ResourceLocation.parse("hud/hotbar_selection"), -24 / 2, -24 / 2, 24, 23);
-            poseStack.popPose();
+            int i = 18 / 2;
+            int color;
+            if (complete) {
+                color = getRarityColor(result);
+            } else {
+                color = 0xffffffff;
+            }
+            guiGraphics.hLine(-i, i - 1, -i, color);
+            guiGraphics.hLine(-i, i - 1, i - 1, color);
+            guiGraphics.vLine(-i, -i, i - 1, color);
+            guiGraphics.vLine(i - 1, -i, i - 1, color);
             poseStack.popPose();
         }
 
@@ -336,18 +369,14 @@ public class GachaScreen extends Screen {
         protected void updateWidgetNarration(NarrationElementOutput output) {
         }
 
-        public void skipToEnd() {
-            visualOffset = -(resultIndex + randomOffset) + (ReelConfig.VISIBLE_COUNT - 1) / 2f;
+        public void stopImmediately() {
+//            visualOffset = -resultIndex + (ReelConfig.VISIBLE_COUNT - 1) / 2f;
             complete = true;
         }
 
-        public void setBaseX(int x) {
-            this.baseX = x;
-            setX(x);
-        }
-
-        public int getBaseX() {
-            return baseX;
+        public void skipToEnd() {
+            progress = 1f;
+            complete = true;
         }
 
         public boolean isComplete() {
