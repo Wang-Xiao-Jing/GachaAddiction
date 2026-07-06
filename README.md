@@ -1,25 +1,26 @@
+# GachaAddiction
 
-Installation information
-=======
+[English](README_EN.md) | [中文](README.md)
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+一个视觉化抽卡/战利品展示模组，适用于 Minecraft NeoForge 1.21.1。
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+打开战利品容器时，GachaAddiction 会用动画老虎机式的转盘界面替代标准物品栏界面，以更精彩的方式展示战利品。
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+当然您可以使用 空格 键跳过战利品或使用 ESC 键跳过所有动画
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+## 功能
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+- **抽卡式展示** — 战利品以转盘动画形式滚动展示，伴有干扰物品
+- **支持所有战利品表** — 兼容所有原版战利品表及数据包添加的内容
+- **稀有度颜色** — 物品稀有度以彩色选择框高亮显示
+- **Lootr 兼容** — 完整支持 Lootr 战利品容器
+- **RarityCore 支持** — 安装 RarityCore 后使用自定义稀有度颜色
+
+## 依赖
+
+- **必需**: NeoForge 21.1.235+ 服务端和客户端
+- **推荐**: RarityCore、ColorTooltips
+
+## 许可证
+
+本项目采用 CC BY-NC-SA 4.0 协议。

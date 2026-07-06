@@ -189,7 +189,7 @@ public class GachaScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        Component text = Component.literal("按 空格 键进行跳过");
+        Component text = Component.translatable("gui.gachaaddiction.skip_hint");
         float alpha = (float) ((Math.sin((blinkTicks + partialTick) * 0.15f) + 1.0) / 2.0);
         alpha = 0.3f + 0.7f * alpha;
         guiGraphics.setColor(1, 1, 1, alpha);

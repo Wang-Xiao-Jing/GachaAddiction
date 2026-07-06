@@ -1,13 +1,3 @@
 {
-  "itemGroup.gachaaddiction": "Example Mod Tab",
-  "block.gachaaddiction.example_block": "Example Block",
-  "item.gachaaddiction.example_item": "Example Item",
-
-  "gachaaddiction.configuration.title": "GachaAddiction Configs",
-  "gachaaddiction.configuration.section.gachaaddiction.common.toml": "GachaAddiction Configs",
-  "gachaaddiction.configuration.section.gachaaddiction.common.toml.title": "GachaAddiction Configs",
-  "gachaaddiction.configuration.items": "Item List",
-  "gachaaddiction.configuration.logDirtBlock": "Log Dirt Block",
-  "gachaaddiction.configuration.magicNumberIntroduction": "Magic Number Text",
-  "gachaaddiction.configuration.magicNumber": "Magic Number"
+  "gui.gachaaddiction.skip_hint": "Press SPACE to skip"
 }
