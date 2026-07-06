@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        maven { url = "https://mirrors.cloud.tencent.com/neoforge/releases" }
+        maven { url = 'https://neoforged.forgecdn.net/releases' }
+        maven { url = 'https://maven.parchmentmc.org' }
+        maven { url = "https://maven.neoforged.net/releases" }
+        maven { url = "https://maven.firstdark.dev/releases" }
+
+    }
+    plugins {
+        id 'java-library'
+        id 'maven-publish'
+        id 'idea'
+        id 'eclipse'
+        id 'net.neoforged.moddev' version "${neoforged_moddev_version}"
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
