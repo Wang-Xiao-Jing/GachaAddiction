@@ -18,7 +18,7 @@
 
 ## 依赖
 
-- **必需**: NeoForge 21.1.235+ 服务端和客户端
+- **必需**: NeoForge 21.1.200+ 服务端和客户端
 - **推荐**: RarityCore、ColorTooltips
 
 ## 许可证
