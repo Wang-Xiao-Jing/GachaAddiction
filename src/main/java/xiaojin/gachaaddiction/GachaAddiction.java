@@ -12,6 +12,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import org.slf4j.Logger;
+import xiaojin.gachaaddiction.init.ModSoundEvents;
 
 // TODO 提供 ILootrInventory 兼容
 @Mod(GachaAddiction.MODID)
@@ -25,6 +26,8 @@ public class GachaAddiction {
 
     public GachaAddiction(IEventBus modEventBus, ModContainer modContainer) {
         NeoForge.EVENT_BUS.register(this);
+        ModSoundEvents.REGISTRY.register(modEventBus);
+
         modContainer.registerConfig(ModConfig.Type.COMMON, GachaAddictionConfig.SPEC);
     }
 
