@@ -53,11 +53,11 @@ public class ReelWidget extends AbstractWidget {
                 + RandomSource.create().nextFloat()
                 * (GachaScreen.ReelConfig.SPEED_VARIANCE_MAX - GachaScreen.ReelConfig.SPEED_VARIANCE_MIN);
 
-        decelZone = Math.max(1, GachaScreen.ReelConfig.DECEL_ZONE * GachaScreen.ReelConfig.SPEED_VARIANCE_MIN
+        this.decelZone = Math.max(1, GachaScreen.ReelConfig.DECEL_ZONE * GachaScreen.ReelConfig.SPEED_VARIANCE_MIN
                 + RandomSource.create().nextFloat()
                 * (GachaScreen.ReelConfig.SPEED_VARIANCE_MAX - GachaScreen.ReelConfig.SPEED_VARIANCE_MIN));
 
-        minSpeed = Math.max(GachaScreen.ReelConfig.MIN_SPEED, GachaScreen.ReelConfig.MIN_SPEED * GachaScreen.ReelConfig.SPEED_VARIANCE_MIN
+        this.minSpeed = Math.max(GachaScreen.ReelConfig.MIN_SPEED, GachaScreen.ReelConfig.MIN_SPEED * GachaScreen.ReelConfig.SPEED_VARIANCE_MIN
                 + RandomSource.create().nextFloat()
                 * (GachaScreen.ReelConfig.SPEED_VARIANCE_MAX - GachaScreen.ReelConfig.SPEED_VARIANCE_MIN));
     }
@@ -73,10 +73,6 @@ public class ReelWidget extends AbstractWidget {
         poseStack.translate(getX(), getY(), 0);
         renderItems(guiGraphics, poseStack);
         renderBox(guiGraphics, poseStack, result);
-//        if (!exitStarted) {
-//            renderItems(guiGraphics, poseStack);
-//            renderBox(guiGraphics, poseStack, result);
-//        }
         renderExitAnimation(guiGraphics, poseStack);
         poseStack.popPose();
         renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
@@ -106,7 +102,9 @@ public class ReelWidget extends AbstractWidget {
             exitProgress = Math.min(exitProgress + partialTick * GachaScreen.ReelConfig.EXIT_SPEED, 1f);
         }
 
-        if (complete) return;
+        if (complete) {
+            return;
+        }
 
         float target = -resultIndex + (GachaScreen.ReelConfig.VISIBLE_COUNT - 1) / 2f;
         float remaining = target - visualOffset;
@@ -134,7 +132,6 @@ public class ReelWidget extends AbstractWidget {
         if (passedIndex == lastPassedIndex) return;
         lastPassedIndex = passedIndex;
         if (!complete) {
-//            getSoundManager().stop(SoundEvents.UI_BUTTON_CLICK.value().getLocation(), SoundSource.MASTER);
             getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
         }
     }
@@ -148,7 +145,6 @@ public class ReelWidget extends AbstractWidget {
         if (!gachaScreen.tryClaimCompleteSound()) {
             return;
         }
-//        getSoundManager().stop(SoundEvents.EXPERIENCE_ORB_PICKUP.getLocation(), SoundSource.MASTER);
         getSoundManager().play(SimpleSoundInstance.forUI(getSoundEvent(), 1.0F, 2));
     }
 
@@ -288,7 +284,13 @@ public class ReelWidget extends AbstractWidget {
     }
 
     public void skipToEnd() {
+        visualOffset = -resultIndex + (GachaScreen.ReelConfig.VISIBLE_COUNT - 1) / 2f;
         complete = true;
+        playPassSound();
+        playCompleteSound();
+        if (soundPlayed && !exitStarted) {
+            exitStarted = true;
+        }
     }
 
     public boolean isComplete() {

@@ -10,9 +10,7 @@ authors = "XiaoJin"
 credits = "XiaoJin"
 logoFile = "META-INF/pack.png"
 
-description = '''
-A visual gacha/loot display mod. When opening loot containers, displays the results in an animated slot-machine style reel interface instead of the standard inventory screen. Supports any loot table with customizable display entries, and features dramatic reveal animations with rarity-colored result indicators. Compatible with Lootr for lootable chests and RarityCore for custom rarity colors.
-'''
+description = '''${mod_description}'''
 
 [[mixins]]
 config = "${mod_id}.mixins.json"
