@@ -5,9 +5,6 @@ import org.yanbwe.raritycore.api.RarityCoreAPI;
 import xiaojin.gachaaddiction.GachaAddiction;
 
 public class RarityCoreUtil {
-    public static boolean isLoaded() {
-        return GachaAddiction.RARITYCORE_LOADED;
-    }
 
     public static int getColor(ItemStack itemStack){
         return RarityCoreAPI.getColor(getRarity(itemStack));

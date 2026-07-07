@@ -3,17 +3,18 @@ package xiaojin.gachaaddiction.util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import xiaojin.gachaaddiction.GachaAddiction;
 
 public class RarityUtil {
     public static int getRarityColor(ItemStack itemStack) {
-        if (ConfluenceMagicLibUtil.isLoaded()) {
+        if (GachaAddiction.CONFLUENCE_MAGIC_LIB_LOADED) {
             var rarity = ConfluenceMagicLibUtil.getRarity(itemStack);
             if (rarity != null) {
                 return rarity.color();
             }
         }
 
-        if (RarityCoreUtil.isLoaded()) {
+        if (GachaAddiction.RARITYCORE_LOADED) {
             return RarityCoreUtil.getColor(itemStack);
         }
 
@@ -26,14 +27,14 @@ public class RarityUtil {
     }
 
     public static int getRarityLevel(ItemStack itemStack) {
-        if (ConfluenceMagicLibUtil.isLoaded()) {
+        if (GachaAddiction.CONFLUENCE_MAGIC_LIB_LOADED) {
             var rarity = ConfluenceMagicLibUtil.getRarity(itemStack);
             if (rarity != null) {
                 return ConfluenceMagicLibUtil.getRarityLevel(rarity);
             }
         }
 
-        if (RarityCoreUtil.isLoaded()) {
+        if (GachaAddiction.RARITYCORE_LOADED) {
             return RarityCoreUtil.getRarity(itemStack);
         }
 

@@ -34,10 +34,6 @@ public class ConfluenceMagicLibUtil {
         );
     }
 
-    public static boolean isLoaded() {
-        return GachaAddiction.CONFLUENCE_MAGIC_LIB_LOADED;
-    }
-
     public static @Nullable ModRarity getRarity(ItemStack itemStack) {
         return getRarity(itemStack, false);
     }
