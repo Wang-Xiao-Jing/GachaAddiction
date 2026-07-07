@@ -144,15 +144,16 @@ dependencies {
     compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixinsquared_version}"))
     implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixinsquared_version}"))
     implementation "maven.modrinth:jade:${jade_version}+neoforge"
-    implementation "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
+    compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
+//    runtimeOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
     compileOnly "maven.modrinth:raritycore:${raritycore_version}"
-    runtimeOnly "maven.modrinth:raritycore:${raritycore_version}"
+//    runtimeOnly "maven.modrinth:raritycore:${raritycore_version}"
     compileOnly "maven.modrinth:colortooltips:${colortooltips_version}"
-    runtimeOnly "maven.modrinth:colortooltips:${colortooltips_version}"
+//    runtimeOnly "maven.modrinth:colortooltips:${colortooltips_version}"
 
     compileOnly "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"
 //    runtimeOnly "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"

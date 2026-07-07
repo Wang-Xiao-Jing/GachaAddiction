@@ -10,7 +10,7 @@ import xiaojin.gachaaddiction.mixed.IILootrInventory;
 public class LootrUtil {
 
     public static boolean isInstanceofILootrInventory(MenuProvider provider) {
-        return GachaAddiction.LOOTR_LOADED && provider instanceof ILootrInventory;
+        return provider instanceof ILootrInventory;
     }
 
     public static ResourceKey<LootTable> getInfoLootTable(MenuProvider provider) {

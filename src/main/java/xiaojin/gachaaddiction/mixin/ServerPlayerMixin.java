@@ -11,6 +11,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -18,6 +19,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.util.DisplayEntry;
 import xiaojin.gachaaddiction.util.LootDisplayCache;
@@ -35,7 +37,7 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "lambda$openMenu$15", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/MenuProvider;writeClientSideData(Lnet/minecraft/world/inventory/AbstractContainerMenu;Lnet/minecraft/network/RegistryFriendlyByteBuf;)V"))
     private static void gachaaddiction$openMenu(MenuProvider menu, AbstractContainerMenu abstractcontainermenu, Consumer<RegistryFriendlyByteBuf> extraDataWriter, RegistryFriendlyByteBuf buffer, CallbackInfo ci) {
-        if (!(menu instanceof RandomizableContainer) && !LootrUtil.isInstanceofILootrInventory(menu)) {
+        if (!isLootrContainer(menu)) {
             buffer.writeByte(0b000);
             return;
         }
@@ -54,6 +56,19 @@ public abstract class ServerPlayerMixin extends Player {
         DisplayEntry.LIST_STREAM_CODEC.encode(buffer, LootDisplayCache.get(lootTableKey));
     }
 
+    private static boolean isLootrContainer(MenuProvider menu) {
+        if (GachaAddiction.LOOTR_LOADED && LootrUtil.isInstanceofILootrInventory(menu)) {
+            return true;
+        }
+        if (menu instanceof RandomizableContainer) {
+            return true;
+        }
+        if (menu instanceof ContainerEntity) {
+            return true;
+        }
+        return false;
+    }
+
     @WrapOperation(method = "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/MenuProvider;createMenu(ILnet/minecraft/world/entity/player/Inventory;Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/inventory/AbstractContainerMenu;"))
     private AbstractContainerMenu gachaaddiction$openMenu(
@@ -66,12 +81,15 @@ public abstract class ServerPlayerMixin extends Player {
         boolean isInit = true;
         ResourceKey<LootTable> lootTableKey = null;
 
-        if (instance instanceof RandomizableContainer randomizableContainer) {
-            lootTableKey = randomizableContainer.getLootTable();
-            isInit = lootTableKey == null;
-        } else if (LootrUtil.isInstanceofILootrInventory(instance)) {
+        if (GachaAddiction.LOOTR_LOADED && LootrUtil.isInstanceofILootrInventory(instance)) {
             lootTableKey = LootrUtil.getInfoLootTable(instance);
             isInit = LootrUtil.isOpen(instance);
+        } else if (instance instanceof RandomizableContainer randomizableContainer) {
+            lootTableKey = randomizableContainer.getLootTable();
+            isInit = lootTableKey == null;
+        } else if (instance instanceof ContainerEntity containerEntity) {
+            lootTableKey = containerEntity.getLootTable();
+            isInit = lootTableKey == null;
         }
 
         AbstractContainerMenu menu = original.call(instance, i, inventory, player);
