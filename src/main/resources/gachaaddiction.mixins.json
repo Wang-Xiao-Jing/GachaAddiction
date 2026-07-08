@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "AbstractContainerMenuMixin",
+    "ChestBlock_2_1Mixin",
+    "ChestBlock_2Mixin",
     "MenuTypeMixin",
     "ServerPlayerMixin",
     "accessor.LootItemAccessor",
@@ -22,7 +24,7 @@
     "requireAnnotations": true
   },
   "client": [
-    "client.MinecraftMixin",
-    "accessor.ScreenAccessor"
+    "accessor.ScreenAccessor",
+    "client.MinecraftMixin"
   ]
 }

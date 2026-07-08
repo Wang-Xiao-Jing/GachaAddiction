@@ -21,7 +21,7 @@ import java.util.Optional;
 
 public class GachaScreen extends Screen {
     private final Screen originalScreen;
-    private final ResourceKey<LootTable> lootTableResourceKey;
+    private final List<ResourceKey<LootTable>> lootTableResourceKey;
     private final List<DisplayEntry> entries;
     private final List<ReelWidget> reelWidgets = new ArrayList<>();
     private int currentPage;
@@ -30,13 +30,14 @@ public class GachaScreen extends Screen {
     private int currentRenderHighestNewCompleteLevel = -1;
     private boolean completeSoundPlayedThisFrame;
 
-    public GachaScreen(Screen originalScreen, ResourceKey<LootTable> lootTableResourceKey, List<DisplayEntry> entries) {
+    public GachaScreen(Screen originalScreen, List<ResourceKey<LootTable>> lootTableResourceKey, List<DisplayEntry> entries) {
         super(Component.empty());
         this.originalScreen = originalScreen;
         this.lootTableResourceKey = lootTableResourceKey;
         this.entries = entries;
     }
 
+    // TODO 获取包之前提示玩家等待
     public void initializeContents() {
         if (!(originalScreen instanceof MenuAccess<?> menuAccess)) {
             return;
@@ -221,31 +222,59 @@ public class GachaScreen extends Screen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
+    public List<ResourceKey<LootTable>> getLootTableResourceKey() {
+        return lootTableResourceKey;
+    }
+
     public static class ReelConfig {
-        /** 每秒经过的物品数量 */
+        /**
+         * 每秒经过的物品数量
+         */
         public static final float ITEMS_PER_SECOND = 5f;
-        /** 物品垂直间距 */
+        /**
+         * 物品垂直间距
+         */
         public static final float ITEM_SPACING = 18f;
-        /** 可见物品数量 */
+        /**
+         * 可见物品数量
+         */
         public static final int VISIBLE_COUNT = 5;
-        /** 转盘槽位大小：decoy 生成数量范围和 result 插入位置的计算基准 */
+        /**
+         * 转盘槽位大小：decoy 生成数量范围和 result 插入位置的计算基准
+         */
         public static final int SLOT_SIZE = 5;
-        /** 物品最小透明度 */
+        /**
+         * 物品最小透明度
+         */
         public static final float MIN_ALPHA = 0.0f;
-        /** 物品最大透明度 */
+        /**
+         * 物品最大透明度
+         */
         public static final float MAX_ALPHA = 1.0f;
 
-        /** 滚动减速区：距离结果还剩几个物品时开始减速 */
+        /**
+         * 滚动减速区：距离结果还剩几个物品时开始减速
+         */
         public static final float DECEL_ZONE = 4f;
-        /** 减速阶段最低速度倍率，防止完全停住 */
+        /**
+         * 减速阶段最低速度倍率，防止完全停住
+         */
         public static final float MIN_SPEED = 0.05f;
-        /** 随机速度倍率范围：最低 */
+        /**
+         * 随机速度倍率范围：最低
+         */
         public static final float SPEED_VARIANCE_MIN = 0.5f;
-        /** 随机速度倍率范围：最高 */
+        /**
+         * 随机速度倍率范围：最高
+         */
         public static final float SPEED_VARIANCE_MAX = 1.5f;
-        /** 退出动画：每 tick 的进度推进量 */
+        /**
+         * 退出动画：每 tick 的进度推进量
+         */
         public static final float EXIT_SPEED = 0.1f;
-        /** 退出动画：最大放大倍率（1 + 此值） */
+        /**
+         * 退出动画：最大放大倍率（1 + 此值）
+         */
         public static final float EXIT_MAX_SCALE = 0.6f;
 
     }

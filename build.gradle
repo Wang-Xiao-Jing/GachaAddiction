@@ -18,6 +18,10 @@ sourceSets.main.resources {
     exclude("src/generated/**/.cache")
 }
 
+boolean kubejs = true
+boolean ftb = true // FTB系列
+boolean onlyCompile = false // 仅编译
+
 repositories {
     mavenLocal()
 
@@ -33,6 +37,15 @@ repositories {
     maven {
         name = "NeoForged"
         url = "https://neoforged.forgecdn.net/releases"
+    }
+
+    maven {
+        name = "LatvianMaven" // KubeJS
+        url = "https://maven.latvian.dev/releases"
+        content {
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.latvian.apps"
+        }
     }
 
     maven {
@@ -81,6 +94,14 @@ repositories {
     maven {
         name "magicTeam MavenSnapshots"
         url "https://maven.confluence.ink/snapshots"
+    }
+
+    maven {
+        // Shedaniel's maven (Architectury API)
+        url = "https://maven.architectury.dev"
+        content {
+            includeGroup "dev.architectury"
+        }
     }
 }
 
@@ -144,19 +165,57 @@ dependencies {
     compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixinsquared_version}"))
     implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixinsquared_version}"))
     implementation "maven.modrinth:jade:${jade_version}+neoforge"
+
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
     compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
-//    runtimeOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
     compileOnly "maven.modrinth:raritycore:${raritycore_version}"
-//    runtimeOnly "maven.modrinth:raritycore:${raritycore_version}"
     compileOnly "maven.modrinth:colortooltips:${colortooltips_version}"
-//    runtimeOnly "maven.modrinth:colortooltips:${colortooltips_version}"
-
     compileOnly "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"
+
+    if (!onlyCompile) {
+//    runtimeOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
+//    runtimeOnly "maven.modrinth:raritycore:${raritycore_version}"
+//    runtimeOnly "maven.modrinth:colortooltips:${colortooltips_version}"
 //    runtimeOnly "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"
+    }
+
+    if (kubejs) {
+        if (!onlyCompile) {
+            runtimeOnly "curse.maven:rhino-416294:7104526"
+            runtimeOnly "curse.maven:kubejs-238086:7278501"
+        }
+
+        compileOnly "curse.maven:rhino-416294:7104526"
+        compileOnly "curse.maven:kubejs-238086:7278501"
+    }
+
+    if (ftb) {
+        if (!onlyCompile) {
+            //runtimeOnly "curse.maven:ftb-chunks-forge-314906:6504893"
+            runtimeOnly "curse.maven:ftb-library-forge-404465:7134093"
+            //runtimeOnly "curse.maven:ftb-ultimine-forge-386134:5671703"
+            runtimeOnly "curse.maven:ftb-teams-forge-404468:6930910"
+            runtimeOnly "curse.maven:ftb-quests-forge-289412:7133722"
+            runtimeOnly "curse.maven:ftb-filter-system-943925:6899527"
+            runtimeOnly "curse.maven:ftb-xmod-compat-889915:6979171"
+        }
+
+        //compileOnly "curse.maven:ftb-chunks-forge-314906:6504893"
+        compileOnly "curse.maven:ftb-library-forge-404465:7134093"
+        //compileOnly "curse.maven:ftb-ultimine-forge-386134:5671703"
+        compileOnly "curse.maven:ftb-teams-forge-404468:6930910"
+        compileOnly "curse.maven:ftb-quests-forge-289412:7133722"
+        compileOnly "curse.maven:ftb-filter-system-943925:6899527"
+        compileOnly "curse.maven:ftb-xmod-compat-889915:6979171"
+    }
+
+    if (ftb) {
+        compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
+        runtimeOnly "dev.architectury:architectury-neoforge:${architectury_version}"
+    }
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -169,7 +228,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_name               : mod_name,
             mod_license            : mod_license,
             mod_version            : mod_version,
-            mod_description            : mod_description,
+            mod_description        : mod_description,
     ]
     inputs.properties replaceProperties
     expand replaceProperties

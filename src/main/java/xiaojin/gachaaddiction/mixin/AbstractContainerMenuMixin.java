@@ -3,13 +3,11 @@ package xiaojin.gachaaddiction.mixin;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.storage.loot.LootTable;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.util.DisplayEntry;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(AbstractContainerMenu.class)
@@ -17,10 +15,9 @@ public abstract class AbstractContainerMenuMixin implements IAbstractContainerMe
     @Unique
     private boolean gachaaddiction$isInit = true;
     @Unique
-    @Nullable
-    private ResourceKey<LootTable> gachaaddiction$lootTableKey;
+    private List<ResourceKey<LootTable>> gachaaddiction$lootTableKey = List.of();
     @Unique
-    private List<DisplayEntry> gachaaddiction$displayEntries = new ArrayList<>();
+    private List<DisplayEntry> gachaaddiction$displayEntries = List.of();
 
     @Override
     public boolean gachaaddiction$isInit() {
@@ -33,13 +30,16 @@ public abstract class AbstractContainerMenuMixin implements IAbstractContainerMe
     }
 
     @Override
-    @Nullable
-    public ResourceKey<LootTable> gachaaddiction$getLootTableKey() {
+    public List<ResourceKey<LootTable>> gachaaddiction$getLootTableKey() {
         return gachaaddiction$lootTableKey;
     }
 
     @Override
-    public void gachaaddiction$setLootTableKey(ResourceKey<LootTable> key) {
+    public void gachaaddiction$setLootTableKey(List<ResourceKey<LootTable>> key) {
+        if (key == null) {
+            this.gachaaddiction$lootTableKey = List.of();
+            return;
+        }
         this.gachaaddiction$lootTableKey = key;
     }
 
@@ -50,6 +50,10 @@ public abstract class AbstractContainerMenuMixin implements IAbstractContainerMe
 
     @Override
     public void gachaaddiction$setDisplayEntries(List<DisplayEntry> entries) {
+        if (entries == null) {
+            this.gachaaddiction$displayEntries = List.of();
+            return;
+        }
         this.gachaaddiction$displayEntries = entries;
     }
 }

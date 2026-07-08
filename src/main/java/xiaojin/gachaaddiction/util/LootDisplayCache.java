@@ -38,4 +38,8 @@ public class LootDisplayCache {
     public static List<DisplayEntry> get(ResourceKey<LootTable> key) {
         return cache.getOrDefault(key, Collections.emptyList());
     }
+
+    public static List<DisplayEntry> get(List<ResourceKey<LootTable>> key) {
+        return key.stream().map(LootDisplayCache::get).flatMap(List::stream).toList();
+    }
 }

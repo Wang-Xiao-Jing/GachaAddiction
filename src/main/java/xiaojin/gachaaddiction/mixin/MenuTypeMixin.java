@@ -63,7 +63,7 @@ public abstract class MenuTypeMixin<T extends AbstractContainerMenu> implements 
             return;
         }
 
-        iMenu.gachaaddiction$setLootTableKey(ModUtil.LOOT_TABLE_KEY_STREAM_CODEC.decode(buf));
+        iMenu.gachaaddiction$setLootTableKey(ModUtil.LOOT_TABLE_KEY_STREAM_LIST_CODEC.decode(buf));
         iMenu.gachaaddiction$setDisplayEntries(DisplayEntry.LIST_STREAM_CODEC.decode(buf));
     }
 }

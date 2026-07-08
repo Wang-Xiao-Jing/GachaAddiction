@@ -1,14 +1,9 @@
 package xiaojin.gachaaddiction.util;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Rarity;
 import org.confluence.lib.common.component.ModRarity;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.GachaAddiction;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ConfluenceMagicLibUtil {

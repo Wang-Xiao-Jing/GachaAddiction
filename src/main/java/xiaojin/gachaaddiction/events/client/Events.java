@@ -13,6 +13,8 @@ import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.client.gui.screen.GachaScreen;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 
+import java.util.List;
+
 @EventBusSubscriber(modid = GachaAddiction.MODID, value = Dist.CLIENT)
 public class Events {
     @SubscribeEvent
@@ -34,28 +36,8 @@ public class Events {
         if (entries == null || entries.isEmpty()) {
             return;
         }
-        ResourceKey<LootTable> lootTableResourceKey = iMenu.gachaaddiction$getLootTableKey();
+        List<ResourceKey<LootTable>> lootTableResourceKey = iMenu.gachaaddiction$getLootTableKey();
         GachaScreen newScreen = new GachaScreen(screen, lootTableResourceKey, entries);
-//        Minecraft.getInstance().pushGuiLayer(newScreen);
         event.setNewScreen(newScreen);
-    }
-
-    @SubscribeEvent
-    public static void onScreenRenderPost(ScreenEvent.Render.Post event) {
-    }
-
-    @SubscribeEvent
-    public static void onScreenInitPre(ScreenEvent.Init.Pre event) {
-        Screen screen = event.getScreen();
-        if (!(screen instanceof MenuAccess<?> menuAccess)) {
-            return;
-        }
-
-        AbstractContainerMenu menu = menuAccess.getMenu();
-        IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(menu);
-    }
-
-    @SubscribeEvent
-    public static void onScreenClosing(ScreenEvent.Closing event) {
     }
 }
