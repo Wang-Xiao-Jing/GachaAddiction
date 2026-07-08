@@ -12,8 +12,10 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.client.gui.screen.GachaScreen;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
+import xiaojin.gachaaddiction.util.DisplayEntry;
 
 import java.util.List;
+import java.util.Objects;
 
 @EventBusSubscriber(modid = GachaAddiction.MODID, value = Dist.CLIENT)
 public class Events {
@@ -32,7 +34,7 @@ public class Events {
             return;
         }
 
-        var entries = iMenu.gachaaddiction$getDisplayEntries();
+        List<DisplayEntry> entries = iMenu.gachaaddiction$getDisplayEntries();
         if (entries == null || entries.isEmpty()) {
             return;
         }

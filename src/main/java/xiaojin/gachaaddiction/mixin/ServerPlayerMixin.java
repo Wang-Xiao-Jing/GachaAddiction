@@ -24,6 +24,7 @@ import xiaojin.gachaaddiction.util.LootDisplayCache;
 import xiaojin.gachaaddiction.util.ModUtil;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @Mixin(ServerPlayer.class)
@@ -43,7 +44,7 @@ public abstract class ServerPlayerMixin extends Player {
         IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(abstractcontainermenu);
         boolean isInit = iMenu.gachaaddiction$isInit();
         List<ResourceKey<LootTable>> lootTableKey = iMenu.gachaaddiction$getLootTableKey();
-        boolean isLootEmpty = lootTableKey.isEmpty();
+        boolean isLootEmpty = lootTableKey.isEmpty() || lootTableKey.stream().anyMatch(Objects::isNull);
         buffer.writeByte(0b001 | (isInit ? 0b010 : 0b000) | (isLootEmpty ? 0b000 : 0b100));
 
         if (isInit || isLootEmpty) {
