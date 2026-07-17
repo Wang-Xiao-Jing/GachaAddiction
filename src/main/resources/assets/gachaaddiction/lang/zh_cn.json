@@ -1,6 +1,6 @@
 {
   "gui.gachaaddiction.skip_hint": "按 空格 键进行跳过或按 ESC 键直接打开容器GUI",
-  "ftbquests.reward.ftbquests.loot.gachaaddiction.gacha_type": "抽卡样式",
+  "ftbquests.reward.ftbquests.loot.gachaaddiction:gacha_type": "抽卡样式",
   "gacha_type.gachaaddiction:empty": "无",
   "gacha_type.gachaaddiction:slot_machine": "老虎机"
 }

@@ -39,13 +39,6 @@ public abstract class LootRewardMixin extends RandomReward implements ILootRewar
         super(id, parent);
     }
 
-//    @Inject(method = "claim", remap = false, at = @At("HEAD"), cancellable = true)
-//    private void gachaaddiction$onClaim(ServerPlayer player, boolean notify, CallbackInfo ci) {
-//        if (gachaaddiction$getGachaType() != GachaTypes.EMPTY) return;
-//        // TODO: 发送抽卡包到客户端，延迟物品发放
-//        ci.cancel();
-//    }
-
     @WrapOperation(method = "onButtonClicked", remap = false, at = @At(value = "INVOKE", target = "Ldev/ftb/mods/ftbquests/client/gui/RewardNotificationsScreen;openGui()V"))
     private void gachaaddiction$onButtonClicked(RewardNotificationsScreen instance, Operation<Void> original) {
         original.call(instance);
@@ -77,13 +70,17 @@ public abstract class LootRewardMixin extends RandomReward implements ILootRewar
     @Override
     public void writeData(CompoundTag nbt, HolderLookup.Provider provider) {
         super.writeData(nbt, provider);
-        nbt.putString("gachaaddiction:gacha_type", gachaaddiction$getGachaTypeIdString());
+        if (this.getTable() != null) {
+            nbt.putString("gachaaddiction:gacha_type", gachaaddiction$getGachaTypeIdString());
+        }
     }
 
     @Override
     public void readData(CompoundTag nbt, HolderLookup.Provider provider) {
         super.readData(nbt, provider);
-        gachaaddiction$gachaType = FtbUtil.byId(nbt.getString("gachaaddiction:gacha_type"));
+        if (this.getTable() != null) {
+            gachaaddiction$gachaType = FtbUtil.byId(nbt.getString("gachaaddiction:gacha_type"));
+        }
     }
 
     @Override
@@ -95,7 +92,7 @@ public abstract class LootRewardMixin extends RandomReward implements ILootRewar
     @Override
     public void fillConfigGroup(ConfigGroup config) {
         super.fillConfigGroup(config);
-        config.addEnum(GachaAddiction.MODID + ".gacha_type", GachaTypes.EMPTY,
+        config.addEnum(GachaAddiction.MODID + ":gacha_type", gachaaddiction$gachaType,
                 (v) -> gachaaddiction$gachaType = v,
                 FtbUtil.NAME_MAP, GachaTypes.EMPTY);
     }
