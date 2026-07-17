@@ -2,27 +2,24 @@ package xiaojin.gachaaddiction.client.gui.screen;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootTable;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import xiaojin.gachaaddiction.client.gui.widget.ReelWidget;
-import xiaojin.gachaaddiction.util.DisplayEntry;
+import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.util.RarityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class GachaScreen extends Screen {
-    private final Screen originalScreen;
-    private final List<ResourceKey<LootTable>> lootTableResourceKey;
-    private final List<DisplayEntry> entries;
+public class SlotMachineScreen extends BasicGachaScreen {
     private final List<ReelWidget> reelWidgets = new ArrayList<>();
     private int currentPage;
     private int pageSize;
@@ -30,29 +27,25 @@ public class GachaScreen extends Screen {
     private int currentRenderHighestNewCompleteLevel = -1;
     private boolean completeSoundPlayedThisFrame;
 
-    public GachaScreen(Screen originalScreen, List<ResourceKey<LootTable>> lootTableResourceKey, List<DisplayEntry> entries) {
-        super(Component.empty());
-        this.originalScreen = originalScreen;
-        this.lootTableResourceKey = lootTableResourceKey;
-        this.entries = entries;
+    public SlotMachineScreen(@Nullable Screen originalScreen, List<@Nullable ResourceLocation> lootTableId, List<ItemStackEntry> itemStackEntries) {
+        super(Component.empty(), originalScreen, lootTableId, itemStackEntries);
     }
 
-    // TODO 获取包之前提示玩家等待
-    public void initializeContents() {
-        if (!(originalScreen instanceof MenuAccess<?> menuAccess)) {
-            return;
+    @Override
+    public void updateRewards(NonNullList<ItemStack> items) {
+        for (ItemStack item : items) {
+            rewardReceived(item, false);
         }
-        AbstractContainerMenu menu = menuAccess.getMenu();
-        NonNullList<ItemStack> items = menu.getItems();
+        refreshWidgets();
+    }
 
-        // 排除玩家本身的物品
-        if (minecraft != null && minecraft.player != null) {
-            items.removeAll(minecraft.player.inventoryMenu.getItems());
-        }
-        items.removeIf(ItemStack::isEmpty);
-
+    @Override
+    protected void refreshWidgets() {
         clearReels();
-        buildReelWidgets(items);
+        RandomSource random = RandomSource.create();
+        for (ItemStack stack : rewards) {
+            reelWidgets.add(createReelWidget(stack, random));
+        }
         initReels();
     }
 
@@ -78,15 +71,7 @@ public class GachaScreen extends Screen {
         reelWidgets.clear();
     }
 
-    private void buildReelWidgets(List<ItemStack> items) {
-        RandomSource random = RandomSource.create();
-        for (int i = 0, itemsSize = items.size(); i < itemsSize; i++) {
-            ItemStack itemStack = items.get(i);
-            reelWidgets.add(createReelWidget(i, itemStack, random));
-        }
-    }
-
-    private ReelWidget createReelWidget(int index, ItemStack itemStack, RandomSource random) {
+    private ReelWidget createReelWidget(ItemStack itemStack, RandomSource random) {
         int rarityLevel = RarityUtil.getRarityLevel(itemStack);
         int decoyCount = 40;
         if (rarityLevel < 0) {
@@ -99,14 +84,14 @@ public class GachaScreen extends Screen {
             decoyCount += random.nextInt(0, ReelConfig.SLOT_SIZE);
         }
 
-        List<ItemStack> decoys = DisplayEntry.generateGachaResult(entries, decoyCount, random);
+        List<ItemStack> decoys = ItemStackEntry.generateGachaResult(itemStackEntries, decoyCount, random);
 
         int resultIndex = decoys.size() > ReelConfig.SLOT_SIZE
                 ? random.nextInt(decoys.size() - ReelConfig.SLOT_SIZE) + ReelConfig.SLOT_SIZE
                 : Math.max(0, decoys.size() - 1);
 
         decoys.add(resultIndex, itemStack.getItem().getDefaultInstance());
-        return new ReelWidget(this, index, itemStack, decoys, resultIndex);
+        return new ReelWidget(this, itemStack, decoys, resultIndex);
     }
 
     private void initializePage(int page) {
@@ -130,10 +115,6 @@ public class GachaScreen extends Screen {
             w.setY(height / 2);
             addRenderableWidget(w);
         }
-    }
-
-    public Screen getOriginalScreen() {
-        return originalScreen;
     }
 
     public int getCurrentRenderHighestNewCompleteLevel() {
@@ -222,10 +203,6 @@ public class GachaScreen extends Screen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    public List<ResourceKey<LootTable>> getLootTableResourceKey() {
-        return lootTableResourceKey;
-    }
-
     public static class ReelConfig {
         /**
          * 每秒经过的物品数量
@@ -276,6 +253,5 @@ public class GachaScreen extends Screen {
          * 退出动画：最大放大倍率（1 + 此值）
          */
         public static final float EXIT_MAX_SCALE = 0.6f;
-
     }
 }

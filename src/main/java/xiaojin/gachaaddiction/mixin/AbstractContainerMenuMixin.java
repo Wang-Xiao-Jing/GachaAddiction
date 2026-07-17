@@ -3,11 +3,13 @@ package xiaojin.gachaaddiction.mixin;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.storage.loot.LootTable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
-import xiaojin.gachaaddiction.util.DisplayEntry;
+import xiaojin.gachaaddiction.api.ItemStackEntry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(AbstractContainerMenu.class)
@@ -15,9 +17,9 @@ public abstract class AbstractContainerMenuMixin implements IAbstractContainerMe
     @Unique
     private boolean gachaaddiction$isInit = true;
     @Unique
-    private List<ResourceKey<LootTable>> gachaaddiction$lootTableKey = List.of();
+    private List<@Nullable ResourceKey<LootTable>> gachaaddiction$lootTableKey = new ArrayList<>();
     @Unique
-    private List<DisplayEntry> gachaaddiction$displayEntries = List.of();
+    private List<ItemStackEntry> gachaaddiction$displayEntries = new ArrayList<>();
 
     @Override
     public boolean gachaaddiction$isInit() {
@@ -30,28 +32,28 @@ public abstract class AbstractContainerMenuMixin implements IAbstractContainerMe
     }
 
     @Override
-    public List<ResourceKey<LootTable>> gachaaddiction$getLootTableKey() {
+    public List<@Nullable ResourceKey<LootTable>> gachaaddiction$getLootTableKey() {
         return gachaaddiction$lootTableKey;
     }
 
     @Override
-    public void gachaaddiction$setLootTableKey(List<ResourceKey<LootTable>> key) {
+    public void gachaaddiction$setLootTableKey(@Nullable List<@Nullable ResourceKey<LootTable>> key) {
         if (key == null) {
-            this.gachaaddiction$lootTableKey = List.of();
+            this.gachaaddiction$lootTableKey = new ArrayList<>();
             return;
         }
         this.gachaaddiction$lootTableKey = key;
     }
 
     @Override
-    public List<DisplayEntry> gachaaddiction$getDisplayEntries() {
+    public List<ItemStackEntry> gachaaddiction$getDisplayEntries() {
         return gachaaddiction$displayEntries;
     }
 
     @Override
-    public void gachaaddiction$setDisplayEntries(List<DisplayEntry> entries) {
+    public void gachaaddiction$setDisplayEntries(@Nullable List<ItemStackEntry> entries) {
         if (entries == null) {
-            this.gachaaddiction$displayEntries = List.of();
+            this.gachaaddiction$displayEntries = new ArrayList<>();
             return;
         }
         this.gachaaddiction$displayEntries = entries;

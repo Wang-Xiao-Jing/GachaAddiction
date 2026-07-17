@@ -13,6 +13,8 @@
     "accessor.LootPoolSingletonContainerAccessor",
     "accessor.LootTableAccessor",
     "client.ClientPacketListenerMixin",
+    "ftb.FTBquestsNetClientMixin",
+    "ftb.LootRewardMixin",
     "lootr.ILootrInventoryMixin",
     "lootr.LootrInventoryMixin",
     "lootr.LootrSavedDataMixin"

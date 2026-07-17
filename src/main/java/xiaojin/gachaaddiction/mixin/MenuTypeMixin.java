@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
-import xiaojin.gachaaddiction.util.DisplayEntry;
+import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.util.ModUtil;
 
 @Mixin(MenuType.class)
@@ -63,7 +63,7 @@ public abstract class MenuTypeMixin<T extends AbstractContainerMenu> implements 
             return;
         }
 
-        iMenu.gachaaddiction$setLootTableKey(ModUtil.LOOT_TABLE_KEY_STREAM_LIST_CODEC.decode(buf));
-        iMenu.gachaaddiction$setDisplayEntries(DisplayEntry.LIST_STREAM_CODEC.decode(buf));
+        iMenu.gachaaddiction$setLootTableKey(ModUtil.LOOT_TABLE_KEY_LIST_STREAM_CODEC.decode(buf));
+        iMenu.gachaaddiction$setDisplayEntries(ItemStackEntry.LIST_STREAM_CODEC.decode(buf));
     }
 }

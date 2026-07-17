@@ -3,7 +3,8 @@ package xiaojin.gachaaddiction.mixed;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.storage.loot.LootTable;
-import xiaojin.gachaaddiction.util.DisplayEntry;
+import org.jetbrains.annotations.Nullable;
+import xiaojin.gachaaddiction.api.ItemStackEntry;
 
 import java.util.List;
 
@@ -16,11 +17,11 @@ public interface IAbstractContainerMenu {
 
     void gachaaddiction$setIsInit(boolean isInit);
 
-    List<ResourceKey<LootTable>> gachaaddiction$getLootTableKey();
+    List<@Nullable ResourceKey<LootTable>> gachaaddiction$getLootTableKey();
 
-    void gachaaddiction$setLootTableKey(List<ResourceKey<LootTable>> lootTableResourceKeys);
+    void gachaaddiction$setLootTableKey(@Nullable List<@Nullable ResourceKey<LootTable>> lootTableResourceKeys);
 
-    List<DisplayEntry> gachaaddiction$getDisplayEntries();
+    List<ItemStackEntry> gachaaddiction$getDisplayEntries();
 
-    void gachaaddiction$setDisplayEntries(List<DisplayEntry> entries);
+    void gachaaddiction$setDisplayEntries(@Nullable List<ItemStackEntry> entries);
 }

@@ -3,16 +3,19 @@ package xiaojin.gachaaddiction.events.client;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.client.gui.screen.GachaScreen;
+import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
-import xiaojin.gachaaddiction.util.DisplayEntry;
+import xiaojin.gachaaddiction.api.ItemStackEntry;
+import xiaojin.gachaaddiction.util.ModUtil;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,20 +29,20 @@ public class Events {
             return;
         }
 
-        AbstractContainerMenu menu = menuAccess.getMenu();
-        IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(menu);
+        IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(menuAccess.getMenu());
         boolean isInit = iMenu.gachaaddiction$isInit();
 
         if (isInit) {
             return;
         }
 
-        List<DisplayEntry> entries = iMenu.gachaaddiction$getDisplayEntries();
+        List<ItemStackEntry> entries = iMenu.gachaaddiction$getDisplayEntries();
         if (entries == null || entries.isEmpty()) {
             return;
         }
-        List<ResourceKey<LootTable>> lootTableResourceKey = iMenu.gachaaddiction$getLootTableKey();
-        GachaScreen newScreen = new GachaScreen(screen, lootTableResourceKey, entries);
+        List<@Nullable ResourceKey<LootTable>> lootTableResourceKey = iMenu.gachaaddiction$getLootTableKey();
+        List<@Nullable ResourceLocation> locationList = ModUtil.of(lootTableResourceKey);
+        SlotMachineScreen newScreen = new SlotMachineScreen(screen, locationList, entries);
         event.setNewScreen(newScreen);
     }
 }

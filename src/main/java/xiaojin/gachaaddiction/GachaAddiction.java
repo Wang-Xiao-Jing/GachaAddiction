@@ -16,7 +16,7 @@ import xiaojin.gachaaddiction.init.ModSoundEvents;
 
 // TODO 提供 ILootrInventory 兼容
 @Mod(GachaAddiction.MODID)
-public class GachaAddiction {
+public final class GachaAddiction {
     public static final String MODID = "gachaaddiction";
     public static final Logger LOGGER = LogUtils.getLogger();
 
@@ -25,10 +25,9 @@ public class GachaAddiction {
     public static final boolean CONFLUENCE_MAGIC_LIB_LOADED = ModList.get().isLoaded("confluence_magic_lib");
 
     public GachaAddiction(IEventBus modEventBus, ModContainer modContainer) {
+        GachaAddictionConfig.register(modContainer);
         NeoForge.EVENT_BUS.register(this);
         ModSoundEvents.REGISTRY.register(modEventBus);
-
-        modContainer.registerConfig(ModConfig.Type.COMMON, GachaAddictionConfig.SPEC);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

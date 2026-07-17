@@ -8,7 +8,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xiaojin.gachaaddiction.client.gui.screen.GachaScreen;
+import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
+import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
@@ -18,15 +19,17 @@ public abstract class MinecraftMixin {
             CallbackInfo ci,
             @Local(ordinal = 1) Screen old,
             @Local(ordinal = 0, argsOnly = true) LocalRef<Screen> guiScreen1) {
-        if (!(old instanceof GachaScreen gachaScreen)) {
+        if (!(old instanceof BasicGachaScreen slotMachineScreen)) {
             return;
         }
 
-        Screen originalScreen = gachaScreen.getOriginalScreen();
+        Screen originalScreen = slotMachineScreen.getOriginalScreen();
         if (originalScreen == null) {
             return;
         }
 
-        guiScreen1.set(originalScreen);
+        if (slotMachineScreen.isReturnOriginalScreen()) {
+            guiScreen1.set(originalScreen);
+        }
     }
 }

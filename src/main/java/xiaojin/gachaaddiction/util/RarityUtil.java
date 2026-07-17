@@ -23,7 +23,11 @@ public class RarityUtil {
         if (color != null) {
             return color;
         }
-        return ChatFormatting.GRAY.getColor();
+        Integer grayColor = ChatFormatting.GRAY.getColor();
+        if (grayColor == null) {
+            return 0xFFFFFF;
+        }
+        return grayColor;
     }
 
     public static int getRarityLevel(ItemStack itemStack) {

@@ -4,12 +4,15 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.NonNullList;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import xiaojin.gachaaddiction.client.gui.screen.GachaScreen;
+import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 
 import java.util.List;
 
@@ -24,8 +27,29 @@ public abstract class ClientPacketListenerMixin {
         if (screen == null) {
             return;
         }
-        if (screen instanceof GachaScreen gachaScreen) {
-            gachaScreen.initializeContents();
+
+        if (!(screen instanceof BasicGachaScreen slotMachineScreen)) {
+            return;
         }
+
+        if (!(slotMachineScreen.getOriginalScreen() instanceof MenuAccess<?> menuAccess)) {
+            return;
+        }
+
+        AbstractContainerMenu menu = menuAccess.getMenu();
+        if (menu.containerId != instance.containerId) {
+            return;
+        }
+
+        NonNullList<ItemStack> menuItems = menu.getItems();
+        // TODO 或许可以优化
+        // 排除玩家本身的物品
+        LocalPlayer localPlayer = mc.player;
+        if (localPlayer != null) {
+            menuItems.removeAll(localPlayer.inventoryMenu.getItems());
+        }
+        menuItems.removeIf(ItemStack::isEmpty);
+
+        slotMachineScreen.updateRewards(menuItems);
     }
 }

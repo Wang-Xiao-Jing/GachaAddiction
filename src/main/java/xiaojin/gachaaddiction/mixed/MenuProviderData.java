@@ -9,18 +9,19 @@ import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.util.LootrUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public record MenuProviderData(
-        List<ResourceKey<LootTable>> lootTable,
+        List<@Nullable ResourceKey<LootTable>> lootTable,
         boolean isInit
 ) {
-    public MenuProviderData(@Nullable ResourceKey<LootTable> lootTable, boolean isInit) {
+    public MenuProviderData(ResourceKey<LootTable> lootTable, boolean isInit) {
         this(lootTable == null ? List.of() : List.of(lootTable), isInit);
     }
 
-    public MenuProviderData(@Nullable ResourceKey<LootTable> lootTable) {
+    public MenuProviderData(ResourceKey<LootTable> lootTable) {
         this(lootTable, lootTable == null);
     }
 
@@ -38,7 +39,7 @@ public record MenuProviderData(
         }
 
         if (menuProvider instanceof IMenuProviderLootExtension iMenuProviderLootExtension) {
-            List<ResourceKey<LootTable>> list = iMenuProviderLootExtension.gachaaddiction$getLootTable();
+            List<@Nullable ResourceKey<LootTable>> list = iMenuProviderLootExtension.gachaaddiction$getLootTable();
             return new MenuProviderData(list, list.isEmpty() || list.stream().anyMatch(Objects::isNull));
         }
 

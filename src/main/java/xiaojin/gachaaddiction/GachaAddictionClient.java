@@ -12,7 +12,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 @Mod(value = GachaAddiction.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = GachaAddiction.MODID, value = Dist.CLIENT)
-public class GachaAddictionClient {
+public final class GachaAddictionClient {
     public GachaAddictionClient(ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }

@@ -13,13 +13,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootTable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.mixed.MenuProviderData;
-import xiaojin.gachaaddiction.util.DisplayEntry;
+import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.util.LootDisplayCache;
 import xiaojin.gachaaddiction.util.ModUtil;
 
@@ -43,7 +44,7 @@ public abstract class ServerPlayerMixin extends Player {
 
         IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(abstractcontainermenu);
         boolean isInit = iMenu.gachaaddiction$isInit();
-        List<ResourceKey<LootTable>> lootTableKey = iMenu.gachaaddiction$getLootTableKey();
+        List<@Nullable ResourceKey<LootTable>> lootTableKey = iMenu.gachaaddiction$getLootTableKey();
         boolean isLootEmpty = lootTableKey.isEmpty() || lootTableKey.stream().anyMatch(Objects::isNull);
         buffer.writeByte(0b001 | (isInit ? 0b010 : 0b000) | (isLootEmpty ? 0b000 : 0b100));
 
@@ -51,8 +52,8 @@ public abstract class ServerPlayerMixin extends Player {
             return;
         }
 
-        ModUtil.LOOT_TABLE_KEY_STREAM_LIST_CODEC.encode(buffer, lootTableKey);
-        DisplayEntry.LIST_STREAM_CODEC.encode(buffer, LootDisplayCache.get(lootTableKey));
+        ModUtil.LOOT_TABLE_KEY_LIST_STREAM_CODEC.encode(buffer, lootTableKey);
+        ItemStackEntry.LIST_STREAM_CODEC.encode(buffer, LootDisplayCache.get(lootTableKey));
     }
 
     @WrapOperation(method = "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
@@ -69,7 +70,7 @@ public abstract class ServerPlayerMixin extends Player {
         }
 
         MenuProviderData data = MenuProviderData.create(instance);
-        List<ResourceKey<LootTable>> lootTableKey = data.lootTable();
+        List<@Nullable ResourceKey<LootTable>> lootTableKey = data.lootTable();
         boolean isInit = data.isInit();
 
         // 在创建菜单、战利品之前判断状态

@@ -16,6 +16,8 @@ public class Datagen {
         var completableFuture = event.getLookupProvider();
         var existingFileHelper = event.getExistingFileHelper();
 
+        buildClient(event, new ModZhCn(output));
+
         buildServer(event, new DatagenSoundDefinitionsProvider(output, existingFileHelper));
     }
 
