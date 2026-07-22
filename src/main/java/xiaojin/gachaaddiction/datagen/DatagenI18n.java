@@ -1,5 +1,7 @@
 package xiaojin.gachaaddiction.datagen;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.data.PackOutput;
@@ -13,11 +15,16 @@ import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.mixin.accessor.LanguageProviderAccessor;
 
+import java.io.BufferedReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public abstract class DatagenI18n extends LanguageProvider {
+public class DatagenI18n extends LanguageProvider {
     protected final String modId;
 
     public DatagenI18n(PackOutput output, String modId, String locale) {
@@ -26,7 +33,27 @@ public abstract class DatagenI18n extends LanguageProvider {
     }
 
     @Override
-    public abstract void addTranslations();
+    public void addTranslations() {
+        mergeManualEntries();
+    }
+
+    /**
+     * 读取并合并现有的手动维护的 json 条目。
+     * 这样手动文件只需保留到下次 datagen 运行，之后可安全删除。
+     */
+    public void mergeManualEntries() {
+        Path manualPath = Paths.get(System.getProperty("user.dir")).getParent()
+                .resolve("lang/" + ((LanguageProviderAccessor) this).getLocale() + ".json");
+        if (!Files.exists(manualPath)) {
+            return;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(manualPath)) {
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+            json.entrySet().forEach(entry -> add(entry.getKey(), entry.getValue().getAsString()));
+        } catch (Exception e) {
+            GachaAddiction.LOGGER.warn("无法合并手动翻译文件: {}", e.getMessage());
+        }
+    }
 
     protected void addPackDescription(String a, String description) {
         add("pack." + a + ".description", description);
@@ -108,13 +135,13 @@ public abstract class DatagenI18n extends LanguageProvider {
 
     public static String getConfigTranslation(String modId, String... keys) {
         if (keys.length == 0) {
-            return modId + ".config";
+            return modId + ".configuration";
         }
         StringBuilder builder = new StringBuilder();
         for (String key : keys) {
             builder.append(".");
             builder.append(key);
         }
-        return modId + ".config" + builder;
+        return modId + ".configuration" + builder;
     }
 }

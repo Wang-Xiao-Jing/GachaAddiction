@@ -1,0 +1,6 @@
+{
+  "gui.gachaaddiction.slot_machines.kip_hint": "Press the spacebar to SKIP or press the ESC key to open the container GUI directly",
+  "ftbquests.reward.ftbquests.loot.gachaaddiction:gacha_type": "Gacha Type",
+  "gacha_type.gachaaddiction:empty": "Empty",
+  "gacha_type.gachaaddiction:slot_machine": "Slot Machine"
+}

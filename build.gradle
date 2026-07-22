@@ -21,10 +21,10 @@ sourceSets.main.resources {
 boolean kubejs = true
 boolean ftb = true // FTB系列
 boolean onlyCompile = false // 仅编译
-boolean lootr = false // 仅编译
-boolean raritycore = false // 仅编译
-boolean colortooltips = false // 仅编译
-boolean confluence = false // 仅编译
+boolean lootr = true
+boolean raritycore = false
+boolean colortooltips = false
+boolean confluence = false
 
 repositories {
     mavenLocal()

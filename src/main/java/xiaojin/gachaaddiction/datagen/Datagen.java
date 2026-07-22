@@ -17,6 +17,7 @@ public class Datagen {
         var existingFileHelper = event.getExistingFileHelper();
 
         buildClient(event, new ModZhCn(output));
+        buildClient(event, new DatagenI18n(output, GachaAddiction.MODID, "en_us"));
 
         buildServer(event, new DatagenSoundDefinitionsProvider(output, existingFileHelper));
     }

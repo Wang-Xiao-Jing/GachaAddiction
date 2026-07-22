@@ -1,0 +1,10 @@
+{
+  "default": "gachaaddiction:level0",
+  "match": {
+    "0": "gachaaddiction:level0",
+    "1": "gachaaddiction:level1",
+    "2": "gachaaddiction:level2",
+    "3": "gachaaddiction:level3",
+    "4": "gachaaddiction:level4"
+  }
+}

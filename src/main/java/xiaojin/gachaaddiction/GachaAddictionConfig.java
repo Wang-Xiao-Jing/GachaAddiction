@@ -2,30 +2,28 @@ package xiaojin.gachaaddiction;
 
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
-import xiaojin.gachaaddiction.config.GachaAddictionClientConfig;
-import xiaojin.gachaaddiction.config.GachaAddictionCommonConfig;
-import xiaojin.gachaaddiction.config.GachaAddictionServerConfig;
+import xiaojin.gachaaddiction.config.*;
 import net.neoforged.neoforge.common.ModConfigSpec;
-import org.apache.commons.lang3.tuple.Pair;
 
 public final class GachaAddictionConfig {
-    public static final GachaAddictionClientConfig CLIENT;
-    public static final GachaAddictionServerConfig SERVER;
-    public static final GachaAddictionCommonConfig COMMON;
-    public static final ModConfigSpec CLIENT_SPEC;
-    public static final ModConfigSpec SERVER_SPEC;
-    public static final ModConfigSpec COMMON_SPEC;
+    public static final ClientConfig CLIENT;
+    public static final ServerConfig SERVER;
+    public static final CommonConfig COMMON;
+
+    private static final ModConfigSpec CLIENT_SPEC;
+    private static final ModConfigSpec SERVER_SPEC;
+    private static final ModConfigSpec COMMON_SPEC;
 
     static {
-        Pair<GachaAddictionClientConfig, ModConfigSpec> clientPair = new ModConfigSpec.Builder().configure(GachaAddictionClientConfig::new);
+        var clientPair = new ModConfigSpec.Builder().configure(ClientConfig::new);
         CLIENT = clientPair.getKey();
         CLIENT_SPEC = clientPair.getValue();
 
-        Pair<GachaAddictionServerConfig, ModConfigSpec> serverPair = new ModConfigSpec.Builder().configure(GachaAddictionServerConfig::new);
+        var serverPair = new ModConfigSpec.Builder().configure(ServerConfig::new);
         SERVER = serverPair.getKey();
         SERVER_SPEC = serverPair.getValue();
 
-        Pair<GachaAddictionCommonConfig, ModConfigSpec> commonPair = new ModConfigSpec.Builder().configure(GachaAddictionCommonConfig::new);
+        var commonPair = new ModConfigSpec.Builder().configure(CommonConfig::new);
         COMMON = commonPair.getKey();
         COMMON_SPEC = commonPair.getValue();
     }

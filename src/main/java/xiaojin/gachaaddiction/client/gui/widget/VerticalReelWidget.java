@@ -10,18 +10,21 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import xiaojin.gachaaddiction.GachaAddictionConfig;
 import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
-import xiaojin.gachaaddiction.init.ModSoundEvents;
+import xiaojin.gachaaddiction.config.ClientConfig;
+import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 import xiaojin.gachaaddiction.util.RarityUtil;
 
 import java.util.List;
 
-public class ReelWidget extends AbstractWidget {
+public class VerticalReelWidget extends AbstractWidget {
+    private final ClientConfig clientConfig = GachaAddictionConfig.CLIENT;
+    private final ClientConfig.SlotMachineConfig slotMachineConfig = clientConfig.slotMachineConfig;
     private final SlotMachineScreen slotMachineScreen;
     private final ItemStack result;
     private final int resultColor;
@@ -38,8 +41,9 @@ public class ReelWidget extends AbstractWidget {
     private final float speedMultiplier;
     private final float decelZone;
     private float minSpeed;
+    private final RandomSource randomSource;
 
-    public ReelWidget(SlotMachineScreen slotMachineScreen, ItemStack result, List<ItemStack> decoys, int resultIndex) {
+    public VerticalReelWidget(SlotMachineScreen slotMachineScreen, ItemStack result, List<ItemStack> decoys, int resultIndex) {
         super(0, 0, 32, 32, Component.empty());
         this.slotMachineScreen = slotMachineScreen;
         this.result = result;
@@ -47,17 +51,21 @@ public class ReelWidget extends AbstractWidget {
         this.resultIndex = resultIndex;
         this.resultColor = RarityUtil.getRarityColor(result) | 0xFF000000;
         this.resultLevel = RarityUtil.getRarityLevel(result);
-        this.speedMultiplier = SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MIN
-                + RandomSource.create().nextFloat()
-                * (SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MAX - SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MIN);
+        this.randomSource = RandomSource.create();
 
-        this.decelZone = Math.max(1, SlotMachineScreen.ReelConfig.DECEL_ZONE * SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MIN
-                + RandomSource.create().nextFloat()
-                * (SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MAX - SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MIN));
+        double speedVarianceMin = slotMachineConfig.speedVarianceMin.get();
+        double decelZone = slotMachineConfig.decelZone.get();
+        double decelZoneVarianceMin = slotMachineConfig.decelZoneVarianceMin.get();
+        double decelZoneVarianceMax = slotMachineConfig.decelZoneVarianceMax.get();
+        double minSpeed = slotMachineConfig.decelZoneMinSpeed.get();
+        double minSpeedVarianceMax = slotMachineConfig.minSpeedVarianceMax.get();
+        double minSpeedVarianceMin = slotMachineConfig.minSpeedVarianceMin.get();
 
-        this.minSpeed = Math.max(SlotMachineScreen.ReelConfig.MIN_SPEED, SlotMachineScreen.ReelConfig.MIN_SPEED * SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MIN
-                + RandomSource.create().nextFloat()
-                * (SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MAX - SlotMachineScreen.ReelConfig.SPEED_VARIANCE_MIN));
+        this.speedMultiplier = (float) (speedVarianceMin + randomSource.nextFloat() * (slotMachineConfig.speedVarianceMax.get() - speedVarianceMin));
+        this.decelZone = (float) Math.max(1,
+                decelZone * decelZoneVarianceMin + randomSource.nextFloat() * (decelZoneVarianceMax - decelZoneVarianceMin));
+        this.minSpeed = (float) Math.max(minSpeed,
+                minSpeed * minSpeedVarianceMin + randomSource.nextFloat() * (minSpeedVarianceMax - minSpeedVarianceMin));
     }
 
     @Override
@@ -97,14 +105,14 @@ public class ReelWidget extends AbstractWidget {
 
     private void tickAnimation(float partialTick) {
         if (exitStarted) {
-            exitProgress = Math.min(exitProgress + partialTick * SlotMachineScreen.ReelConfig.EXIT_SPEED, 1f);
+            exitProgress = Math.min(exitProgress + partialTick * slotMachineConfig.exitSpeed.get().floatValue(), 1f);
         }
 
         if (complete) {
             return;
         }
 
-        float target = -resultIndex + (SlotMachineScreen.ReelConfig.VISIBLE_COUNT - 1) / 2f;
+        float target = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
         float remaining = target - visualOffset;
 
         if (remaining >= 0f) {
@@ -114,12 +122,16 @@ public class ReelWidget extends AbstractWidget {
             float dist = -remaining;
             float speedMul = dist > decelZone ? 1f
                     : Math.max(minSpeed, dist / decelZone);
-            float move = partialTick * SlotMachineScreen.ReelConfig.ITEMS_PER_SECOND * speedMul * speedMultiplier / 20f;
+            float move = partialTick * slotMachineConfig.itemsPerSecond.get().floatValue() * speedMul * speedMultiplier / 20f;
             visualOffset = Math.max(target, visualOffset - move);
         }
 
-        playPassSound();
-        playCompleteSound();
+        if (slotMachineConfig.passSoundEffects.get()) {
+            playPassSound();
+        }
+        if (clientConfig.rewardSoundEffects.get()) {
+            playRewardSound(result);
+        }
         if (complete && soundPlayed && !exitStarted) {
             exitStarted = true;
         }
@@ -134,7 +146,7 @@ public class ReelWidget extends AbstractWidget {
         }
     }
 
-    private void playCompleteSound() {
+    private void playRewardSound(ItemStack result) {
         if (!complete || soundPlayed) return;
         soundPlayed = true;
         if (resultLevel < slotMachineScreen.getCurrentRenderHighestNewCompleteLevel()) {
@@ -143,41 +155,30 @@ public class ReelWidget extends AbstractWidget {
         if (!slotMachineScreen.tryClaimCompleteSound()) {
             return;
         }
-        getSoundManager().play(SimpleSoundInstance.forUI(getSoundEvent(), 1.0F, 2));
-    }
-
-    private @NotNull SoundEvent getSoundEvent() {
-        if (resultLevel >= 4) {
-            return ModSoundEvents.LEVEL4.get();
-        } else if (resultLevel == 3) {
-            return ModSoundEvents.LEVEL3.get();
-        } else if (resultLevel == 2) {
-            return ModSoundEvents.LEVEL2.get();
-        } else if (resultLevel == 1) {
-            return ModSoundEvents.LEVEL1.get();
-        } else {
-            return ModSoundEvents.LEVEL0.get();
-        }/* else {
-            return SoundEvents.EXPERIENCE_ORB_PICKUP;
-        }*/
+        getSoundManager().play(GachaaAdictionConfigData.getSoundEventsFunction().apply(result));
     }
 
     private void renderItems(GuiGraphics guiGraphics, PoseStack poseStack) {
+        int visibleCount = slotMachineConfig.itemVisibleCount.get();
+        float maxAlpha = slotMachineConfig.itemMaxAlpha.get().floatValue();
+        float minAlpha = slotMachineConfig.itemMinAlpha.get().floatValue();
+        float itemSpacing = slotMachineConfig.itemSpacing.get().floatValue();
+
         poseStack.pushPose();
         for (int i = 0; i < decoys.size(); i++) {
-            float value = (i + visualOffset) - ((SlotMachineScreen.ReelConfig.VISIBLE_COUNT - 1) / 2f);
-            float clamped = Math.clamp(value, -SlotMachineScreen.ReelConfig.VISIBLE_COUNT, SlotMachineScreen.ReelConfig.VISIBLE_COUNT);
-            float normalized = Math.abs(clamped) / SlotMachineScreen.ReelConfig.VISIBLE_COUNT;
+            float value = (i + visualOffset) - ((visibleCount - 1) / 2f);
+            float clamped = Math.clamp(value, -visibleCount, visibleCount);
+            float normalized = Math.abs(clamped) / visibleCount;
             if (normalized >= 1.1f) continue;
 
             float scale = 1.0f + 0.25f * (1.0f - Math.min(normalized / 0.20f, 1.0f));
-            float alpha = SlotMachineScreen.ReelConfig.MAX_ALPHA - (SlotMachineScreen.ReelConfig.MAX_ALPHA - SlotMachineScreen.ReelConfig.MIN_ALPHA) * normalized;
+            float alpha = maxAlpha - (maxAlpha - minAlpha) * normalized;
             if (alpha <= 0f || scale <= 0f) continue;
 
             poseStack.pushPose();
             int finalI = i;
             alphaDraw(guiGraphics, () -> {
-                poseStack.translate(0f, SlotMachineScreen.ReelConfig.ITEM_SPACING * clamped, 0f);
+                poseStack.translate(0f, itemSpacing * clamped, 0f);
                 poseStack.scale(scale, scale, scale);
                 if (finalI == resultIndex && complete) {
                     guiGraphics.renderItem(result, -8, -8);
@@ -216,14 +217,13 @@ public class ReelWidget extends AbstractWidget {
         if (!exitStarted) {
             return;
         }
-        float scale = 1.0f + SlotMachineScreen.ReelConfig.EXIT_MAX_SCALE * exitProgress;
+        float scale = 1.0f + slotMachineConfig.exitMaxScale.get().floatValue() * exitProgress;
         float alpha = 1.0f - exitProgress;
         if (scale <= 0 || alpha <= 0) {
             return;
         }
 
         poseStack.pushPose();
-//        poseStack.translate(-8, -8, 0);
         poseStack.scale(scale, scale, scale);
         alphaDraw(guiGraphics, () -> {
             guiGraphics.renderFakeItem(result, -8, -8);
@@ -282,10 +282,10 @@ public class ReelWidget extends AbstractWidget {
     }
 
     public void skipToEnd() {
-        visualOffset = -resultIndex + (SlotMachineScreen.ReelConfig.VISIBLE_COUNT - 1) / 2f;
+        visualOffset = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
         complete = true;
         playPassSound();
-        playCompleteSound();
+        playRewardSound(result);
         if (soundPlayed && !exitStarted) {
             exitStarted = true;
         }

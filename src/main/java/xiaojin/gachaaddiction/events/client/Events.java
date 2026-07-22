@@ -8,6 +8,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
+import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 import xiaojin.gachaaddiction.util.ModUtil;
 
 import java.util.List;
@@ -44,5 +46,10 @@ public class Events {
         List<@Nullable ResourceLocation> locationList = ModUtil.of(lootTableResourceKey);
         SlotMachineScreen newScreen = new SlotMachineScreen(screen, locationList, entries);
         event.setNewScreen(newScreen);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener(GachaaAdictionConfigData.INSTANCE);
     }
 }

@@ -51,3 +51,5 @@ repo/
 .claude/skills/mixin-writing/references/expressions-language.md
 .claude/skills/mixinmcp-tools/SKILL.md
 .claude/skills/mixinmcp-tools/references/toolchains.md
+/src/generated/
+/src/generated/
