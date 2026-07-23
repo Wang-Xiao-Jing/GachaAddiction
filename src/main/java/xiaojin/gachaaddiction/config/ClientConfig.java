@@ -1,6 +1,10 @@
 package xiaojin.gachaaddiction.config;
 
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec.*;
+import xiaojin.gachaaddiction.api.GachaType;
+import xiaojin.gachaaddiction.datagen.DatagenI18n;
+import xiaojin.gachaaddiction.init.GachaTypes;
 
 
 public class ClientConfig extends BasicConfig {
@@ -10,6 +14,10 @@ public class ClientConfig extends BasicConfig {
      */
     public final BooleanValue mergeItem;
     /**
+     * 稀有度排序
+     */
+    public final BooleanValue raritySorting;
+    /**
      * 奖品音效
      */
     public final BooleanValue rewardSoundEffects;
@@ -17,6 +25,14 @@ public class ClientConfig extends BasicConfig {
      * 奖品音效优化
      */
     public final BooleanValue rewardSoundEffectsOptimize;
+    /**
+     * 开启FTB任务抽奖的抽奖屏幕
+     */
+    public final BooleanValue ftbQuestsGachaa;
+    /**
+     * 默认抽奖屏幕类型
+     */
+    public final ConfigValue<String> defaultGachaaType;
     /**
      * 老虎机配置
      */
@@ -28,11 +44,21 @@ public class ClientConfig extends BasicConfig {
         //region 抽奖屏幕
         push("gachaa_screen");
         mergeItem = define(true, "merge_item");
+        raritySorting = define(true, "rarity_sorting", "开启后按稀有度排序");
         rewardSoundEffects = define(true, "reward_sound_effects");
         rewardSoundEffectsOptimize = define(true, "reward_sound_effects_optimize", "开启后同时只出现一次获得奖品的音效，并只播放最高的");
+        ftbQuestsGachaa = define(true, "ftb_quests_gachaa", "开启后FTB任务中就算没有开启也会开启抽奖界面");
+        defaultGachaaType = builder.comment("当抽奖屏幕没有定义时将使用这个类型")
+                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("default_gachaas_type")))
+                .defineInList("default_gachaas_type", GachaTypes.SLOT_MACHINE.getId().toString(),
+                        GachaTypes.getLiat().stream().map(t -> t.getId().toString()).toList());
         slotMachineConfig = new SlotMachineConfig(builder);
         pop();
         //endregion
+    }
+
+    public GachaType getDefaultGachaaType() {
+        return GachaTypes.getDefault(ResourceLocation.parse(defaultGachaaType.get()));
     }
 
     public static class SlotMachineConfig extends BasicConfig {

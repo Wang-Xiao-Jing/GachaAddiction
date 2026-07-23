@@ -24,7 +24,7 @@ public class BasicConfig {
     protected ModConfigSpec.DoubleValue define(double defaultValue, double min, double max, String key, String... comment) {
         return builder.comment(comment)
                 .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath(key)))
-                .defineInRange(/*builder.currentPath */key, defaultValue, min, max);
+                .defineInRange(key, defaultValue, min, max);
     }
 
     protected ModConfigSpec.IntValue define(int defaultValue, int min, int max, String key, String... comment) {
@@ -56,7 +56,7 @@ public class BasicConfig {
         return builder.pop();
     }
 
-    private String[] getCurrentPath(String... key) {
+    protected String[] getCurrentPath(String... key) {
         List<String> currentPath = new ArrayList<>();
         currentPath.addAll(((ModConfigSpecBuilderAccesor) builder).getCurrentPath());
         currentPath.addAll(Arrays.asList(key));

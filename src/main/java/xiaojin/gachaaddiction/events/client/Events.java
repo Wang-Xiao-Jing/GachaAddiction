@@ -2,25 +2,21 @@ package xiaojin.gachaaddiction.events.client;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
+import xiaojin.gachaaddiction.GachaAddictionConfig;
+import xiaojin.gachaaddiction.api.GachaType;
+import xiaojin.gachaaddiction.init.GachaTypes;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 import xiaojin.gachaaddiction.util.ModUtil;
 
 import java.util.List;
-import java.util.Objects;
 
 @EventBusSubscriber(modid = GachaAddiction.MODID, value = Dist.CLIENT)
 public class Events {
@@ -38,14 +34,23 @@ public class Events {
             return;
         }
 
+        // 接受类型
+        GachaType gachaType = GachaTypes.EMPTY;
+
+        if (gachaType.isEmpty()) {
+            gachaType = GachaAddictionConfig.CLIENT.getDefaultGachaaType();
+            if (gachaType.isEmpty()) {
+                return;
+            }
+        }
+
         List<ItemStackEntry> entries = iMenu.gachaaddiction$getDisplayEntries();
-        if (entries == null || entries.isEmpty()) {
+        if (entries.isEmpty()) {
             return;
         }
-        List<@Nullable ResourceKey<LootTable>> lootTableResourceKey = iMenu.gachaaddiction$getLootTableKey();
-        List<@Nullable ResourceLocation> locationList = ModUtil.of(lootTableResourceKey);
-        SlotMachineScreen newScreen = new SlotMachineScreen(screen, locationList, entries);
-        event.setNewScreen(newScreen);
+
+        event.setNewScreen(gachaType.getClientData()
+                .create(screen, ModUtil.of(iMenu.gachaaddiction$getLootTableKey()), entries));
     }
 
     @SubscribeEvent

@@ -15,12 +15,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.init.GachaTypes;
@@ -42,7 +42,7 @@ public abstract class LootRewardMixin extends RandomReward implements ILootRewar
     @WrapOperation(method = "onButtonClicked", remap = false, at = @At(value = "INVOKE", target = "Ldev/ftb/mods/ftbquests/client/gui/RewardNotificationsScreen;openGui()V"))
     private void gachaaddiction$onButtonClicked(RewardNotificationsScreen instance, Operation<Void> original) {
         original.call(instance);
-        if (gachaaddiction$getGachaType() == GachaTypes.EMPTY) {
+        if (!GachaAddictionConfig.CLIENT.ftbQuestsGachaa.get() || gachaaddiction$getGachaType().isEmpty()) {
             return;
         }
 
@@ -62,7 +62,16 @@ public abstract class LootRewardMixin extends RandomReward implements ILootRewar
             }
         }
 
-        gachaaddiction$gachaType.getClientData()
+        GachaType gachaType = gachaaddiction$gachaType;
+
+        if (gachaaddiction$gachaType.isEmpty()) {
+            gachaType = GachaAddictionConfig.CLIENT.getDefaultGachaaType();
+            if (gachaType.isEmpty()) {
+                return;
+            }
+        }
+
+        gachaType.getClientData()
                 .open(List.of(), itemStackEntries)
                 .setReturnOriginalScreen(false);
     }

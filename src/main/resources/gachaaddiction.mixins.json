@@ -29,6 +29,7 @@
   },
   "client": [
     "accessor.ScreenAccessor",
+    "client.ConfigurationSectionScreenMixin",
     "client.MinecraftMixin"
   ],
   "mixinextras": {

@@ -9,10 +9,10 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
-import xiaojin.gachaaddiction.GachaAddictionConfig;
+import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.client.gui.widget.VerticalReelWidget;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
-import xiaojin.gachaaddiction.util.RarityUtil;
+import xiaojin.gachaaddiction.config.ClientConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +20,12 @@ import java.util.Optional;
 
 public class SlotMachineScreen extends BasicGachaScreen {
     public static final String SKIP_HINT = "gui.gachaaddiction.slot_machines.kip_hint";
+    protected final ClientConfig.SlotMachineConfig slotMachineConfig = clientConfig.slotMachineConfig;
     private final List<VerticalReelWidget> verticalReelWidgets = new ArrayList<>();
     private int currentPage;
     private int pageSize;
     private int blinkTicks;
-    private int currentRenderHighestNewCompleteLevel = -1;
-    private boolean completeSoundPlayedThisFrame;
+    private boolean passSoundPlayedThisFrame;
 
     public SlotMachineScreen(@Nullable Screen originalScreen, List<@Nullable ResourceLocation> lootTableId, List<ItemStackEntry> itemStackEntries) {
         super(Component.empty(), originalScreen, lootTableId, itemStackEntries);
@@ -43,8 +43,8 @@ public class SlotMachineScreen extends BasicGachaScreen {
     protected void refreshWidgets() {
         clearReels();
         RandomSource random = RandomSource.create();
-        for (ItemStack stack : rewards) {
-            verticalReelWidgets.add(createReelWidget(stack, random));
+        for (RewardData data : rewards) {
+            verticalReelWidgets.add(createReelWidget(data, random));
         }
         initReels();
     }
@@ -71,9 +71,16 @@ public class SlotMachineScreen extends BasicGachaScreen {
         verticalReelWidgets.clear();
     }
 
-    private VerticalReelWidget createReelWidget(ItemStack itemStack, RandomSource random) {
-        int rarityLevel = RarityUtil.getRarityLevel(itemStack);
-        int slotSize = GachaAddictionConfig.CLIENT.slotMachineSlotSize.get();
+    public boolean tryClaimPassSound() {
+        if (!slotMachineConfig.passSoundEffectsOptimize.get()) return true;
+        if (passSoundPlayedThisFrame) return false;
+        passSoundPlayedThisFrame = true;
+        return true;
+    }
+
+    private VerticalReelWidget createReelWidget(RewardData data, RandomSource random) {
+        int rarityLevel = data.getRarityLevel();
+        int slotSize = slotMachineConfig.itemSlotSize.get();
         int decoyCount = 40;
         if (rarityLevel < 0) {
             decoyCount -= random.nextInt(Math.min(20, -rarityLevel * 2));
@@ -91,8 +98,8 @@ public class SlotMachineScreen extends BasicGachaScreen {
                 ? random.nextInt(decoys.size() - slotSize) + slotSize
                 : Math.max(0, decoys.size() - 1);
 
-        decoys.add(resultIndex, itemStack.getItem().getDefaultInstance());
-        return new VerticalReelWidget(this, itemStack, decoys, resultIndex);
+        decoys.add(resultIndex, data.getItemStack().getItem().getDefaultInstance());
+        return new VerticalReelWidget(this, data, decoys, resultIndex);
     }
 
     private void initializePage(int page) {
@@ -116,16 +123,6 @@ public class SlotMachineScreen extends BasicGachaScreen {
             w.setY(height / 2);
             addRenderableWidget(w);
         }
-    }
-
-    public int getCurrentRenderHighestNewCompleteLevel() {
-        return currentRenderHighestNewCompleteLevel;
-    }
-
-    public boolean tryClaimCompleteSound() {
-        if (completeSoundPlayedThisFrame) return false;
-        completeSoundPlayedThisFrame = true;
-        return true;
     }
 
     private boolean handleSpaceKey() {
@@ -166,12 +163,15 @@ public class SlotMachineScreen extends BasicGachaScreen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        currentRenderHighestNewCompleteLevel = verticalReelWidgets.stream()
-                .filter(w -> w.isComplete() && !w.hasPlayedSound())
-                .mapToInt(VerticalReelWidget::getResultLevel)
-                .max()
-                .orElse(-1);
-        completeSoundPlayedThisFrame = false;
+        if (clientConfig.rewardSoundEffectsOptimize.get()) {
+            currentRenderHighestNewCompleteLevel = verticalReelWidgets.stream()
+                    .filter(w -> w.isComplete() && !w.hasPlayedSound())
+                    .mapToInt(VerticalReelWidget::getResultLevel)
+                    .max()
+                    .orElse(-1);
+            completeSoundPlayedThisFrame = false;
+        }
+        passSoundPlayedThisFrame = false;
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         Component text = Component.translatable(SKIP_HINT);

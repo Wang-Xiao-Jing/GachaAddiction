@@ -11,6 +11,7 @@ credits = "XiaoJin"
 logoFile = "META-INF/pack.png"
 
 description = '''${mod_description}'''
+accessTransformers = "META-INF/accesstransformer.cfg"
 
 [[mixins]]
 config = "${mod_id}.mixins.json"

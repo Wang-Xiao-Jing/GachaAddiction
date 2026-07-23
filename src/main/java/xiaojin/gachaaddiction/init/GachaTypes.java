@@ -1,6 +1,7 @@
 package xiaojin.gachaaddiction.init;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.api.GachaType;
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.GachaAddiction;
@@ -36,8 +37,16 @@ public class GachaTypes {
         return Collections.unmodifiableList(GACHA_TYPE_LIST);
     }
 
+    @Nullable
     public static GachaType get(ResourceLocation id) {
         return GACHA_TYPE_MPA.get(id);
+    }
+
+    public static GachaType getDefault(ResourceLocation id) {
+        if (!GACHA_TYPE_MPA.containsKey(id)){
+            return SLOT_MACHINE;
+        }
+        return get(id);
     }
 
     public static void init() {

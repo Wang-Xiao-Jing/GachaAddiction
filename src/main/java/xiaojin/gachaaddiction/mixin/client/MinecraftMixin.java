@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
-import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {

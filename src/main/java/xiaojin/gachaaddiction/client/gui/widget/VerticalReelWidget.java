@@ -15,10 +15,10 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.gachaaddiction.GachaAddictionConfig;
+import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
 import xiaojin.gachaaddiction.config.ClientConfig;
 import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
-import xiaojin.gachaaddiction.util.RarityUtil;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class VerticalReelWidget extends AbstractWidget {
     private final ClientConfig clientConfig = GachaAddictionConfig.CLIENT;
     private final ClientConfig.SlotMachineConfig slotMachineConfig = clientConfig.slotMachineConfig;
     private final SlotMachineScreen slotMachineScreen;
-    private final ItemStack result;
+    private final RewardData result;
     private final int resultColor;
     private final int resultLevel;
     private final List<ItemStack> decoys;
@@ -43,14 +43,14 @@ public class VerticalReelWidget extends AbstractWidget {
     private float minSpeed;
     private final RandomSource randomSource;
 
-    public VerticalReelWidget(SlotMachineScreen slotMachineScreen, ItemStack result, List<ItemStack> decoys, int resultIndex) {
+    public VerticalReelWidget(SlotMachineScreen slotMachineScreen, RewardData result, List<ItemStack> decoys, int resultIndex) {
         super(0, 0, 32, 32, Component.empty());
         this.slotMachineScreen = slotMachineScreen;
         this.result = result;
         this.decoys = decoys;
         this.resultIndex = resultIndex;
-        this.resultColor = RarityUtil.getRarityColor(result) | 0xFF000000;
-        this.resultLevel = RarityUtil.getRarityLevel(result);
+        this.resultColor = result.getRarityColor() | 0xFF000000;
+        this.resultLevel = result.getRarityLevel();
         this.randomSource = RandomSource.create();
 
         double speedVarianceMin = slotMachineConfig.speedVarianceMin.get();
@@ -78,7 +78,7 @@ public class VerticalReelWidget extends AbstractWidget {
         poseStack.pushPose();
         poseStack.translate(getX(), getY(), 0);
         renderItems(guiGraphics, poseStack);
-        renderBox(guiGraphics, poseStack, result);
+        renderBox(guiGraphics, poseStack, result.getCountItemStack());
         renderExitAnimation(guiGraphics, poseStack);
         poseStack.popPose();
         renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
@@ -130,7 +130,7 @@ public class VerticalReelWidget extends AbstractWidget {
             playPassSound();
         }
         if (clientConfig.rewardSoundEffects.get()) {
-            playRewardSound(result);
+            playRewardSound(result.getCountItemStack());
         }
         if (complete && soundPlayed && !exitStarted) {
             exitStarted = true;
@@ -141,7 +141,7 @@ public class VerticalReelWidget extends AbstractWidget {
         int passedIndex = (int) Math.floor(-visualOffset);
         if (passedIndex == lastPassedIndex) return;
         lastPassedIndex = passedIndex;
-        if (!complete) {
+        if (!complete && slotMachineScreen.tryClaimPassSound()) {
             getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
         }
     }
@@ -181,8 +181,8 @@ public class VerticalReelWidget extends AbstractWidget {
                 poseStack.translate(0f, itemSpacing * clamped, 0f);
                 poseStack.scale(scale, scale, scale);
                 if (finalI == resultIndex && complete) {
-                    guiGraphics.renderItem(result, -8, -8);
-                    guiGraphics.renderItemDecorations(getFont(), result, -8, -8);
+                    guiGraphics.renderItem(result.getCountItemStack(), -8, -8);
+                    guiGraphics.renderItemDecorations(getFont(), result.getCountItemStack(), -8, -8);
                 } else {
                     guiGraphics.renderFakeItem(decoys.get(finalI), -8, -8);
                 }
@@ -226,8 +226,8 @@ public class VerticalReelWidget extends AbstractWidget {
         poseStack.pushPose();
         poseStack.scale(scale, scale, scale);
         alphaDraw(guiGraphics, () -> {
-            guiGraphics.renderFakeItem(result, -8, -8);
-            renderBox(guiGraphics, poseStack, result);
+            guiGraphics.renderFakeItem(result.getCountItemStack(), -8, -8);
+            renderBox(guiGraphics, poseStack, result.getCountItemStack());
         }, alpha);
         poseStack.popPose();
     }
@@ -261,7 +261,7 @@ public class VerticalReelWidget extends AbstractWidget {
         }
         poseStack.pushPose();
         poseStack.translate(0, 0, 1000);
-        guiGraphics.renderTooltip(getFont(), result, mouseX, mouseY);
+        guiGraphics.renderTooltip(getFont(), result.getCountItemStack(), mouseX, mouseY);
         poseStack.popPose();
     }
 
@@ -285,7 +285,7 @@ public class VerticalReelWidget extends AbstractWidget {
         visualOffset = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
         complete = true;
         playPassSound();
-        playRewardSound(result);
+        playRewardSound(result.getCountItemStack());
         if (soundPlayed && !exitStarted) {
             exitStarted = true;
         }
@@ -303,7 +303,7 @@ public class VerticalReelWidget extends AbstractWidget {
         return resultLevel;
     }
 
-    public ItemStack getResult() {
+    public RewardData getResult() {
         return result;
     }
 }
