@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import xiaojin.gachaaddiction.GachaAddictionConfig;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 
 import java.util.List;
@@ -49,6 +50,11 @@ public abstract class ClientPacketListenerMixin {
             menuItems.removeAll(localPlayer.inventoryMenu.getItems());
         }
         menuItems.removeIf(ItemStack::isEmpty);
+
+        if (menuItems.stream().noneMatch(GachaAddictionConfig.CLIENT::filter)) {
+            slotMachineScreen.onClose();
+            return;
+        }
 
         slotMachineScreen.updateRewards(menuItems);
     }

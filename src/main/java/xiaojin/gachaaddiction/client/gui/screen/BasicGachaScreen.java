@@ -1,6 +1,5 @@
 package xiaojin.gachaaddiction.client.gui.screen;
 
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -11,13 +10,10 @@ import xiaojin.gachaaddiction.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.config.ClientConfig;
-import xiaojin.gachaaddiction.util.RarityUtil;
 
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public abstract class BasicGachaScreen extends Screen {
     protected final ClientConfig clientConfig = GachaAddictionConfig.CLIENT;

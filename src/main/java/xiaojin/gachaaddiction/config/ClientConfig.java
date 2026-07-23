@@ -1,14 +1,31 @@
 package xiaojin.gachaaddiction.config;
 
+import com.mojang.logging.LogUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.ModConfigSpec.*;
+import org.slf4j.Logger;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.datagen.DatagenI18n;
 import xiaojin.gachaaddiction.init.GachaTypes;
+import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
+import xiaojin.gachaaddiction.util.RarityUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class ClientConfig extends BasicConfig {
+    public static final Logger LOGGER = LogUtils.getLogger();
+
+
     //region 抽奖屏幕
+    public final ConfigValue<List<? extends String>> whitelistFilterList;
+    public final ConfigValue<List<? extends String>> blacklistFilterList;
     /**
      * 合并物品
      */
@@ -43,6 +60,20 @@ public class ClientConfig extends BasicConfig {
         super(builder);
         //region 抽奖屏幕
         push("gachaa_screen");
+        whitelistFilterList = builder.comment("被这个列表匹配的物品将会触发抽奖动画，优先级大于黑名单",
+                        "可使用稀有度比较 <1 =1 >1 <=1 >=1",
+                        "物品标签比较 #minecraft:block",
+                        "物品id比较 minecraft:acacia_planks")
+                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("whitelist_filter_list")))
+                .defineList("whitelist_filter_list", new ArrayList<>(), () -> "", ClientConfig::test);
+        ArrayList<String> blacklistFilterListDefaultValue = new ArrayList<>();
+        blacklistFilterListDefaultValue.add("<=0");
+        blacklistFilterList = builder.comment("被这个列表匹配的物品将不会触发抽奖动画",
+                        "可使用稀有度比较 <1 =1 >1 <=1 >=1",
+                        "物品标签比较 #minecraft:block",
+                        "物品id比较 minecraft:acacia_planks")
+                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("blacklist_filter_list")))
+                .defineList("blacklist_filter_list", blacklistFilterListDefaultValue, () -> "", ClientConfig::test);
         mergeItem = define(true, "merge_item");
         raritySorting = define(true, "rarity_sorting", "开启后按稀有度排序");
         rewardSoundEffects = define(true, "reward_sound_effects");
@@ -57,8 +88,95 @@ public class ClientConfig extends BasicConfig {
         //endregion
     }
 
+    private static boolean test(Object obj) {
+        if (!(obj instanceof String v)) {
+            return false;
+        }
+        return GachaaAdictionConfigData.TAG_PATTERN.matcher(v).matches() || GachaaAdictionConfigData.ID_PATTERN.matcher(v).matches() || GachaaAdictionConfigData.OPERATOR_RARITY_PATTERN.matcher(v).matches();
+    }
+
     public GachaType getDefaultGachaaType() {
         return GachaTypes.getDefault(ResourceLocation.parse(defaultGachaaType.get()));
+    }
+
+    // 不是被过滤
+    public boolean filter(ItemStack itemStack) {
+        if (!whitelistFilterList.get().isEmpty()) {
+            if (filter(itemStack, whitelistFilterList.get())) {
+                return true;
+            }
+        }
+        if (!blacklistFilterList.get().isEmpty()) {
+            return !filter(itemStack, blacklistFilterList.get());
+        }
+        return true;
+    }
+
+    public static boolean filter(ItemStack itemStack, List<? extends String> list) {
+        if (list.isEmpty() || itemStack.isEmpty()) {
+            return false;
+        }
+
+        for (String v : list) {
+            if (v == null || v.isEmpty() || !ClientConfig.test(v)) {
+                continue;
+            }
+
+            if (v.startsWith("#") && GachaaAdictionConfigData.TAG_PATTERN.matcher(v).matches()) {
+                ResourceLocation key = ResourceLocation.parse(v.substring(1));
+                if (itemStack.getTags().noneMatch(itemTagKey -> itemTagKey.location().equals(key))) {
+                    return false;
+                }
+                continue;
+            }
+
+            if (GachaaAdictionConfigData.OPERATOR_RARITY_PATTERN.matcher(v).matches()) {
+                try {
+                    if (!evaluate(v, RarityUtil.getRarityLevel(itemStack))) {
+                        return false;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+                continue;
+            }
+
+            if (GachaaAdictionConfigData.ID_PATTERN.matcher(v).matches()) {
+                ResourceLocation key = ResourceLocation.parse(v);
+                Item item = BuiltInRegistries.ITEM.get(key);
+                if (item != itemStack.getItem()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean evaluate(String constraint, double value) {
+        String s = constraint.replaceAll("\\s+", "");
+
+        Pattern p = Pattern.compile("^(>=|<=|>|<|=)(-?\\d+)$");
+        Matcher m = p.matcher(s);
+
+        if (!m.find()) {
+            LOGGER.error("约束格式错误，必须为：运算符+整数，例如 \"<=11\": {}", constraint);
+            return false;
+        }
+
+        String op = m.group(1);
+
+        int threshold = Integer.parseInt(m.group(2));
+
+        return switch (op) {
+            case ">" -> value > threshold;
+            case "<" -> value < threshold;
+            case ">=" -> value >= threshold;
+            case "<=" -> value <= threshold;
+            case "=" -> value == threshold;
+            default -> {
+                LOGGER.error("不支持的运算符：{}", op);
+                yield false;
+            }
+        };
     }
 
     public static class SlotMachineConfig extends BasicConfig {

@@ -30,6 +30,8 @@ public class ModZhCn extends DatagenI18n {
         add(SlotMachineScreen.SKIP_HINT, "按 空格 键进行跳过或按 ESC 键直接打开容器GUI");
         add(GachaAddiction.MODID + ".configuration.gachaa_screen", "抽奖屏幕");
         ClientConfig clientConfig = GachaAddictionConfig.CLIENT;
+        add(clientConfig.whitelistFilterList, "白名单过滤");
+        add(clientConfig.blacklistFilterList, "黑名单过滤");
         add(clientConfig.mergeItem, "合并抽奖物品");
         add(clientConfig.raritySorting, "稀有度排序");
         add(clientConfig.rewardSoundEffects, "奖品音效");

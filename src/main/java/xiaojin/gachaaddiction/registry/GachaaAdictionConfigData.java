@@ -27,10 +27,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
+    public static final Pattern TAG_PATTERN = Pattern.compile(
+            "^#[a-z0-9_.-]+:[a-z0-9_.-]+$");
+    public static final Pattern ID_PATTERN = Pattern.compile(
+            "^[a-z0-9_.-]+:[a-z0-9_.-]+$");
+    public static final Pattern OPERATOR_RARITY_PATTERN = Pattern.compile(
+            "^(>=|<=|>|<)?(-?\\d+)$");
+    public static final Pattern RARITY_PATTERN = Pattern.compile(
+            "^-?\\d+$");
     public static final GachaaAdictionConfigData INSTANCE = new GachaaAdictionConfigData();
-//    private static final Gson GSON = JsonPerformanceOptimizer.getOptimizedGson();
     private static final SimpleSoundInstance DEFAULT_SIMPLE_SOUND_INSTANCE = SimpleSoundInstance.forUI(ModSoundEvents.LEVEL0.get(), 1.0f, 2.0f);
     private static SimpleSoundInstance defaultRewardsSounnd;
     private static Function<ItemStack, SimpleSoundInstance> soundEventsFunction;
@@ -68,35 +76,38 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
         Map<Item, SimpleSoundInstance> itemMap = new HashMap<>();
         Map<TagKey<Item>, SimpleSoundInstance> tagKeyMap = new HashMap<>();
         TreeMap<Integer, SimpleSoundInstance> levelMap = new TreeMap<>();
-        jsonObject.getAsJsonObject("match").asMap().forEach((k, v) -> {
+        for (Map.Entry<String, JsonElement> entry : jsonObject.getAsJsonObject("match").asMap().entrySet()) {
+            String k = entry.getKey();
+            JsonElement value = entry.getValue();
             if (k == null || k.isEmpty()) {
-                return;
+                continue;
             }
 
-            SimpleSoundInstance simpleSoundInstance = createSimpleSoundInstance(soundManager, v);
+            SimpleSoundInstance simpleSoundInstance = createSimpleSoundInstance(soundManager, value);
             if (simpleSoundInstance == null) {
-                return;
+                continue;
             }
 
-            if (k.startsWith("#")) {
+            if (k.startsWith("#") && TAG_PATTERN.matcher(k).matches()) {
                 ResourceLocation key = ResourceLocation.parse(k.substring(1));
                 tagKeyMap.put(ItemTags.create(key), simpleSoundInstance);
-                return;
+                continue;
             }
 
-            try {
+            if (RARITY_PATTERN.matcher(k).matches()) {
                 levelMap.put(Integer.parseInt(k), simpleSoundInstance);
-                return;
-            } catch (NumberFormatException ignored) {
+                continue;
             }
 
-            ResourceLocation key = ResourceLocation.parse(k);
-            Item item = BuiltInRegistries.ITEM.get(key);
-            if (item == Items.AIR) {
-                return;
+            if (ID_PATTERN.matcher(k).matches()) {
+                ResourceLocation key = ResourceLocation.parse(k);
+                Item item = BuiltInRegistries.ITEM.get(key);
+                if (item == Items.AIR) {
+                    continue;
+                }
+                itemMap.put(item, simpleSoundInstance);
             }
-            itemMap.put(item, simpleSoundInstance);
-        });
+        }
 
         return itemStack -> {
             SimpleSoundInstance simpleSoundInstance = itemMap.get(itemStack.getItem());
@@ -140,7 +151,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
 
     @Nullable
     private static SimpleSoundInstance createSimpleSoundInstance(SoundManager soundManager, JsonElement element) {
-        if (!element.isJsonObject()){
+        if (!element.isJsonObject()) {
             ResourceLocation id = ResourceLocation.parse(element.getAsString());
             if (!hasSound(soundManager, id)) {
                 GachaAddiction.LOGGER.error("未找到id");
