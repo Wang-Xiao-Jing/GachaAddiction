@@ -66,14 +66,12 @@ public class ClientConfig extends BasicConfig {
                         "物品id比较 minecraft:acacia_planks")
                 .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("whitelist_filter_list")))
                 .defineList("whitelist_filter_list", new ArrayList<>(), () -> "", ClientConfig::test);
-        ArrayList<String> blacklistFilterListDefaultValue = new ArrayList<>();
-        blacklistFilterListDefaultValue.add("<=0");
         blacklistFilterList = builder.comment("被这个列表匹配的物品将不会触发抽奖动画",
                         "可使用稀有度比较 <1 =1 >1 <=1 >=1",
                         "物品标签比较 #minecraft:block",
                         "物品id比较 minecraft:acacia_planks")
                 .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("blacklist_filter_list")))
-                .defineList("blacklist_filter_list", blacklistFilterListDefaultValue, () -> "", ClientConfig::test);
+                .defineList("blacklist_filter_list", new ArrayList<>(), () -> "", ClientConfig::test);
         mergeItem = define(true, "merge_item");
         raritySorting = define(true, "rarity_sorting", "开启后按稀有度排序");
         rewardSoundEffects = define(true, "reward_sound_effects");

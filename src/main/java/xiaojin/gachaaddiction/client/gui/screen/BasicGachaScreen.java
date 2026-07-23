@@ -42,29 +42,29 @@ public abstract class BasicGachaScreen extends Screen {
 
     public void rewardReceived(ItemStack itemStack, boolean isRefreshWidget) {
         rewards.add(new RewardData(itemStack.copyWithCount(1), itemStack.getCount()));
-        if (isRefreshWidget) {
-            refreshWidgets();
-        }
         if (raritySorting) {
             raritySorting();
         }
         if (isMerge) {
             merge();
+        }
+        if (isRefreshWidget) {
+            refreshWidgets();
         }
     }
 
     protected abstract void refreshWidgets();
 
     public void rewardReceived(ItemStack itemStack, int count, boolean isRefreshWidget) {
-        rewards.add(new RewardData(itemStack.copyWithCount(1), count));
-        if (isRefreshWidget) {
-            refreshWidgets();
-        }
+        rewards.add(new RewardData(itemStack.copyWithCount(1), Math.max(1, count)));
         if (raritySorting) {
             raritySorting();
         }
         if (isMerge) {
             merge();
+        }
+        if (isRefreshWidget) {
+            refreshWidgets();
         }
     }
 

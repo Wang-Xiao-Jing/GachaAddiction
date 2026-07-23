@@ -34,4 +34,9 @@ public class RewardData {
     public int getRarityColor() {
         return RarityUtil.getRarityColor(itemStack);
     }
+
+    @Override
+    public String toString() {
+        return itemStack.toString() + " " + count;
+    }
 }

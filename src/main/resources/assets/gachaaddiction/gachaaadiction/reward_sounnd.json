@@ -1,6 +1,12 @@
 {
-  "default": "gachaaddiction:level0",
+  "default": {
+    "id": "gachaaddiction:level0",
+    "pitch": 1.0,
+    "volume": 2.0
+  },
   "match": {
+    "minecraft:amethyst_shard": "minecraft:block.amethyst_cluster.hit",
+    "#minecraft:swords": "minecraft:entity.player.attack.sweep",
     "0": "gachaaddiction:level0",
     "1": "gachaaddiction:level1",
     "2": "gachaaddiction:level2",

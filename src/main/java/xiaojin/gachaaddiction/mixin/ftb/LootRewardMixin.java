@@ -42,8 +42,16 @@ public abstract class LootRewardMixin extends RandomReward implements ILootRewar
     @WrapOperation(method = "onButtonClicked", remap = false, at = @At(value = "INVOKE", target = "Ldev/ftb/mods/ftbquests/client/gui/RewardNotificationsScreen;openGui()V"))
     private void gachaaddiction$onButtonClicked(RewardNotificationsScreen instance, Operation<Void> original) {
         original.call(instance);
-        if (!GachaAddictionConfig.CLIENT.ftbQuestsGachaa.get() || gachaaddiction$getGachaType().isEmpty()) {
+        if (!GachaAddictionConfig.CLIENT.ftbQuestsGachaa.get()) {
             return;
+        }
+
+        GachaType gachaType = gachaaddiction$getGachaType();
+        if (gachaType.isEmpty()) {
+            gachaType = GachaAddictionConfig.CLIENT.getDefaultGachaaType();
+            if (gachaType.isEmpty()) {
+                return;
+            }
         }
 
         RewardTable table = getTable();
@@ -59,15 +67,6 @@ public abstract class LootRewardMixin extends RandomReward implements ILootRewar
                     int weight = (int) (weightedReward.getWeight() * 100);
                     itemStackEntries.add(new ItemStackEntry(itemStack, weight));
                 }
-            }
-        }
-
-        GachaType gachaType = gachaaddiction$gachaType;
-
-        if (gachaaddiction$gachaType.isEmpty()) {
-            gachaType = GachaAddictionConfig.CLIENT.getDefaultGachaaType();
-            if (gachaType.isEmpty()) {
-                return;
             }
         }
 
