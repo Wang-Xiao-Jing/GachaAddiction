@@ -1,32 +1,16 @@
 plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
     id 'idea'
-}
-
-tasks.named('wrapper', Wrapper).configure {
-    distributionType = Wrapper.DistributionType.BIN
 }
 
 version = mod_version
 group = mod_group_id
 
-sourceSets.main.resources {
-    srcDir('src/generated/resources')
-    exclude("**/*.bbmodel")
-    exclude("src/generated/**/.cache")
+base {
+    archivesName = mod_id
 }
-
-boolean kubejs = true
-boolean ftb = true // FTB系列
-boolean onlyCompile = false // 仅编译
-boolean lootr = true
-boolean raritycore = false
-boolean colortooltips = false
-boolean confluence = false
-boolean clavis = true
-boolean treasurebags = true
 
 repositories {
     mavenLocal()
@@ -38,266 +22,99 @@ repositories {
     }
 
     mavenCentral()
-
-    // NeoForge 官方仓库
-    maven {
-        name = "NeoForged"
-        url = "https://neoforged.forgecdn.net/releases"
-    }
-
-    maven {
-        name = "LatvianMaven" // KubeJS
-        url = "https://maven.latvian.dev/releases"
-        content {
-            includeGroup "dev.latvian.mods"
-            includeGroup "dev.latvian.apps"
-        }
-    }
-
-    maven {
-        url = 'https://maven.blamejared.com'
-        content {
-            includeGroup 'noobanidus.mods.lootr'
-        }
-    }
-
-    maven {
-        name = "Progwml6 maven"
-        url = uri("https://dvs1.progwml6.com/files/maven/")
-    }
-    maven {
-        name = "ModMaven"
-        url = uri("https://modmaven.dev")
-    }
-
-    maven { url = uri("https://api.modrinth.com/maven") }
-
-    maven {
-        url = uri("https://www.cursemaven.com")
-        content { includeGroup "curse.maven" }
-    }
-
-    // MixinSquared
-    maven { url = 'https://maven.bawnorton.com/releases' }
-
-    // JitPack - GitHub 项目打包
-    maven { url = 'https://jitpack.io' }
-    maven {
-        url 'https://jitpack.io'
-        content { includeGroup "com.github.rtyley" }
-    }
-    maven {
-        name "magicTeam MavenReleases"
-        url "https://maven.confluence.ink/releases"
-    }
-    maven {
-        name "magicTeam MavenSnapshots"
-        url "https://maven.confluence.ink/snapshots"
-    }
-
-    maven {
-        // Shedaniel's maven (Architectury API)
-        url = "https://maven.architectury.dev"
-        content {
-            includeGroup "dev.architectury"
-        }
-    }
-
-    maven {
-        url "https://maven.ftb.dev/releases"
-        content {
-            includeGroup "dev.ftb.mods"
-        }
-    }
 }
 
-base {
-    archivesName = mod_id
-}
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
-neoForge {
-    version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
+loom {
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
     }
+
     runs {
         client {
             client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
-
         server {
             server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            programArg '--nogui'
         }
-        gameTestServer {
-            type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        data {
-            data()
-            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-        }
-
         configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            systemProperty 'forge.logging.console.level', 'debug'
-
-            jvmArguments.addAll([
-                    "-XX:+IgnoreUnrecognizedVMOptions",
-                    "-XX:+AllowEnhancedClassRedefinition"
-            ])
-            logLevel = org.slf4j.event.Level.DEBUG
+            vmArgs "-XX:+IgnoreUnrecognizedVMOptions", "-XX:+AllowEnhancedClassRedefinition"
         }
     }
-
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
-}
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-    compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixinsquared_version}"))
-    implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixinsquared_version}"))
-    implementation "maven.modrinth:jade:${jade_version}+neoforge"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
 
-    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    // 26.2 的 intermediary 映射为空（官方名即运行时名），Loom 在这种情况下不再提供
+    // mod* 这组重映射配置，所以按实际存在的名字挑一个。
+    def pick = { String... names -> names.find { configurations.findByName(it) != null } }
+    def modImpl = pick('modImplementation', 'implementation')
+    def modCompile = pick('modCompileOnly', 'compileOnly')
+    def modRuntime = pick('modLocalRuntime', 'localRuntime', 'runtimeOnly')
 
-    compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
+    add(modImpl, "net.fabricmc:fabric-loader:${loader_version}")
+    add(modImpl, "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
-    compileOnly "maven.modrinth:colortooltips:${colortooltips_version}"
-    compileOnly "maven.modrinth:raritycore:${raritycore_version}"
-
-    compileOnly "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"
-
-    compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
-    compileOnly "dev.ftb.mods:ftb-library:${ftb_library_version}"
-    compileOnly "dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}"
-    compileOnly "dev.ftb.mods:ftb-teams:${ftb_teams_version}"
-    compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    compileOnly "dev.ftb.mods:ftb-quests:${ftb_quests_version}"
-    compileOnly "dev.ftb.mods:ftb-filter-system-neoforge:${ftb_filter_version}"
-    compileOnly "dev.ftb.mods:ftb-filter-system:${ftb_filter_version}"
-    compileOnly "dev.ftb.mods:ftb-ultimine-neoforge:${ftb_ultimine_version}"
-    compileOnly "dev.ftb.mods:ftb-ultimine:${ftb_ultimine_version}"
-
-    compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
-
-    compileOnly "curse.maven:kubejs-238086:${kubejs_version}"
-    compileOnly "curse.maven:rhino-416294:${rhino_version}"
-
-    compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
-
-    compileOnly "curse.maven:clavis-1296431:${clavis_version}"
-    compileOnly "curse.maven:shatterbyte-lib-916747:${shatterbyte_lib_version}"
-
-    compileOnly "curse.maven:treasure-bags-318299:${treasurebags_version}"
-    compileOnly "curse.maven:silent-lib-242998:${silentlib_version}"
-
-    if (!onlyCompile) {
-        if (lootr) {
-            runtimeOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
-        }
-
-        if (colortooltips) {
-            runtimeOnly "maven.modrinth:colortooltips:${colortooltips_version}"
-        }
-
-        if (confluence) {
-            runtimeOnly "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"
-        }
-
-        if (kubejs) {
-            runtimeOnly "curse.maven:kubejs-238086:${kubejs_version}"
-        }
-
-        if (ftb) {
-            runtimeOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
-            runtimeOnly "dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}"
-            runtimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-            runtimeOnly "dev.ftb.mods:ftb-filter-system-neoforge:${ftb_filter_version}"
-            runtimeOnly "dev.ftb.mods:ftb-ultimine-neoforge:${ftb_ultimine_version}"
-        }
-
-        if (clavis) {
-            runtimeOnly "curse.maven:clavis-1296431:${clavis_version}"
-        }
-
-        if (ftb) {
-            runtimeOnly "dev.architectury:architectury-neoforge:${architectury_version}"
-        }
-
-        if (treasurebags) {
-            runtimeOnly "curse.maven:treasure-bags-318299:${treasurebags_version}"
-        }
-
-        if (treasurebags) {
-            runtimeOnly "curse.maven:silent-lib-242998:${silentlib_version}"
-        }
-
-        if (raritycore || colortooltips) {
-            runtimeOnly "maven.modrinth:raritycore:${raritycore_version}"
-        }
-
-        if (clavis) {
-            runtimeOnly "curse.maven:shatterbyte-lib-916747:${shatterbyte_lib_version}"
-        }
-
-        if (kubejs) {
-            runtimeOnly "curse.maven:rhino-416294:${rhino_version}"
-        }
-    }
-
+    // Lootr is the only integration with a Fabric 26.2 build; it stays optional at runtime.
+    add(modCompile, "maven.modrinth:lootr:${lootr_version}")
+    add(modRuntime, "maven.modrinth:lootr:${lootr_version}")
 }
 
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_description        : mod_description,
+tasks.register('listConfigs') {
+    doLast { configurations.names.toSorted().each { println "CONFIG: $it" } }
+}
+
+processResources {
+    def props = [
+            mod_id         : mod_id,
+            mod_name       : mod_name,
+            mod_license    : mod_license,
+            mod_version    : mod_version,
+            mod_description: mod_description,
+            loader_version : loader_version,
+            minecraft_version: minecraft_version,
     ]
-    inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
+    inputs.properties props
+
+    filesMatching("fabric.mod.json") {
+        expand props
+    }
 }
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${mod_id}" }
+    }
+}
+
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
+            artifactId = mod_id
             from components.java
         }
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            url = "file://${project.projectDir}/repo"
         }
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
 idea {
     module {
         downloadSources = true

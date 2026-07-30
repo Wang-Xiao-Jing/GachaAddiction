@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.api;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import xiaojin.gachaaddiction.api.client.GachaTypeClient;
 import xiaojin.gachaaddiction.init.GachaTypes;
 import xiaojin.gachaaddiction.init.client.GachaTypeClients;
@@ -13,18 +13,18 @@ import java.util.Optional;
 
 public class GachaType {
     public static final StreamCodec<RegistryFriendlyByteBuf, GachaType> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC, GachaType::getId,
+            Identifier.STREAM_CODEC, GachaType::getId,
             GachaTypes::getDefault);
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final String translationKey ;
 
-    public GachaType(ResourceLocation id) {
+    public GachaType(Identifier id) {
         this.id = id;
         translationKey = "gacha_type." + id;
     }
 
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 

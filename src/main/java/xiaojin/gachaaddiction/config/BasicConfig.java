@@ -1,65 +1,77 @@
 package xiaojin.gachaaddiction.config;
 
-import net.neoforged.neoforge.common.ModConfigSpec.Builder;
 import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.datagen.DatagenI18n;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import org.apache.commons.lang3.tuple.Pair;
-import xiaojin.gachaaddiction.mixin.accessor.ModConfigSpecBuilderAccesor;
+import xiaojin.gachaaddiction.util.I18nKeys;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 
+/**
+ * 配置分组基类。保留原先 {@code define/push/pop} 的写法，底层换成 {@link ConfigSpec}。
+ */
 public class BasicConfig {
     protected final String modId;
-    protected final Builder builder;
+    protected final ConfigSpec spec;
 
-    public BasicConfig(Builder builder) {
+    public BasicConfig(ConfigSpec spec) {
         this.modId = GachaAddiction.MODID;
-        this.builder = builder;
+        this.spec = spec;
     }
 
-    protected ModConfigSpec.DoubleValue define(double defaultValue, double min, double max, String key, String... comment) {
-        return builder.comment(comment)
-                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath(key)))
-                .defineInRange(key, defaultValue, min, max);
+    protected ConfigValue.DoubleValue define(double defaultValue, double min, double max, String key, String... comment) {
+        return new ConfigValue.DoubleValue(spec, pathOf(key), defaultValue, min, max, joinComment(comment));
     }
 
-    protected ModConfigSpec.IntValue define(int defaultValue, int min, int max, String key, String... comment) {
-        return builder.comment(comment)
-                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath(key)))
-                .defineInRange(key, defaultValue, min, max);
+    protected ConfigValue.IntValue define(int defaultValue, int min, int max, String key, String... comment) {
+        return new ConfigValue.IntValue(spec, pathOf(key), defaultValue, min, max, joinComment(comment));
     }
 
-    protected ModConfigSpec.BooleanValue define(boolean defaultValue, String key, String... comment) {
-        return builder.comment(comment)
-                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath(key)))
-                .define(key, defaultValue);
+    protected ConfigValue.BooleanValue define(boolean defaultValue, String key, String... comment) {
+        return new ConfigValue.BooleanValue(spec, pathOf(key), defaultValue, joinComment(comment));
     }
 
-    protected <T> Pair<T, ModConfigSpec> configure(Function<Builder, T> consumer) {
-        return new Builder().configure(consumer);
+    protected ConfigValue<String> define(String defaultValue, String key, String... comment) {
+        return new ConfigValue<>(spec, pathOf(key), defaultValue, joinComment(comment));
     }
 
-    protected Builder push(String... key) {
-        builder.translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath(key)));
-        return builder.push(Arrays.asList(key));
+    protected ConfigValue<List<? extends String>> defineList(List<String> defaultValue, String key,
+                                                             java.util.function.Predicate<Object> validator,
+                                                             String... comment) {
+        return new ConfigValue.Validated<>(spec, pathOf(key), defaultValue, joinComment(comment), validator);
     }
 
-    protected Builder pop(int count) {
-        return builder.pop(count);
+    protected void push(String... key) {
+        spec.push(key);
     }
 
-    protected Builder pop() {
-        return builder.pop();
+    protected void pop(int count) {
+        spec.pop(count);
+    }
+
+    protected void pop() {
+        spec.pop(1);
+    }
+
+    /** 配置项的完整路径，同时用于生成翻译键。 */
+    protected List<String> pathOf(String key) {
+        List<String> path = new ArrayList<>(spec.currentPath());
+        path.add(key);
+        return path;
     }
 
     protected String[] getCurrentPath(String... key) {
-        List<String> currentPath = new ArrayList<>();
-        currentPath.addAll(((ModConfigSpecBuilderAccesor) builder).getCurrentPath());
+        List<String> currentPath = new ArrayList<>(spec.currentPath());
         currentPath.addAll(Arrays.asList(key));
         return currentPath.toArray(String[]::new);
+    }
+
+    /** 翻译键，保持与旧版一致，方便沿用现有语言文件。 */
+    protected String translationKey(String key) {
+        return I18nKeys.getConfigTranslation(modId, getCurrentPath(key));
+    }
+
+    private static String joinComment(String... comment) {
+        return comment == null || comment.length == 0 ? "" : String.join(" / ", comment);
     }
 }

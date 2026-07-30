@@ -1,12 +1,13 @@
 package xiaojin.gachaaddiction.mixin;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.vehicle.AbstractMinecart;
-import net.minecraft.world.entity.vehicle.AbstractMinecartContainer;
+import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
+import net.minecraft.world.entity.vehicle.minecart.AbstractMinecartContainer;
 import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.loot.LootTable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,14 +18,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xiaojin.gachaaddiction.mixed.IAbstractMinecartContainer;
 import xiaojin.gachaaddiction.util.ModUtil;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @Mixin(AbstractMinecartContainer.class)
 public abstract class AbstractMinecartContainerMixin extends AbstractMinecart implements IAbstractMinecartContainer, ContainerEntity {
-    @Shadow
-    @Nullable
-    public abstract ResourceKey<LootTable> getLootTable();
-
     @Shadow
     @Nullable
     private ResourceKey<LootTable> lootTable;
@@ -41,7 +38,7 @@ public abstract class AbstractMinecartContainerMixin extends AbstractMinecart im
 
     @Override
     public boolean gachaaddiction$isOpenGachaaUi() {
-        return gachaaddiction$isOpenGachaaUi || getLootTable() != null;
+        return gachaaddiction$isOpenGachaaUi || getContainerLootTable() != null;
     }
 
     @Override
@@ -50,31 +47,34 @@ public abstract class AbstractMinecartContainerMixin extends AbstractMinecart im
     }
 
     @Override
-    public @org.jetbrains.annotations.Nullable ResourceKey<LootTable> gachaaddiction$getOldLootTable() {
+    public @Nullable ResourceKey<LootTable> gachaaddiction$getOldLootTable() {
         return gachaaddiction$oldLootTable;
     }
 
-    @Inject(method = "setLootTable*", at = @At("HEAD"))
-    private void gachaaddiction$setLootTable(ResourceKey<LootTable> lootTable, CallbackInfo ci) {
-        if (lootTable == null && this.getLootTable() != null) {
+    /**
+     * 战利品被取出时 {@code unpackChestVehicleLootTable} 会把表设为 null，
+     * 这里记录下来以便之后仍能显示抽奖界面。
+     * <p>
+     * 26.2 的 {@code setLootTable} 是 (ResourceKey, long)，
+     * 真正表示“清空”的是单参的 {@code setContainerLootTable}，所以注入后者。
+     */
+    @Inject(method = "setContainerLootTable", at = @At("HEAD"))
+    private void gachaaddiction$setContainerLootTable(ResourceKey<LootTable> lootTable, CallbackInfo ci) {
+        if (lootTable == null && this.getContainerLootTable() != null) {
             gachaaddiction$isOpenGachaaUi = true;
         }
-        gachaaddiction$oldLootTable = this.getLootTable();
+        gachaaddiction$oldLootTable = this.getContainerLootTable();
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
-    private void gachaaddiction$addAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
-        if (compound.contains(ModUtil.OPEN_GACHAA_UI)) {
-            this.gachaaddiction$isOpenGachaaUi = compound.getBoolean(ModUtil.OPEN_GACHAA_UI);
-        } else {
-            this.gachaaddiction$isOpenGachaaUi = false;
+    private void gachaaddiction$addAdditionalSaveData(ValueOutput output, CallbackInfo ci) {
+        if (gachaaddiction$isOpenGachaaUi) {
+            output.putBoolean(ModUtil.OPEN_GACHAA_UI, true);
         }
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
-    private void gachaaddiction$readAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
-        if (gachaaddiction$isOpenGachaaUi) {
-            compound.putBoolean(ModUtil.OPEN_GACHAA_UI, true);
-        }
+    private void gachaaddiction$readAdditionalSaveData(ValueInput input, CallbackInfo ci) {
+        this.gachaaddiction$isOpenGachaaUi = input.getBooleanOr(ModUtil.OPEN_GACHAA_UI, false);
     }
 }

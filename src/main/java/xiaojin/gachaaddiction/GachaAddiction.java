@@ -1,34 +1,29 @@
 package xiaojin.gachaaddiction;
 
 import com.mojang.logging.LogUtils;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
+import xiaojin.gachaaddiction.events.Events;
+import xiaojin.gachaaddiction.init.GachaTypes;
 import xiaojin.gachaaddiction.init.ModSoundEvents;
 import xiaojin.gachaaddiction.network.OpenGachaScreenPayload;
+import xiaojin.gachaaddiction.network.SyncGachaaDataPayload;
 
-@Mod(GachaAddiction.MODID)
-public final class GachaAddiction {
+public final class GachaAddiction implements ModInitializer {
     public static final String MODID = "gachaaddiction";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final boolean LOOTR_LOADED = ModList.get().isLoaded("lootr");
-    public static final boolean RARITYCORE_LOADED = ModList.get().isLoaded("raritycore");
-    public static final boolean CONFLUENCE_MAGIC_LIB_LOADED = ModList.get().isLoaded("confluence_magic_lib");
+    public static final boolean LOOTR_LOADED = FabricLoader.getInstance().isModLoaded("lootr");
 
-    public GachaAddiction(IEventBus modEventBus, ModContainer modContainer) {
-        GachaAddictionConfig.register(modContainer);
-        ModSoundEvents.REGISTRY.register(modEventBus);
-        modEventBus.addListener(RegisterPayloadHandlersEvent.class, event -> {
-            var registrar = event.registrar("1");
-            registrar.playToClient(
-                    OpenGachaScreenPayload.TYPE,
-                    OpenGachaScreenPayload.STREAM_CODEC,
-                    OpenGachaScreenPayload::handle
-            );
-        });
+    @Override
+    public void onInitialize() {
+        GachaTypes.init();
+        GachaAddictionConfig.register();
+        ModSoundEvents.init();
+        PayloadTypeRegistry.clientboundPlay().register(OpenGachaScreenPayload.TYPE, OpenGachaScreenPayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SyncGachaaDataPayload.TYPE, SyncGachaaDataPayload.STREAM_CODEC);
+        Events.register();
     }
 }

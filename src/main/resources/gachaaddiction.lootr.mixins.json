@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "package": "xiaojin.gachaaddiction.mixin.lootr",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "xiaojin.gachaaddiction.mixin.lootr.LootrMixinPlugin",
+  "mixins": [
+    "LootrInventoryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  }
+}

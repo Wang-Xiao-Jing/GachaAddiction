@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.api;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.GachaAddictionConfig;
 import xiaojin.gachaaddiction.init.GachaTypes;
@@ -16,7 +16,7 @@ import java.util.Optional;
 public record GachaaData(
         boolean isOpenGachaaUi,
         Optional<GachaType> gachaType,
-        Optional<List<ResourceLocation>> lootTableId,
+        Optional<List<Identifier>> lootTableId,
         Optional<List<ItemStackEntry>> itemStackEntry
 ) {
     public static final StreamCodec<RegistryFriendlyByteBuf, GachaaData> STREAM_CODEC = StreamCodec.composite(
