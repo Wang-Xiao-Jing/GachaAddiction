@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.api;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.RandomizableContainer;
-import net.minecraft.world.entity.vehicle.minecart.AbstractMinecartContainer;
+import net.minecraft.world.entity.vehicle.AbstractMinecartContainer;
 import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -53,7 +53,7 @@ public record MenuProviderData(
         }
 
         if (menuProvider instanceof AbstractMinecartContainer abstractMinecartContainer) {
-            ResourceKey<LootTable> lootTable = abstractMinecartContainer.getContainerLootTable();
+            ResourceKey<LootTable> lootTable = abstractMinecartContainer.getLootTable();
             IAbstractMinecartContainer iAbstractMinecartContainer = IAbstractMinecartContainer.of(abstractMinecartContainer);
             if (lootTable == null) {
                 lootTable = iAbstractMinecartContainer.gachaaddiction$getOldLootTable();
@@ -67,7 +67,7 @@ public record MenuProviderData(
         }
 
         if (menuProvider instanceof ContainerEntity containerEntity) {
-            return new MenuProviderData(containerEntity.getContainerLootTable());
+            return new MenuProviderData(containerEntity.getLootTable());
         }
 
         return new MenuProviderData(List.of(), false);

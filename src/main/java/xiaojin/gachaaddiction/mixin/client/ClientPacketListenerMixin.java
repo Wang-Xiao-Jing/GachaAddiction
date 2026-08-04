@@ -6,12 +6,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.NonNullList;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import xiaojin.gachaaddiction.GachaAddictionConfig;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
-import xiaojin.gachaaddiction.util.client.ModClientUtil;
 
 import java.util.List;
 
@@ -22,7 +24,7 @@ public abstract class ClientPacketListenerMixin {
     private void gachaaddiction$handleContainerContent$initializeContents(AbstractContainerMenu instance, int stateId, List<ItemStack> items, ItemStack carried, Operation<Void> original) {
         original.call(instance, stateId, items, carried);
         Minecraft mc = Minecraft.getInstance();
-        Screen screen = mc.gui.screen();
+        Screen screen = mc.screen;
         if (screen == null) {
             return;
         }
@@ -40,6 +42,20 @@ public abstract class ClientPacketListenerMixin {
             return;
         }
 
-        ModClientUtil.applyContainerRewards(slotMachineScreen, menu, true);
+        NonNullList<ItemStack> menuItems = menu.getItems();
+        // TODO 或许可以优化
+        // 排除玩家本身的物品
+        LocalPlayer localPlayer = mc.player;
+        if (localPlayer != null) {
+            menuItems.removeAll(localPlayer.inventoryMenu.getItems());
+        }
+        menuItems.removeIf(ItemStack::isEmpty);
+
+        if (menuItems.stream().noneMatch(GachaAddictionConfig.CLIENT::filter)) {
+            slotMachineScreen.onClose();
+            return;
+        }
+
+        slotMachineScreen.updateRewards(menuItems);
     }
 }

@@ -2,16 +2,15 @@ package xiaojin.gachaaddiction.config;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.ModConfigSpec.*;
 import org.slf4j.Logger;
 import xiaojin.gachaaddiction.api.GachaType;
-import xiaojin.gachaaddiction.config.ConfigValue.BooleanValue;
-import xiaojin.gachaaddiction.config.ConfigValue.DoubleValue;
-import xiaojin.gachaaddiction.config.ConfigValue.IntValue;
+import xiaojin.gachaaddiction.datagen.DatagenI18n;
 import xiaojin.gachaaddiction.init.GachaTypes;
-import xiaojin.gachaaddiction.util.GachaaPatterns;
+import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 import xiaojin.gachaaddiction.util.RarityUtil;
 
 import java.util.ArrayList;
@@ -57,50 +56,45 @@ public class ClientConfig extends BasicConfig {
     public final SlotMachineConfig slotMachineConfig;
     //endregion
 
-    public ClientConfig(ConfigSpec spec) {
-        super(spec);
+    public ClientConfig(Builder builder) {
+        super(builder);
         //region 抽奖屏幕
         push("gachaa_screen");
-        whitelistFilterList = defineList(new ArrayList<>(), "whitelist_filter_list", ClientConfig::test,
-                "被这个列表匹配的物品将会触发抽奖动画，优先级大于黑名单",
-                "可使用稀有度比较 <1 =1 >1 <=1 >=1",
-                "物品标签比较 #minecraft:block",
-                "物品id比较 minecraft:acacia_planks");
-        blacklistFilterList = defineList(new ArrayList<>(), "blacklist_filter_list", ClientConfig::test,
-                "被这个列表匹配的物品将不会触发抽奖动画",
-                "可使用稀有度比较 <1 =1 >1 <=1 >=1",
-                "物品标签比较 #minecraft:block",
-                "物品id比较 minecraft:acacia_planks");
+        whitelistFilterList = builder.comment("被这个列表匹配的物品将会触发抽奖动画，优先级大于黑名单",
+                        "可使用稀有度比较 <1 =1 >1 <=1 >=1",
+                        "物品标签比较 #minecraft:block",
+                        "物品id比较 minecraft:acacia_planks")
+                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("whitelist_filter_list")))
+                .defineList("whitelist_filter_list", new ArrayList<>(), () -> "", ClientConfig::test);
+        blacklistFilterList = builder.comment("被这个列表匹配的物品将不会触发抽奖动画",
+                        "可使用稀有度比较 <1 =1 >1 <=1 >=1",
+                        "物品标签比较 #minecraft:block",
+                        "物品id比较 minecraft:acacia_planks")
+                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("blacklist_filter_list")))
+                .defineList("blacklist_filter_list", new ArrayList<>(), () -> "", ClientConfig::test);
         mergeItem = define(true, "merge_item");
         raritySorting = define(true, "rarity_sorting", "开启后按稀有度排序");
         rewardSoundEffects = define(true, "reward_sound_effects");
         rewardSoundEffectsOptimize = define(true, "reward_sound_effects_optimize", "开启后同时只出现一次获得奖品的音效，并只播放最高的");
         ftbQuestsGachaa = define(true, "ftb_quests_gachaa", "开启后FTB任务中就算没有开启也会开启抽奖界面");
-        defaultGachaaType = defineInList("default_gachaas_type", GachaTypes.SLOT_MACHINE.getId().toString(),
-                () -> GachaTypes.getLiat().stream().map(t -> t.getId().toString()).toList(),
-                "当抽奖屏幕没有定义时将使用这个类型");
-        slotMachineConfig = new SlotMachineConfig(spec);
+        defaultGachaaType = builder.comment("当抽奖屏幕没有定义时将使用这个类型")
+                .translation(DatagenI18n.getConfigTranslation(modId, getCurrentPath("default_gachaas_type")))
+                .defineInList("default_gachaas_type", GachaTypes.SLOT_MACHINE.getId().toString(),
+                        GachaTypes.getLiat().stream().map(t -> t.getId().toString()).toList());
+        slotMachineConfig = new SlotMachineConfig(builder);
         pop();
         //endregion
-    }
-
-    /** 取值必须落在候选列表内，否则回退默认值。候选列表延迟求值，避免类初始化顺序问题。 */
-    private ConfigValue<String> defineInList(String key, String defaultValue,
-                                             java.util.function.Supplier<List<String>> allowed, String... comment) {
-        return new ConfigValue.Validated<>(spec, pathOf(key), defaultValue,
-                comment.length == 0 ? "" : String.join(" / ", comment),
-                value -> value instanceof String s && allowed.get().contains(s));
     }
 
     private static boolean test(Object obj) {
         if (!(obj instanceof String v)) {
             return false;
         }
-        return GachaaPatterns.TAG_PATTERN.matcher(v).matches() || GachaaPatterns.ID_PATTERN.matcher(v).matches() || GachaaPatterns.OPERATOR_RARITY_PATTERN.matcher(v).matches();
+        return GachaaAdictionConfigData.TAG_PATTERN.matcher(v).matches() || GachaaAdictionConfigData.ID_PATTERN.matcher(v).matches() || GachaaAdictionConfigData.OPERATOR_RARITY_PATTERN.matcher(v).matches();
     }
 
     public GachaType getDefaultGachaaType() {
-        return GachaTypes.getDefault(Identifier.parse(defaultGachaaType.get()));
+        return GachaTypes.getDefault(ResourceLocation.parse(defaultGachaaType.get()));
     }
 
     // 不是被过滤
@@ -126,15 +120,15 @@ public class ClientConfig extends BasicConfig {
                 continue;
             }
 
-            if (v.startsWith("#") && GachaaPatterns.TAG_PATTERN.matcher(v).matches()) {
-                Identifier key = Identifier.parse(v.substring(1));
-                if (itemStack.typeHolder().tags().noneMatch(itemTagKey -> itemTagKey.location().equals(key))) {
+            if (v.startsWith("#") && GachaaAdictionConfigData.TAG_PATTERN.matcher(v).matches()) {
+                ResourceLocation key = ResourceLocation.parse(v.substring(1));
+                if (itemStack.getTags().noneMatch(itemTagKey -> itemTagKey.location().equals(key))) {
                     return false;
                 }
                 continue;
             }
 
-            if (GachaaPatterns.OPERATOR_RARITY_PATTERN.matcher(v).matches()) {
+            if (GachaaAdictionConfigData.OPERATOR_RARITY_PATTERN.matcher(v).matches()) {
                 try {
                     if (!evaluate(v, RarityUtil.getRarityLevel(itemStack))) {
                         return false;
@@ -144,9 +138,9 @@ public class ClientConfig extends BasicConfig {
                 continue;
             }
 
-            if (GachaaPatterns.ID_PATTERN.matcher(v).matches()) {
-                Identifier key = Identifier.parse(v);
-                Item item = BuiltInRegistries.ITEM.getValue(key);
+            if (GachaaAdictionConfigData.ID_PATTERN.matcher(v).matches()) {
+                ResourceLocation key = ResourceLocation.parse(v);
+                Item item = BuiltInRegistries.ITEM.get(key);
                 if (item != itemStack.getItem()) {
                     return false;
                 }
@@ -263,8 +257,8 @@ public class ClientConfig extends BasicConfig {
         public final DoubleValue minSpeedVarianceMax;
 
         //endregion
-        private SlotMachineConfig(ConfigSpec spec) {
-            super(spec);
+        private SlotMachineConfig(Builder builder) {
+            super(builder);
             push("slot_machine");
             exitSpeed = define(0.1, 0.0, 1.0, "exit_speed");
             exitMaxScale = define(0.6, 0.0, 5.0, "exit_max_scale");

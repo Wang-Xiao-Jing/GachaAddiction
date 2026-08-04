@@ -1,6 +1,6 @@
 package xiaojin.gachaaddiction.util;
 
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -21,11 +21,11 @@ public class LootDisplayCache {
 
     public static void reload(ServerLevel level) {
         cache.clear();
-        HolderLookup.RegistryLookup<LootTable> registry = level.getServer()
-                .reloadableRegistries().lookup()
-                .lookupOrThrow(Registries.LOOT_TABLE);
+        Registry<LootTable> registry = level.getServer()
+                .reloadableRegistries().get()
+                .registryOrThrow(Registries.LOOT_TABLE);
         int count = 0;
-        for (var holder : registry.listElements().toList()) {
+        for (var holder : registry.holders().toList()) {
             LootTable table = holder.value();
             if (table == LootTable.EMPTY) continue;
             List<ItemStackEntry> entries = ItemStackEntry.extract(table);

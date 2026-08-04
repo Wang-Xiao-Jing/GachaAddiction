@@ -1,11 +1,12 @@
 package xiaojin.gachaaddiction.client.gui.widget;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -13,7 +14,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3x2fStack;
 import xiaojin.gachaaddiction.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
@@ -69,23 +69,24 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        this.isHovered = isIsHovered(graphics, mouseX, mouseY);
+    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.isHovered = isIsHovered(guiGraphics, mouseX, mouseY);
 
         tickAnimation(partialTick);
 
-        Matrix3x2fStack pose = graphics.pose();
-        pose.pushMatrix();
-        pose.translate(getX(), getY());
-        renderItems(graphics, pose);
-        renderBox(graphics, pose);
-        renderExitAnimation(graphics, pose);
-        pose.popMatrix();
-        renderItemTooltip(graphics, mouseX, mouseY);
+        PoseStack poseStack = guiGraphics.pose();
+        poseStack.pushPose();
+        poseStack.translate(getX(), getY(), 0);
+        renderItems(guiGraphics, poseStack);
+        renderBox(guiGraphics, poseStack, result.getCountItemStack());
+        renderExitAnimation(guiGraphics, poseStack);
+        poseStack.popPose();
+        renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
+        guiGraphics.flush();
     }
 
-    private boolean isIsHovered(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        return graphics.containsPointInScissor(mouseX, mouseY) &&
+    private boolean isIsHovered(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        return guiGraphics.containsPointInScissor(mouseX, mouseY) &&
                 mouseX >= this.getX() - getWidth() / 2 &&
                 mouseY >= this.getY() - getHeight() / 2 &&
                 mouseX < this.getX() + getWidth() / 2 &&
@@ -157,42 +158,62 @@ public class VerticalReelWidget extends AbstractWidget {
         getSoundManager().play(GachaaAdictionConfigData.getSoundEventsFunction().apply(result));
     }
 
-    /**
-     * 26.2 的物品绘制没有 alpha 参数（{@code GuiItemRenderState} 只有 pose/x/y，
-     * {@code RenderSystem.setShaderColor} 也已移除），所以淡出改为在物品上方
-     * 叠一层渐变遮罩——{@code fillGradient} 是支持 ARGB alpha 的。
-     * <p>
-     * 另外不能再把位置 clamp 到窗口边界，否则窗口外的物品会全部堆在最上和最下一行。
-     */
-    private void renderItems(GuiGraphicsExtractor graphics, Matrix3x2fStack pose) {
+    private void renderItems(GuiGraphics guiGraphics, PoseStack poseStack) {
         int visibleCount = slotMachineConfig.itemVisibleCount.get();
+        float maxAlpha = slotMachineConfig.itemMaxAlpha.get().floatValue();
+        float minAlpha = slotMachineConfig.itemMinAlpha.get().floatValue();
         float itemSpacing = slotMachineConfig.itemSpacing.get().floatValue();
 
+        poseStack.pushPose();
         for (int i = 0; i < decoys.size(); i++) {
             float value = (i + visualOffset) - ((visibleCount - 1) / 2f);
-            if (Math.abs(value) >= visibleCount) continue;
-
-            float normalized = Math.abs(value) / visibleCount;
+            float clamped = Math.clamp(value, -visibleCount, visibleCount);
+            float normalized = Math.abs(clamped) / visibleCount;
+            if (normalized >= 1.1f) continue;
 
             float scale = 1.0f + 0.25f * (1.0f - Math.min(normalized / 0.20f, 1.0f));
-            if (scale <= 0f) continue;
+            float alpha = maxAlpha - (maxAlpha - minAlpha) * normalized;
+            if (alpha <= 0f || scale <= 0f) continue;
 
-            pose.pushMatrix();
-            pose.translate(0f, itemSpacing * value);
-            pose.scale(scale, scale);
-            if (i == resultIndex && complete) {
-                graphics.item(result.getCountItemStack(), -8, -8);
-                graphics.itemDecorations(getFont(), result.getCountItemStack(), -8, -8);
-            } else {
-                graphics.fakeItem(decoys.get(i), -8, -8);
-            }
-            pose.popMatrix();
+            poseStack.pushPose();
+            int finalI = i;
+            alphaDraw(guiGraphics, () -> {
+                poseStack.translate(0f, itemSpacing * clamped, 0f);
+                poseStack.scale(scale, scale, scale);
+                if (finalI == resultIndex && complete) {
+                    guiGraphics.renderItem(result.getCountItemStack(), -8, -8);
+                    guiGraphics.renderItemDecorations(getFont(), result.getCountItemStack(), -8, -8);
+                } else {
+                    guiGraphics.renderFakeItem(decoys.get(finalI), -8, -8);
+                }
+            }, alpha);
+            poseStack.popPose();
         }
-        // 淡出遮罩由 SlotMachineScreen 统一画，跨整个屏幕宽度，
-        // 免得每个滚轮各画一块拼出带硬边和直角的矩形。
+        poseStack.popPose();
+        guiGraphics.flush();
     }
 
-    private void renderExitAnimation(GuiGraphicsExtractor graphics, Matrix3x2fStack pose) {
+    private void alphaDraw(GuiGraphics guiGraphics, Runnable runnable, float alpha) {
+        if (alpha < 0.999F) {
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
+            guiGraphics.setColor(1.0F, 1.0F, 1.0F, alpha);
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.disableDepthTest();
+            runnable.run();
+            guiGraphics.flush();
+            RenderSystem.enableDepthTest();
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.disableBlend();
+        } else {
+            RenderSystem.disableDepthTest();
+            runnable.run();
+            RenderSystem.enableDepthTest();
+        }
+    }
+
+    private void renderExitAnimation(GuiGraphics guiGraphics, PoseStack poseStack) {
         if (!exitStarted) {
             return;
         }
@@ -202,41 +223,46 @@ public class VerticalReelWidget extends AbstractWidget {
             return;
         }
 
-        pose.pushMatrix();
-        pose.scale(scale, scale);
-        graphics.fakeItem(result.getCountItemStack(), -8, -8);
-        renderBox(graphics, pose, alpha);
-        pose.popMatrix();
+        poseStack.pushPose();
+        poseStack.scale(scale, scale, scale);
+        alphaDraw(guiGraphics, () -> {
+            guiGraphics.renderFakeItem(result.getCountItemStack(), -8, -8);
+            renderBox(guiGraphics, poseStack, result.getCountItemStack());
+        }, alpha);
+        poseStack.popPose();
     }
 
-    private void renderBox(GuiGraphicsExtractor graphics, Matrix3x2fStack pose) {
-        renderBox(graphics, pose, 1.0f);
-    }
-
-    private void renderBox(GuiGraphicsExtractor graphics, Matrix3x2fStack pose, float alpha) {
-        pose.pushMatrix();
-        pose.scale(1.25f, 1.25f);
+    private void renderBox(GuiGraphics guiGraphics, PoseStack poseStack, ItemStack stack) {
+        poseStack.pushPose();
+        poseStack.translate(0, 0, 1000);
+        poseStack.scale(1.25f, 1.25f, 1.25f);
         int i = 18 / 2;
-        int color = complete ? resultColor : 0xFFFFFFFF;
-        // alpha 直接编码进 ARGB，替代已移除的 setShaderColor
-        color = (color & 0x00FFFFFF) | (Math.round(Math.clamp(alpha, 0f, 1f) * 255f) << 24);
-        graphics.horizontalLine(-i, i - 1, -i, color);
-        graphics.horizontalLine(-i, i - 1, i - 1, color);
-        graphics.verticalLine(-i, -i, i - 1, color);
-        graphics.verticalLine(i - 1, -i, i - 1, color);
-        pose.popMatrix();
+        int color;
+        if (complete) {
+            color = resultColor;
+        } else {
+            color = 0xffffffff;
+        }
+        guiGraphics.hLine(-i, i - 1, -i, color);
+        guiGraphics.hLine(-i, i - 1, i - 1, color);
+        guiGraphics.vLine(-i, -i, i - 1, color);
+        guiGraphics.vLine(i - 1, -i, i - 1, color);
+        poseStack.popPose();
     }
 
     @Override
-    protected boolean isValidClickButton(MouseButtonInfo button) {
+    protected boolean isValidClickButton(int button) {
         return false;
     }
 
-    private void renderItemTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    private void renderItemTooltip(GuiGraphics guiGraphics, PoseStack poseStack, int mouseX, int mouseY) {
         if (!isHovered || !complete) {
             return;
         }
-        graphics.setTooltipForNextFrame(getFont(), result.getCountItemStack(), mouseX, mouseY);
+        poseStack.pushPose();
+        poseStack.translate(0, 0, 1000);
+        guiGraphics.renderTooltip(getFont(), result.getCountItemStack(), mouseX, mouseY);
+        poseStack.popPose();
     }
 
     private @NotNull SoundManager getSoundManager() {
@@ -248,7 +274,7 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     private @NotNull Minecraft getMinecraft() {
-        return Minecraft.getInstance();
+        return slotMachineScreen.getMinecraft();
     }
 
     @Override
