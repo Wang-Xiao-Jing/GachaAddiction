@@ -5,7 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public final class FilterRuleParser {
     private static boolean isValidItemCondition(String value) {
         int componentsStart = value.indexOf('[');
         String itemId = componentsStart < 0 ? value : value.substring(0, componentsStart);
-        ResourceLocation id = ResourceLocation.tryParse(itemId);
+        Identifier id = Identifier.tryParse(itemId);
         if (id == null || itemId.isEmpty()) {
             return false;
         }

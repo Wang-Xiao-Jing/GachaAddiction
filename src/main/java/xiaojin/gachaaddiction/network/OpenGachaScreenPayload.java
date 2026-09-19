@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.api.GachaType;
@@ -16,16 +16,16 @@ import java.util.Optional;
 
 public record OpenGachaScreenPayload(
         Optional<GachaType> gachaType,
-        List<ResourceLocation> lootTableIds,
+        List<Identifier> lootTableIds,
         List<ItemStackEntry> entries,
         List<ItemStack> rewards
 ) implements CustomPacketPayload, ToClientPayload {
 
     public static final CustomPacketPayload.Type<OpenGachaScreenPayload> TYPE = new CustomPacketPayload.Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "open_gacha_screen"));
+            Identifier.fromNamespaceAndPath(GachaAddiction.MODID, "open_gacha_screen"));
 
-    private static final StreamCodec<ByteBuf, List<ResourceLocation>> LOOT_TABLE_ID_STREAM_CODEC =
-            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list());
+    private static final StreamCodec<ByteBuf, List<Identifier>> LOOT_TABLE_ID_STREAM_CODEC =
+            Identifier.STREAM_CODEC.apply(ByteBufCodecs.list());
 
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenGachaScreenPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.optional(GachaType.STREAM_CODEC), OpenGachaScreenPayload::gachaType,

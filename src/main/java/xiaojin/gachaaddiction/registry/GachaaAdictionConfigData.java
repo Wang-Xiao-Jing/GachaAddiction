@@ -9,7 +9,7 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -51,7 +51,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler) {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         object.forEach((k, v) -> {
             String path = k.getPath();
@@ -88,7 +88,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
             }
 
             if (k.startsWith("#") && TAG_PATTERN.matcher(k).matches()) {
-                ResourceLocation key = ResourceLocation.parse(k.substring(1));
+                Identifier key = Identifier.parse(k.substring(1));
                 tagKeyMap.put(TagKey.create(Registries.ITEM, key), simpleSoundInstance);
                 continue;
             }
@@ -99,7 +99,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
             }
 
             if (ID_PATTERN.matcher(k).matches()) {
-                ResourceLocation key = ResourceLocation.parse(k);
+                Identifier key = Identifier.parse(k);
                 Item item = BuiltInRegistries.ITEM.get(key);
                 if (item == Items.AIR) {
                     continue;
@@ -129,7 +129,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
         };
     }
 
-    private static boolean hasSound(SoundManager soundManager, ResourceLocation v) {
+    private static boolean hasSound(SoundManager soundManager, Identifier v) {
         return soundManager.getSoundEvent(v) != null;
     }
 
@@ -144,14 +144,14 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
         return instance;
     }
 
-    private static SimpleSoundInstance createSimpleSoundInstance(ResourceLocation location, float pitch, float volume) {
+    private static SimpleSoundInstance createSimpleSoundInstance(Identifier location, float pitch, float volume) {
         return new SimpleSoundInstance(location, SoundSource.MASTER, volume, pitch, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true);
     }
 
     @Nullable
     private static SimpleSoundInstance createSimpleSoundInstance(SoundManager soundManager, JsonElement element) {
         if (!element.isJsonObject()) {
-            ResourceLocation id = ResourceLocation.parse(element.getAsString());
+            Identifier id = Identifier.parse(element.getAsString());
             if (!hasSound(soundManager, id)) {
                 GachaAddiction.LOGGER.error("未找到id");
                 return null;
@@ -164,7 +164,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
             return null;
         }
 
-        ResourceLocation id = ResourceLocation.parse(object.get("id").getAsString());
+        Identifier id = Identifier.parse(object.get("id").getAsString());
         if (!hasSound(soundManager, id)) {
             GachaAddiction.LOGGER.error("未找到id为 {} 的音效", id);
             return null;
@@ -184,7 +184,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
     }
 
     @Override
-    public ResourceLocation getFabricId() {
-        return ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "gachaaadiction");
+    public Identifier getFabricId() {
+        return Identifier.fromNamespaceAndPath(GachaAddiction.MODID, "gachaaadiction");
     }
 }

@@ -2,7 +2,7 @@ package xiaojin.gachaaddiction.registry.sound;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import xiaojin.gachaaddiction.GachaAddiction;
 
@@ -18,10 +18,10 @@ public class ModSoundEvents {
     }
 
     private static SoundEvent register(String id, String location) {
-        ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, location);
+        Identifier resourceLocation = Identifier.fromNamespaceAndPath(GachaAddiction.MODID, location);
         SoundEvent soundEvent = SoundEvent.createVariableRangeEvent(resourceLocation);
         return Registry.register(BuiltInRegistries.SOUND_EVENT,
-                ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, id), soundEvent);
+                Identifier.fromNamespaceAndPath(GachaAddiction.MODID, id), soundEvent);
     }
 
     public static void init() {

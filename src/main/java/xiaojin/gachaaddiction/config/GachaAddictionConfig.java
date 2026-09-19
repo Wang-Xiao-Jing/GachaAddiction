@@ -1,6 +1,6 @@
 package xiaojin.gachaaddiction.config;
 
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
+import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import xiaojin.gachaaddiction.GachaAddiction;
@@ -60,9 +60,9 @@ public class GachaAddictionConfig {
      */
     public static void register() {
         GachaAddiction.LOGGER.info("Initialize the Gacha Addiction config files");
-        NeoForgeConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.COMMON, COMMON_SPEC);
-        NeoForgeConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.SERVER, SERVER_SPEC);
-        NeoForgeConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.CLIENT, CLIENT_SPEC);
+        ConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.COMMON, COMMON_SPEC);
+        ConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.SERVER, SERVER_SPEC);
+        ConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.CLIENT, CLIENT_SPEC);
     }
 
     public static List<BasicConfigEntry<?>> clientEntries() {

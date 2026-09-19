@@ -4,7 +4,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.api.GachaaData;
 
@@ -16,7 +16,7 @@ public record GachaaDataPayload(
 ) implements CustomPacketPayload, ToClientPayload {
 
     public static final CustomPacketPayload.Type<GachaaDataPayload> TYPE = new CustomPacketPayload.Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "gachaa_data"));
+            Identifier.fromNamespaceAndPath(GachaAddiction.MODID, "gachaa_data"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GachaaDataPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, GachaaDataPayload::containerId,

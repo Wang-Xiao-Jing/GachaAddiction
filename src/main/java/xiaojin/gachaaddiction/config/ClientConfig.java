@@ -1,6 +1,6 @@
 package xiaojin.gachaaddiction.config;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.api.GachaType;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -72,7 +72,7 @@ public class ClientConfig extends BasicConfig {
         ftbQuestsGachaa = define(true, "ftb_quests_gachaa", FTB_QUESTS_GACHA_COMMENT);
         defaultGachaaType = selectorDefine(GachaTypes.SLOT_MACHINE,
                 GachaTypes.getLiat(), "default_gachaas_type",
-                v -> Objects.requireNonNull(GachaTypes.get(ResourceLocation.parse(v))),
+                v -> Objects.requireNonNull(GachaTypes.get(Identifier.parse(v))),
                 v -> Objects.requireNonNull(Objects.requireNonNull(v).getId()).toString(),
                 DEFAULT_GACHA_TYPE_COMMENT);
         slotMachineConfig = new SlotMachineConfig(this);

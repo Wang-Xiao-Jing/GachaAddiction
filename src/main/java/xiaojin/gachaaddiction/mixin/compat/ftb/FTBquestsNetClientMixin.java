@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import dev.ftb.mods.ftblibrary.icon.Icon;
-import dev.ftb.mods.ftblibrary.util.client.ClientUtils;
+import dev.ftb.mods.ftblibrary.client.util.ClientUtils;
 import dev.ftb.mods.ftbquests.client.FTBQuestsNetClient;
 import dev.ftb.mods.ftbquests.client.NotificationStyle;
 import dev.ftb.mods.ftbquests.client.gui.RewardKey;

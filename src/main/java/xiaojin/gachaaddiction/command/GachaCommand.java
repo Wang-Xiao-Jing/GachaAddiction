@@ -5,11 +5,11 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -36,7 +36,7 @@ public class GachaCommand {
         return Commands.literal("gacha")
                 .requires(source -> source.hasPermission(1))
                 .then(Commands.argument("targets", EntityArgument.players())
-                        .then(Commands.argument("type", ResourceLocationArgument.id())
+                        .then(Commands.argument("type", IdentifierArgument.id())
                                 .suggests((context, builder) -> {
                                     for (GachaType type : GachaTypes.getLiat()) {
                                         if (!type.isEmpty()) {
@@ -45,7 +45,7 @@ public class GachaCommand {
                                     }
                                     return builder.buildFuture();
                                 })
-                                .then(Commands.argument("lootTable", ResourceLocationArgument.id())
+                                .then(Commands.argument("lootTable", IdentifierArgument.id())
                                         .suggests((context, builder) -> {
                                             var server = context.getSource().getServer();
                                             var registry = server.reloadableRegistries()
@@ -62,8 +62,8 @@ public class GachaCommand {
                                                 .executes(context -> executeGacha(
                                                         context.getSource(),
                                                         EntityArgument.getPlayers(context, "targets"),
-                                                        ResourceLocationArgument.getId(context, "type"),
-                                                        ResourceLocationArgument.getId(context, "lootTable"),
+                                                        IdentifierArgument.getId(context, "type"),
+                                                        IdentifierArgument.getId(context, "lootTable"),
                                                         IntegerArgumentType.getInteger(context, "count")
                                                 ))
                                         )
@@ -72,7 +72,7 @@ public class GachaCommand {
                 );
     }
 
-    private static int executeGacha(CommandSourceStack source, Collection<ServerPlayer> targets, ResourceLocation typeId, ResourceLocation lootTableLocation, int count) {
+    private static int executeGacha(CommandSourceStack source, Collection<ServerPlayer> targets, Identifier typeId, Identifier lootTableLocation, int count) {
         ServerLevel level = source.getLevel();
 
         GachaType gachaType = GachaTypes.get(typeId);
