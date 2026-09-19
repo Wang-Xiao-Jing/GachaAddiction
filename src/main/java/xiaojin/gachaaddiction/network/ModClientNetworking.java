@@ -15,7 +15,6 @@ import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.registry.client.GachaTypeClients;
-import xiaojin.gachaaddiction.GachaAddiction;
 
 @Environment(EnvType.CLIENT)
 public class ModClientNetworking {
@@ -61,11 +60,6 @@ public class ModClientNetworking {
         BasicGachaScreen gachaScreen = gachaType.getClientData().create(current, data);
         client.setScreen(gachaScreen);
 
-        GachaAddiction.LOGGER.info("[gacha] payload containerId={} lootTables={} entries={}",
-                payload.containerId(),
-                data.lootTableId().map(java.util.List::size).orElse(-1),
-                data.itemStackEntry().map(java.util.List::size).orElse(-1));
-
         fillRewards(client, gachaScreen, menu);
     }
 
@@ -76,8 +70,6 @@ public class ModClientNetworking {
             menuItems.removeAll(localPlayer.inventoryMenu.getItems());
         }
         menuItems.removeIf(ItemStack::isEmpty);
-
-        GachaAddiction.LOGGER.info("[gacha] fillRewards items={}", menuItems.size());
 
         if (menuItems.isEmpty()) {
             return;
