@@ -6,12 +6,14 @@ import net.minecraft.nbt.CompoundTag;
 import noobanidus.mods.lootr.common.api.data.inventory.ILootrInventory;
 import noobanidus.mods.lootr.common.data.LootrInventory;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xiaojin.gachaaddiction.mixed.IILootrInventory;
 
+@Pseudo
 @Mixin(LootrInventory.class)
 public abstract class LootrInventoryMixin implements ILootrInventory, IILootrInventory {
     @Unique

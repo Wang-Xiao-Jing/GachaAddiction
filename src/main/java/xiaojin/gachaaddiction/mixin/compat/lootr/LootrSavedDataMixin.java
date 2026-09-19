@@ -10,9 +10,11 @@ import noobanidus.mods.lootr.common.api.data.ILootrSavedData;
 import noobanidus.mods.lootr.common.data.LootrInventory;
 import noobanidus.mods.lootr.common.data.LootrSavedData;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import xiaojin.gachaaddiction.mixed.IILootrInventory;
 
+@Pseudo
 @Mixin(LootrSavedData.class)
 public abstract class LootrSavedDataMixin {
     @WrapOperation(method = "load", at = @At(value = "NEW", target = "(Lnoobanidus/mods/lootr/common/api/data/ILootrSavedData;Lnet/minecraft/core/NonNullList;)Lnoobanidus/mods/lootr/common/data/LootrInventory;"))

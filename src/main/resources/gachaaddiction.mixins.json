@@ -12,7 +12,6 @@
     "accessor.LootPoolAccessor",
     "accessor.LootPoolSingletonContainerAccessor",
     "accessor.LootTableAccessor",
-    "compat.ftb.FTBquestsNetClientMixin",
     "compat.ftb.LootCrateItemMixin",
     "compat.ftb.LootRewardMixin",
     "compat.lootr.LootrInventoryMixin",

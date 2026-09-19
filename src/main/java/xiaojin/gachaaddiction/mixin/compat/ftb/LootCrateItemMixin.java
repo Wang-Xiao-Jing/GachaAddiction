@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.GachaType;
@@ -21,6 +22,7 @@ import xiaojin.gachaaddiction.api.ItemStackEntry;
 import java.util.ArrayList;
 import java.util.List;
 
+@Pseudo
 @Mixin(LootCrateItem.class)
 public abstract class LootCrateItemMixin {
     @WrapOperation(method = "use", at = @At(value = "INVOKE", target = "Ldev/ftb/mods/ftbquests/client/gui/RewardNotificationsScreen;openGui()V"))
