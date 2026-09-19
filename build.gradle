@@ -157,6 +157,10 @@ processResources {
     inputs.property 'mod_license', mod_license
     inputs.property 'mod_description', mod_description
 
+    from('lang') {
+        into "assets/${mod_id}/lang"
+    }
+
     filesMatching('fabric.mod.json') {
         expand(
                 version: project.version,
