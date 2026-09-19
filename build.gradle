@@ -46,12 +46,6 @@ repositories {
     mavenCentral()
 
     maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-        content { includeGroup 'org.parchmentmc.data' }
-    }
-
-    maven {
         name = 'Fuzs Mod Resources'
         url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven/'
         content { includeGroup 'fuzs.forgeconfigapiport' }
@@ -106,10 +100,7 @@ repositories {
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
 
-    mappings loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
-    }
+    mappings loom.officialMojangMappings()
 
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
