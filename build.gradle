@@ -129,9 +129,8 @@ dependencies {
 
     if (ftb) {
         modCompileOnly "dev.architectury:architectury-fabric:${architectury_version}"
-        modCompileOnly "dev.ftb.mods:ftb-library-fabric:${ftb_library_version}"
-        modCompileOnly "dev.ftb.mods:ftb-quests-fabric:${ftb_quests_version}"
-        modCompileOnly "dev.ftb.mods:ftb-teams-fabric:${ftb_teams_version}"
+        modCompileOnly("dev.ftb.mods:ftb-library-fabric:${ftb_library_version}") { transitive = false }
+        modCompileOnly("dev.ftb.mods:ftb-quests-fabric:${ftb_quests_version}") { transitive = false }
     }
 }
 
