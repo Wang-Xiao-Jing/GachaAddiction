@@ -46,6 +46,12 @@ repositories {
     mavenCentral()
 
     maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+        content { includeGroup 'org.parchmentmc.data' }
+    }
+
+    maven {
         name = 'Fuzs Mod Resources'
         url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven/'
         content { includeGroup 'fuzs.forgeconfigapiport' }
