@@ -123,6 +123,7 @@ dependencies {
     include implementation("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${mixinsquared_version}")
 
     if (lootr) {
+        modCompileOnly "noobanidus.mods.lootr:lootr-common:${lootr_version}"
         modCompileOnly "noobanidus.mods.lootr:lootr-fabric:${lootr_version}"
         modLocalRuntime "noobanidus.mods.lootr:lootr-fabric:${lootr_version}"
     }

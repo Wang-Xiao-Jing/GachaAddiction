@@ -6,7 +6,6 @@
     "entity.AbstractContainerMenuMixin",
     "entity.AbstractMinecartContainerMixin",
     "block.ChestBlock_2_1Mixin",
-    "entity.MenuTypeMixin",
     "block.RandomizableContainerBlockEntityMixin",
     "entity.ServerPlayerMixin",
     "accessor.LootItemAccessor",

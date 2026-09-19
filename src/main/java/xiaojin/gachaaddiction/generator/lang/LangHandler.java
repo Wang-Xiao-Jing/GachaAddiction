@@ -7,8 +7,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.data.loading.DatagenModLoader;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import xiaojin.gachaaddiction.GachaAddiction;
 
 import java.util.HashMap;
@@ -44,14 +42,6 @@ public class LangHandler {
         create(namespace, ZH_CN, zhCn, unaryOperator);
     }
 
-    public static void creates(DeferredRegister<?> register, String enUs, String zhCn, BiConsumer<LangSet, String> unaryOperator) {
-        creates(register.getNamespace(), enUs, zhCn, unaryOperator);
-    }
-
-    public static void create(DeferredRegister<?> register, String lang, String txt, BiConsumer<LangSet, String> unaryOperator) {
-        create(register.getNamespace(), lang, txt, unaryOperator);
-    }
-
     public static String create(String namespace, String lang, String key) {
         create(namespace, lang, key, (langSet, txt) -> langSet.add(key, txt));
         return key;
@@ -77,7 +67,7 @@ public class LangHandler {
     }
 
     public static boolean isDataGen() {
-        return DatagenModLoader.isRunningDataGen();
+        return System.getProperty("fabric-api.datagen") != null;
     }
 
     public static final class LangSet {
