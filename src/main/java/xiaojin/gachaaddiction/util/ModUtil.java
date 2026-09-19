@@ -28,7 +28,7 @@ public class ModUtil {
         if (lootTableResourceKey == null) {
             return null;
         }
-        return lootTableResourceKey.location();
+        return lootTableResourceKey.identifier();
     }
 
     public static @NotNull List<Identifier> of(List<@Nullable ResourceKey<LootTable>> lootTableResourceKey) {

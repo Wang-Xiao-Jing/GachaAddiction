@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractMinecartContainerMixin extends AbstractMinecart implements IAbstractMinecartContainer, ContainerEntity {
     @Shadow
     @Nullable
-    public abstract ResourceKey<LootTable> getLootTable();
+    public abstract ResourceKey<LootTable> getContainerLootTable();
 
     @Shadow
     @Nullable
@@ -65,7 +65,7 @@ public abstract class AbstractMinecartContainerMixin extends AbstractMinecart im
     @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
     private void gachaaddiction$addAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
         if (compound.contains(ModUtil.OPEN_GACHAA_UI)) {
-            this.gachaaddiction$isOpenGachaaUi = compound.getBoolean(ModUtil.OPEN_GACHAA_UI);
+            this.gachaaddiction$isOpenGachaaUi = compound.getBooleanOr(ModUtil.OPEN_GACHAA_UI, false);
         } else {
             this.gachaaddiction$isOpenGachaaUi = false;
         }

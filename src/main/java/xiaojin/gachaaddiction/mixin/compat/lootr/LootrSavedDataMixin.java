@@ -20,7 +20,7 @@ public abstract class LootrSavedDataMixin {
     @WrapOperation(method = "load", at = @At(value = "NEW", target = "(Lnoobanidus/mods/lootr/common/api/data/ILootrSavedData;Lnet/minecraft/core/NonNullList;)Lnoobanidus/mods/lootr/common/data/LootrInventory;"))
     private static LootrInventory gachaaddiction$load(ILootrSavedData info, NonNullList<ItemStack> contents, Operation<LootrInventory> original, @Local(name = "itemTag") CompoundTag itemTag) {
         LootrInventory inventory = original.call(info, contents);
-        IILootrInventory.of(inventory).gachaaddiction$setOpen(itemTag.getBoolean("gachaaddiction$isOpen"));
+        IILootrInventory.of(inventory).gachaaddiction$setOpen(itemTag.getBooleanOr("gachaaddiction$isOpen", false));
         return inventory;
     }
 }

@@ -21,11 +21,10 @@ public class LootDisplayCache {
 
     public static void reload(ServerLevel level) {
         cache.clear();
-        Registry<LootTable> registry = level.getServer()
-                .reloadableRegistries().get()
-                .registryOrThrow(Registries.LOOT_TABLE);
+        var lookup = level.getServer().reloadableRegistries().lookup()
+                .lookupOrThrow(Registries.LOOT_TABLE);
         int count = 0;
-        for (var holder : registry.holders().toList()) {
+        for (var holder : lookup.listElements().toList()) {
             LootTable table = holder.value();
             if (table == LootTable.EMPTY) continue;
             List<ItemStackEntry> entries = ItemStackEntry.extract(table);

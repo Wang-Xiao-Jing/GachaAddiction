@@ -53,7 +53,7 @@ public record MenuProviderData(
         }
 
         if (menuProvider instanceof AbstractMinecartContainer abstractMinecartContainer) {
-            ResourceKey<LootTable> lootTable = abstractMinecartContainer.getLootTable();
+            ResourceKey<LootTable> lootTable = abstractMinecartContainer.getContainerLootTable();
             IAbstractMinecartContainer iAbstractMinecartContainer = IAbstractMinecartContainer.of(abstractMinecartContainer);
             if (lootTable == null) {
                 lootTable = iAbstractMinecartContainer.gachaaddiction$getOldLootTable();
@@ -67,7 +67,7 @@ public record MenuProviderData(
         }
 
         if (menuProvider instanceof ContainerEntity containerEntity) {
-            return new MenuProviderData(containerEntity.getLootTable());
+            return new MenuProviderData(containerEntity.getContainerLootTable());
         }
 
         return new MenuProviderData(List.of(), false);

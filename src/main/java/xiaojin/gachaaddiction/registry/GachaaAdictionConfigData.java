@@ -1,6 +1,5 @@
 package xiaojin.gachaaddiction.registry;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
@@ -8,6 +7,8 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -43,7 +44,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
     private static Function<ItemStack, SimpleSoundInstance> soundEventsFunction;
 
     public GachaaAdictionConfigData() {
-        super(new Gson(), "gachaaadiction");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("gachaaadiction"));
     }
 
     public static Function<ItemStack, SimpleSoundInstance> getSoundEventsFunction() {
@@ -100,7 +101,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
 
             if (ID_PATTERN.matcher(k).matches()) {
                 Identifier key = Identifier.parse(k);
-                Item item = BuiltInRegistries.ITEM.get(key);
+                Item item = BuiltInRegistries.ITEM.getValue(key);
                 if (item == Items.AIR) {
                     continue;
                 }

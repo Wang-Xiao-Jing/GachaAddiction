@@ -31,7 +31,7 @@ public record OpenGachaScreenPayload(
             ByteBufCodecs.optional(GachaType.STREAM_CODEC), OpenGachaScreenPayload::gachaType,
             LOOT_TABLE_ID_STREAM_CODEC, OpenGachaScreenPayload::lootTableIds,
             ItemStackEntry.LIST_STREAM_CODEC, OpenGachaScreenPayload::entries,
-            ItemStack.LIST_STREAM_CODEC, OpenGachaScreenPayload::rewards,
+            ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()), OpenGachaScreenPayload::rewards,
             OpenGachaScreenPayload::new
     );
 
