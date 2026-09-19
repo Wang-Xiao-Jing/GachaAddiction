@@ -2,7 +2,8 @@ package xiaojin.gachaaddiction.config.filter;
 
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.util.RarityUtil;
 
@@ -32,7 +33,7 @@ public final class FilterRuleMatcher {
         boolean matches;
         if (value.startsWith("#")) {
             ResourceLocation key = ResourceLocation.parse(value.substring(1));
-            matches = itemStack.is(ItemTags.create(key));
+            matches = itemStack.is(TagKey.create(Registries.ITEM, key));
         } else if (FilterRuleParser.isRarityCondition(value)) {
             matches = evaluateRarity(value, RarityUtil.getRarityLevel(itemStack));
         } else {

@@ -21,6 +21,7 @@
       "xiaojin.gachaaddiction.GachaAddictionClient"
     ]
   },
+  "accessWidener": "gachaaddiction.accesswidener",
   "mixins": [
     "gachaaddiction.mixins.json",
     {

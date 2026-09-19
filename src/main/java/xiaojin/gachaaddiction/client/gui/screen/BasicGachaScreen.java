@@ -1,5 +1,6 @@
 package xiaojin.gachaaddiction.client.gui.screen;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -37,6 +38,11 @@ public abstract class BasicGachaScreen extends Screen implements ReelHost {
         this.originalScreen = originalScreen;
         this.lootTableId.addAll(lootTableId);
         this.itemStackEntries.addAll(itemStackEntries);
+    }
+
+    @Override
+    public Minecraft getMinecraft() {
+        return this.minecraft;
     }
 
     public abstract void updateRewards(NonNullList<ItemStack> item);

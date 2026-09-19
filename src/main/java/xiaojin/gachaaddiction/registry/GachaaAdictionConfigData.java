@@ -8,12 +8,12 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
@@ -89,7 +89,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener i
 
             if (k.startsWith("#") && TAG_PATTERN.matcher(k).matches()) {
                 ResourceLocation key = ResourceLocation.parse(k.substring(1));
-                tagKeyMap.put(ItemTags.create(key), simpleSoundInstance);
+                tagKeyMap.put(TagKey.create(Registries.ITEM, key), simpleSoundInstance);
                 continue;
             }
 
