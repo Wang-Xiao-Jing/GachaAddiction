@@ -1,4 +1,8 @@
 {
+  "commands.gachaaddiction.gacha.error": "Ошибка при выполнении команды: %s",
+  "commands.gachaaddiction.gacha.invalid_loot_table": "Недействительная таблица лута: %s",
+  "commands.gachaaddiction.gacha.invalid_type": "Недействительный тип рулетки: %s",
+  "commands.gachaaddiction.gacha.success": "Выполнено %s раз для %s предметов из таблицы лута: %s",
   "ftbquests.reward.ftbquests.loot.gachaaddiction:gacha_type": "Gacha Style",
   "gacha_type.gachaaddiction:empty": "Пусто",
   "gacha_type.gachaaddiction:slot_machine": "Слот-машина",
@@ -7,6 +11,8 @@
   "gachaaddiction.configuration.gachaa_screen.default_gachaas_type": "Базовый тип экрана",
   "gachaaddiction.configuration.gachaa_screen.ftb_quests_gachaa": "Включить рулетку в награды FTB Quest",
   "gachaaddiction.configuration.gachaa_screen.merge_item": "Объединить повторяющиеся награды",
+  "gachaaddiction.configuration.gachaa_screen.rarity_from_loot_table": "Редкость по таблице лута",
+  "gachaaddiction.configuration.gachaa_screen.rarity_from_loot_table.tooltip": "Определять редкость по вероятности выпадения предмета из таблицы лута контейнера, а не по ванильной редкости.",
   "gachaaddiction.configuration.gachaa_screen.rarity_sorting": "Сортировка по редкости",
   "gachaaddiction.configuration.gachaa_screen.reward_sound_effects": "Звуки получения награды",
   "gachaaddiction.configuration.gachaa_screen.reward_sound_effects_optimize": "Оптимизация звуков получения награды",
@@ -34,9 +40,5 @@
   "gachaaddiction.configuration.gachaa_screen.slot_machine.speed.speed_variance_min": "Скорость рандома (min)",
   "gachaaddiction.configuration.gachaa_screen.whitelist_filter_list": "Белый список",
   "gui.gachaaddiction.slot_machines.kip_hint": "Нажмите пробел для пропуска или ESC для просмотра лута",
-  "pack.gachaaddiction.description": "Gacha Addiction",
-  "commands.gachaaddiction.gacha.invalid_type": "Недействительный тип рулетки: %s",
-  "commands.gachaaddiction.gacha.invalid_loot_table": "Недействительная таблица лута: %s",
-  "commands.gachaaddiction.gacha.success": "Выполнено %s раз для %s предметов из таблицы лута: %s",
-  "commands.gachaaddiction.gacha.error": "Ошибка при выполнении команды: %s"
+  "pack.gachaaddiction.description": "Gacha Addiction"
 }

@@ -1,12 +1,12 @@
 package xiaojin.gachaaddiction.mixed;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import xiaojin.gachaaddiction.api.GachaType;
 
 public interface ILootRewardModeMap {
     String gachaaddiction$getGachaTypeIdString();
 
-    ResourceLocation gachaaddiction$getGachaTypeId();
+    Identifier gachaaddiction$getGachaTypeId();
 
     GachaType gachaaddiction$getGachaType();
 

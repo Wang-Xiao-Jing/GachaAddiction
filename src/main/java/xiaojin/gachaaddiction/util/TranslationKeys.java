@@ -64,6 +64,13 @@ public interface TranslationKeys {
     String CONFIG_GACHAA_SCREEN_RARITY_SORTING_TOOLTIP = LangHandler.creates(GachaAddiction.MODID, LangHandler.getConfigTranslation(GachaAddiction.MODID, "gachaa_screen", "rarity_sorting", "tooltip"),
             "Sort rewards by rarity from highest to lowest.", "按稀有度从高到低排序奖品。");
     @SuppressWarnings("unused")
+    String CONFIG_GACHAA_SCREEN_RARITY_FROM_LOOT_TABLE = LangHandler.creates(GachaAddiction.MODID, LangHandler.getConfigTranslation(GachaAddiction.MODID, "gachaa_screen", "rarity_from_loot_table"),
+            "Rarity from Loot Table", "按战利品表判定稀有度");
+    @SuppressWarnings("unused")
+    String CONFIG_GACHAA_SCREEN_RARITY_FROM_LOOT_TABLE_TOOLTIP = LangHandler.creates(GachaAddiction.MODID, LangHandler.getConfigTranslation(GachaAddiction.MODID, "gachaa_screen", "rarity_from_loot_table", "tooltip"),
+            "Rank rarity by how likely each item is inside the container's own loot table instead of the item's vanilla rarity.",
+            "根据物品在该容器战利品表中的出现概率判定稀有度，而不使用原版稀有度。");
+    @SuppressWarnings("unused")
     String CONFIG_GACHAA_SCREEN_REWARD_SOUND_EFFECTS = LangHandler.creates(GachaAddiction.MODID, LangHandler.getConfigTranslation(GachaAddiction.MODID, "gachaa_screen", "reward_sound_effects"),
             "Reward Sound Effects", "奖品音效");
     @SuppressWarnings("unused")

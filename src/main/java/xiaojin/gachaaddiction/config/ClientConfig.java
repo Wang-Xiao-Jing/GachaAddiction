@@ -1,6 +1,6 @@
 package xiaojin.gachaaddiction.config;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.api.GachaType;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -19,6 +19,7 @@ public class ClientConfig extends BasicConfig {
     private static final String TAG_RULE_COMMENT = "Match item tags with #minecraft:block and exclude tags with !#.";
     private static final String ITEM_RULE_COMMENT = "Use vanilla item command syntax and exclude items with !.";
     private static final String RARITY_SORTING_COMMENT = "Sort rewards by rarity when enabled.";
+    private static final String RARITY_FROM_LOOT_TABLE_COMMENT = "Rank rarity by how likely each item is inside the container's own loot table instead of the item's vanilla rarity.";
     private static final String REWARD_SOUND_OPTIMIZATION_COMMENT = "Only play the highest-rarity reward sound when multiple rewards appear together.";
     private static final String FTB_QUESTS_GACHA_COMMENT = "Open the gacha screen for FTB Quest rewards even when the quest does not enable it.";
     private static final String DEFAULT_GACHA_TYPE_COMMENT = "Use this type when the gacha screen type is not defined.";
@@ -35,6 +36,10 @@ public class ClientConfig extends BasicConfig {
      * 稀有度排序
      */
     public final BooleanConfigEntry raritySorting;
+    /**
+     * 按战利品表概率判定稀有度
+     */
+    public final BooleanConfigEntry rarityFromLootTable;
     /**
      * 奖品音效
      */
@@ -67,12 +72,13 @@ public class ClientConfig extends BasicConfig {
                 BLACKLIST_COMMENT, COMPOUND_RULE_COMMENT, TAG_RULE_COMMENT, ITEM_RULE_COMMENT);
         mergeItem = define(true, "merge_item");
         raritySorting = define(true, "rarity_sorting", RARITY_SORTING_COMMENT);
+        rarityFromLootTable = define(true, "rarity_from_loot_table", RARITY_FROM_LOOT_TABLE_COMMENT);
         rewardSoundEffects = define(true, "reward_sound_effects");
         rewardSoundEffectsOptimize = define(true, "reward_sound_effects_optimize", REWARD_SOUND_OPTIMIZATION_COMMENT);
         ftbQuestsGachaa = define(true, "ftb_quests_gachaa", FTB_QUESTS_GACHA_COMMENT);
         defaultGachaaType = selectorDefine(GachaTypes.SLOT_MACHINE,
                 GachaTypes.getLiat(), "default_gachaas_type",
-                v -> Objects.requireNonNull(GachaTypes.get(ResourceLocation.parse(v))),
+                v -> Objects.requireNonNull(GachaTypes.get(Identifier.parse(v))),
                 v -> Objects.requireNonNull(Objects.requireNonNull(v).getId()).toString(),
                 DEFAULT_GACHA_TYPE_COMMENT);
         slotMachineConfig = new SlotMachineConfig(this);

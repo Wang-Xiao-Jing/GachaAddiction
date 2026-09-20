@@ -1,11 +1,11 @@
 package xiaojin.gachaaddiction.client.gui.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +18,7 @@ import xiaojin.gachaaddiction.config.ClientConfig;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,12 +26,22 @@ public class SlotMachineScreen extends BasicGachaScreen {
     public static final String SKIP_HINT = TranslationKeys.GUI_SLOT_MACHINES_KIP_HINT;
     protected final ClientConfig.SlotMachineConfig slotMachineConfig = clientConfig.slotMachineConfig;
     private final List<VerticalReelWidget> verticalReelWidgets = new ArrayList<>();
+    private static final int BASE_SPIN = 18;
+    private static final int MAX_EXTRA_SPIN = 24;
+    private static final int SPIN_TAIL = 6;
+    private static final int SIDE_MARGIN = 6;
+    private static final int ROW_GAP = 10;
+    private static final int BOTTOM_RESERVED = 46;
+    private static final int MIN_VISIBLE = 3;
+
     private int currentPage;
     private int pageSize;
+    private int gridCols = 1;
+    private int gridVisible;
     private int blinkTicks;
     private boolean passSoundPlayedThisFrame;
 
-    public SlotMachineScreen(@Nullable Screen originalScreen, List<@Nullable ResourceLocation> lootTableId, List<ItemStackEntry> itemStackEntries) {
+    public SlotMachineScreen(@Nullable Screen originalScreen, List<@Nullable Identifier> lootTableId, List<ItemStackEntry> itemStackEntries) {
         super(Component.empty(), originalScreen, lootTableId, itemStackEntries);
     }
 
@@ -46,10 +57,56 @@ public class SlotMachineScreen extends BasicGachaScreen {
     protected void refreshWidgets() {
         clearReels();
         RandomSource random = RandomSource.create();
-        for (RewardData data : rewards) {
-            verticalReelWidgets.add(createReelWidget(this, data, itemStackEntries, slotMachineConfig, random));
+        computeLayout(rewards.size());
+        int perPage = pageSize;
+        for (int start = 0; start < rewards.size(); start += perPage) {
+            int end = Math.min(start + perPage, rewards.size());
+            List<RewardData> group = rewards.subList(start, end);
+            int[] ranks = stopRanks(group);
+            for (int i = 0; i < group.size(); i++) {
+                verticalReelWidgets.add(createReelWidget(this, group.get(i), itemStackEntries,
+                        slotMachineConfig, random, ranks[i], group.size()));
+            }
         }
         initReels();
+    }
+
+    private void computeLayout(int total) {
+        if (width <= 0 || height <= 0) {
+            gridVisible = Math.max(MIN_VISIBLE, slotMachineConfig.itemVisibleCount.get());
+            pageSize = Math.max(pageSize, 1);
+            return;
+        }
+        int cols = Math.max(1, (width - SIDE_MARGIN * 2) / VerticalReelWidget.RAIL_STEP);
+        int available = Math.max(VerticalReelWidget.MIN_SLOT_HEIGHT, height - BOTTOM_RESERVED);
+        int maxVisible = Math.max(MIN_VISIBLE, slotMachineConfig.itemVisibleCount.get());
+
+        int chosenVisible = maxVisible;
+        int chosenRows = 1;
+        for (int visible = maxVisible; visible >= MIN_VISIBLE; visible--) {
+            chosenVisible = visible;
+            chosenRows = Math.max(1, available / (VerticalReelWidget.railHeightFor(visible) + ROW_GAP));
+            if (cols * chosenRows >= Math.max(1, total)) {
+                break;
+            }
+        }
+
+        gridCols = cols;
+        gridVisible = chosenVisible;
+        pageSize = Math.max(1, cols * chosenRows);
+    }
+
+    private static int[] stopRanks(List<RewardData> group) {
+        List<Integer> byRarity = new ArrayList<>();
+        for (int i = 0; i < group.size(); i++) {
+            byRarity.add(i);
+        }
+        byRarity.sort(Comparator.comparingInt(index -> group.get(index).getRarityLevel()));
+        int[] ranks = new int[group.size()];
+        for (int rank = 0; rank < byRarity.size(); rank++) {
+            ranks[byRarity.get(rank)] = rank;
+        }
+        return ranks;
     }
 
     @Override
@@ -96,48 +153,61 @@ public class SlotMachineScreen extends BasicGachaScreen {
                                                       List<ItemStackEntry> entries,
                                                       ClientConfig.SlotMachineConfig slotMachineConfig,
                                                       RandomSource random) {
-        int rarityLevel = data.getRarityLevel();
+        return createReelWidget(host, data, entries, slotMachineConfig, random, 0, 1);
+    }
+
+    public static VerticalReelWidget createReelWidget(ReelHost host, RewardData data,
+                                                      List<ItemStackEntry> entries,
+                                                      ClientConfig.SlotMachineConfig slotMachineConfig,
+                                                      RandomSource random,
+                                                      int stopRank, int reelCount) {
         int slotSize = slotMachineConfig.itemSlotSize.get();
-        int decoyCount = 40;
-        if (rarityLevel < 0) {
-            decoyCount -= random.nextInt(Math.min(20, -rarityLevel * 2));
-        } else if (rarityLevel > 0) {
-            int min = rarityLevel * 2;
-            int max = rarityLevel * slotSize;
-            if (max > min) decoyCount += random.nextInt(min, max);
-        } else {
-            decoyCount += random.nextInt(0, slotSize);
-        }
+        int extraSpin = reelCount <= 1 ? 0 : Math.round(MAX_EXTRA_SPIN * stopRank / (float) (reelCount - 1));
+        int spin = BASE_SPIN + extraSpin;
+        int decoyCount = spin + slotSize + SPIN_TAIL;
 
         List<ItemStack> decoys = ItemStackEntry.generateGachaResult(entries, decoyCount, random);
 
-        int resultIndex = decoys.size() > slotSize
-                ? random.nextInt(decoys.size() - slotSize) + slotSize
-                : Math.max(0, decoys.size() - 1);
-
+        int resultIndex = Math.clamp(spin, 0, decoys.size());
         decoys.add(resultIndex, data.getItemStack().getItem().getDefaultInstance());
-        return new VerticalReelWidget(host, data, decoys, resultIndex);
+
+        double fastest = slotMachineConfig.speedVarianceMax.get();
+        double slowest = slotMachineConfig.speedVarianceMin.get();
+        float ratio = reelCount <= 1 ? 0f : stopRank / (float) (reelCount - 1);
+        float speed = (float) (fastest + (slowest - fastest) * ratio);
+
+        return new VerticalReelWidget(host, data, decoys, resultIndex, speed);
     }
 
     private void initializePage(int page) {
         removeAllReelWidgets();
-        pageSize = Math.max(1, width / 3 * 2 / 32);
+        computeLayout(verticalReelWidgets.size());
         int from = page * pageSize;
-        int to = Math.min(from + pageSize, verticalReelWidgets.size());
 
         if (from >= verticalReelWidgets.size()) {
             return;
         }
 
+        int to = Math.min(from + pageSize, verticalReelWidgets.size());
         List<VerticalReelWidget> pageWidgets = verticalReelWidgets.subList(from, to);
-        int totalWidth = pageWidgets.size() * 32;
-        int startX = (width - totalWidth) / 2 + 16;
+
+        int railHeight = VerticalReelWidget.railHeightFor(gridVisible);
+        int rowHeight = railHeight + ROW_GAP;
+        int rows = (pageWidgets.size() + gridCols - 1) / gridCols;
+        int blockHeight = rows * rowHeight - ROW_GAP;
+        int top = Math.max(2, (height - BOTTOM_RESERVED - blockHeight) / 2);
 
         for (int i = 0; i < pageWidgets.size(); i++) {
+            int row = i / gridCols;
+            int col = i % gridCols;
+            int inRow = Math.min(gridCols, pageWidgets.size() - row * gridCols);
+            int rowWidth = inRow * VerticalReelWidget.RAIL_STEP;
+            int startX = (width - rowWidth) / 2 + VerticalReelWidget.RAIL_STEP / 2;
+
             VerticalReelWidget w = pageWidgets.get(i);
-            int x = startX + i * 32;
-            w.setX(x);
-            w.setY(height / 2);
+            w.setVisibleCount(gridVisible);
+            w.setX(startX + col * VerticalReelWidget.RAIL_STEP);
+            w.setY(top + row * rowHeight + railHeight / 2);
             addRenderableWidget(w);
         }
     }
@@ -175,7 +245,6 @@ public class SlotMachineScreen extends BasicGachaScreen {
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTransparentBackground(guiGraphics);
-        guiGraphics.flush();
     }
 
     @Override
@@ -191,18 +260,20 @@ public class SlotMachineScreen extends BasicGachaScreen {
         passSoundPlayedThisFrame = false;
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
+        int pages = pageSize <= 0 ? 1 : (verticalReelWidgets.size() + pageSize - 1) / pageSize;
+        if (pages > 1) {
+            Component counter = Component.literal((currentPage + 1) + " / " + pages);
+            guiGraphics.drawString(font, counter, (width - font.width(counter)) / 2, height - 44, 0xFFB0B0C0, true);
+        }
+
         Component text = Component.translatable(SKIP_HINT);
         float alpha = (float) ((Math.sin((blinkTicks + partialTick) * 0.15f) + 1.0) / 2.0);
         alpha = 0.3f + 0.7f * alpha;
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-        // TODO 解决方块物品透明度问题
-        guiGraphics.setColor(1, 1, 1, alpha);
-        poseStack.translate(0, 0, 1000);
-        guiGraphics.drawString(font, text, (width - font.width(text)) / 2, height - 30, 0xFFFFFF, true);
-        guiGraphics.setColor(1, 1, 1, 1);
-        guiGraphics.flush();
-        poseStack.popPose();
+        int textAlpha = (int) (Math.clamp(alpha, 0f, 1f) * 255f) & 0xFF;
+        if (textAlpha > 0) {
+            guiGraphics.drawString(font, text, (width - font.width(text)) / 2, height - 30,
+                    (textAlpha << 24) | 0xFFFFFF, true);
+        }
     }
 
     @Override
@@ -216,10 +287,10 @@ public class SlotMachineScreen extends BasicGachaScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_SPACE && handleSpaceKey()) {
+    public boolean keyPressed(KeyEvent keyEvent) {
+        if (keyEvent.key() == GLFW.GLFW_KEY_SPACE && handleSpaceKey()) {
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(keyEvent);
     }
 }

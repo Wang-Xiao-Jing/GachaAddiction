@@ -1,6 +1,6 @@
 package xiaojin.gachaaddiction.config;
 
-import net.neoforged.fml.ModContainer;
+import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import xiaojin.gachaaddiction.GachaAddiction;
@@ -58,11 +58,11 @@ public class GachaAddictionConfig {
      * 生命周期入口：在 {@link GachaAddiction} 主类构造时调用，注册三端 spec 到 NeoForge
      * （自动管理加载/保存，SERVER 配置会同步到客户端）。
      */
-    public static void register(ModContainer modContainer) {
+    public static void register() {
         GachaAddiction.LOGGER.info("Initialize the Gacha Addiction config files");
-        modContainer.registerConfig(ModConfig.Type.COMMON, COMMON_SPEC);
-        modContainer.registerConfig(ModConfig.Type.SERVER, SERVER_SPEC);
-        modContainer.registerConfig(ModConfig.Type.CLIENT, CLIENT_SPEC);
+        ConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.COMMON, COMMON_SPEC);
+        ConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.SERVER, SERVER_SPEC);
+        ConfigRegistry.INSTANCE.register(GachaAddiction.MODID, ModConfig.Type.CLIENT, CLIENT_SPEC);
     }
 
     public static List<BasicConfigEntry<?>> clientEntries() {

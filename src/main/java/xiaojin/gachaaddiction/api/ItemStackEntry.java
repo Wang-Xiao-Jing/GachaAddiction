@@ -9,6 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.EmptyLootItem;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import xiaojin.gachaaddiction.mixin.accessor.LootItemAccessor;
@@ -36,6 +37,9 @@ public record ItemStackEntry(ItemStack stack, int weight) {
                     Holder<Item> holder = ((LootItemAccessor) lootItem).gachaaddiction$getItem();
                     int w = ((LootPoolSingletonContainerAccessor) lootItem).gachaaddiction$getWeight();
                     result.add(new ItemStackEntry(new ItemStack(holder), w));
+                } else if (entry instanceof EmptyLootItem emptyLootItem) {
+                    int w = ((LootPoolSingletonContainerAccessor) emptyLootItem).gachaaddiction$getWeight();
+                    result.add(new ItemStackEntry(ItemStack.EMPTY, w));
                 }
             }
         }
@@ -44,14 +48,15 @@ public record ItemStackEntry(ItemStack stack, int weight) {
 
     public static List<ItemStack> generateGachaResult(List<ItemStackEntry> entries, int totalCount, RandomSource random) {
         if (totalCount <= 0) return new ArrayList<>();
-        int totalWeight = entries.stream().mapToInt(ItemStackEntry::weight).sum();
+        List<ItemStackEntry> drawable = entries.stream().filter(entry -> !entry.stack().isEmpty()).toList();
+        int totalWeight = drawable.stream().mapToInt(ItemStackEntry::weight).sum();
         if (totalWeight <= 0) return new ArrayList<>();
 
         List<ItemStack> result = new ArrayList<>(totalCount);
         for (int i = 0; i < totalCount; i++) {
             int roll = random.nextInt(totalWeight);
             int accumulated = 0;
-            for (ItemStackEntry entry : entries) {
+            for (ItemStackEntry entry : drawable) {
                 accumulated += entry.weight();
                 if (roll < accumulated) {
                     result.add(entry.stack().copy());

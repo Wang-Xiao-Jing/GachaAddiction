@@ -18,42 +18,42 @@ import java.util.List;
 public abstract class ChestBlock_2_1Mixin implements IMenuProviderLootExtension {
     @Shadow
     @Final
-    ChestBlockEntity val$p_51604_;
+    ChestBlockEntity val$first;
 
     @Shadow
     @Final
-    ChestBlockEntity val$p_51605_;
+    ChestBlockEntity val$second;
 
     @Override
     public List<@Nullable ResourceKey<LootTable>> gachaaddiction$getLootTable() {
-        return ObjectList.of(val$p_51604_.getLootTable(), val$p_51605_.getLootTable());
+        return ObjectList.of(val$first.getLootTable(), val$second.getLootTable());
     }
 
     @Override
     public boolean gachaaddiction$isOpenGachaaUi() {
-        return gachaaddiction$getVal$p51604().gachaaddiction$isOpenGachaaUi() ||
-                gachaaddiction$getVal$p51605().gachaaddiction$isOpenGachaaUi();
+        return gachaaddiction$getValFirst().gachaaddiction$isOpenGachaaUi() ||
+                gachaaddiction$getValSecond().gachaaddiction$isOpenGachaaUi();
     }
 
     @Override
     public void gachaaddiction$setOpenGachaaUi(boolean isOpen) {
-        gachaaddiction$getVal$p51604().gachaaddiction$setOpenGachaaUi(isOpen);
-        gachaaddiction$getVal$p51605().gachaaddiction$setOpenGachaaUi(isOpen);
+        gachaaddiction$getValFirst().gachaaddiction$setOpenGachaaUi(isOpen);
+        gachaaddiction$getValSecond().gachaaddiction$setOpenGachaaUi(isOpen);
     }
 
     @Override
     public List<@Nullable ResourceKey<LootTable>> gachaaddiction$getOldLootTable() {
-        return ObjectList.of(gachaaddiction$getVal$p51604().gachaaddiction$getOldLootTable(),
-                gachaaddiction$getVal$p51605().gachaaddiction$getOldLootTable());
+        return ObjectList.of(gachaaddiction$getValFirst().gachaaddiction$getOldLootTable(),
+                gachaaddiction$getValSecond().gachaaddiction$getOldLootTable());
     }
 
     @Unique
-    private IRandomizableContainerBlockEntity gachaaddiction$getVal$p51605() {
-        return IRandomizableContainerBlockEntity.of(val$p_51605_);
+    private IRandomizableContainerBlockEntity gachaaddiction$getValSecond() {
+        return IRandomizableContainerBlockEntity.of(val$second);
     }
 
     @Unique
-    private IRandomizableContainerBlockEntity gachaaddiction$getVal$p51604() {
-        return IRandomizableContainerBlockEntity.of(val$p_51604_);
+    private IRandomizableContainerBlockEntity gachaaddiction$getValFirst() {
+        return IRandomizableContainerBlockEntity.of(val$first);
     }
 }

@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.api.client;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.GachaaData;
@@ -26,17 +26,17 @@ public class GachaTypeClient<T extends GachaType, S extends BasicGachaScreen> {
         return create(oldScreen, gachaaData.lootTableId().orElse(new ArrayList<>()), gachaaData.itemStackEntry().orElse(new ArrayList<>()));
     }
 
-    public S create(Screen oldScreen, List<@Nullable ResourceLocation> lootTableId, List<ItemStackEntry> itemStackEntries) {
+    public S create(Screen oldScreen, List<@Nullable Identifier> lootTableId, List<ItemStackEntry> itemStackEntries) {
         return createScreenFunction.create(oldScreen, lootTableId, itemStackEntries);
     }
 
-    public S open(Screen oldScreen, List<@Nullable ResourceLocation> lootTableId, List<ItemStackEntry> itemStackEntries) {
+    public S open(Screen oldScreen, List<@Nullable Identifier> lootTableId, List<ItemStackEntry> itemStackEntries) {
         S guiScreen = create(oldScreen, lootTableId, itemStackEntries);
         Minecraft.getInstance().setScreen(guiScreen);
         return guiScreen;
     }
 
-    public S open(List<@Nullable ResourceLocation> lootTableId, List<ItemStackEntry> itemStackEntries) {
+    public S open(List<@Nullable Identifier> lootTableId, List<ItemStackEntry> itemStackEntries) {
         return open(Minecraft.getInstance().screen, lootTableId, itemStackEntries);
     }
 
@@ -46,17 +46,17 @@ public class GachaTypeClient<T extends GachaType, S extends BasicGachaScreen> {
 
     @FunctionalInterface
     public interface CreateScreen<T extends BasicGachaScreen> {
-        T create(Screen oldScreen, List<@Nullable ResourceLocation> lootTableId, List<ItemStackEntry> itemStackEntries);
+        T create(Screen oldScreen, List<@Nullable Identifier> lootTableId, List<ItemStackEntry> itemStackEntries);
 
-        default T create(Screen oldScreen, @Nullable ResourceLocation lootTableId, ItemStackEntry itemStackEntries) {
+        default T create(Screen oldScreen, @Nullable Identifier lootTableId, ItemStackEntry itemStackEntries) {
             return create(oldScreen, ObjectList.of(lootTableId), ObjectList.of(itemStackEntries));
         }
 
-        default T create(Screen oldScreen, List<@Nullable ResourceLocation> lootTableId, ItemStackEntry itemStackEntries) {
+        default T create(Screen oldScreen, List<@Nullable Identifier> lootTableId, ItemStackEntry itemStackEntries) {
             return create(oldScreen, lootTableId, ObjectList.of(itemStackEntries));
         }
 
-        default T create(Screen oldScreen, @Nullable ResourceLocation lootTableId, List<ItemStackEntry> itemStackEntries) {
+        default T create(Screen oldScreen, @Nullable Identifier lootTableId, List<ItemStackEntry> itemStackEntries) {
             return create(oldScreen, ObjectList.of(lootTableId), itemStackEntries);
         }
     }
