@@ -1,7 +1,6 @@
 package xiaojin.gachaaddiction.mixin.block;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
@@ -58,8 +57,8 @@ public abstract class RandomizableContainerBlockEntityMixin extends BaseContaine
     }
 
     @Inject(method = "removeComponentsFromTag", at = @At("RETURN"))
-    private void gachaaddiction$removeComponentsFromTag(CompoundTag tag, CallbackInfo ci) {
-        tag.remove(ModUtil.OPEN_GACHAA_UI);
+    private void gachaaddiction$removeComponentsFromTag(ValueOutput output, CallbackInfo ci) {
+        output.discard(ModUtil.OPEN_GACHAA_UI);
     }
 
     @Inject(method = "setLootTable", at = @At("HEAD"))
