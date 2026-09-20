@@ -26,7 +26,7 @@ public class VerticalReelWidget extends AbstractWidget {
     public static final int RAIL_WIDTH = 36;
     public static final int RAIL_STEP = 52;
 
-    private static final int MIN_SLOT_HEIGHT = 26;
+    public static final int MIN_SLOT_HEIGHT = 26;
     private static final int BASE_SCALE_PERCENT = 125;
     private static final int CAP_HEIGHT = 3;
 
@@ -51,6 +51,7 @@ public class VerticalReelWidget extends AbstractWidget {
     private final List<ItemStack> decoys;
     private final int resultIndex;
 
+    private int visibleCountOverride;
     private float visualOffset;
     private boolean complete;
     private int lastPassedIndex;
@@ -88,8 +89,25 @@ public class VerticalReelWidget extends AbstractWidget {
                 minSpeed * minSpeedVarianceMin + randomSource.nextFloat() * (minSpeedVarianceMax - minSpeedVarianceMin));
     }
 
+    public static int slotHeightFor() {
+        return Math.round(Math.max(
+                GachaAddictionConfig.CLIENT.slotMachineConfig.itemSpacing.get().floatValue(), MIN_SLOT_HEIGHT));
+    }
+
+    public static int railHeightFor(int visibleCount) {
+        return slotHeightFor() * Math.max(1, visibleCount);
+    }
+
+    public void setVisibleCount(int visibleCount) {
+        this.visibleCountOverride = Math.max(0, visibleCount);
+    }
+
+    private int visibleCount() {
+        return visibleCountOverride > 0 ? visibleCountOverride : slotMachineConfig.itemVisibleCount.get();
+    }
+
     private float slotHeight() {
-        return Math.max(slotMachineConfig.itemSpacing.get().floatValue(), MIN_SLOT_HEIGHT);
+        return slotHeightFor();
     }
 
     private int slotHalf() {
@@ -97,7 +115,7 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     private int railHeight() {
-        return Math.round(slotHeight() * slotMachineConfig.itemVisibleCount.get());
+        return railHeightFor(visibleCount());
     }
 
     private float pop() {
@@ -171,7 +189,7 @@ public class VerticalReelWidget extends AbstractWidget {
         }
 
         if (!complete) {
-            float target = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
+            float target = -resultIndex + (visibleCount() - 1) / 2f;
             float remaining = target - visualOffset;
 
             if (remaining >= 0f) {
@@ -242,7 +260,7 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     private void renderItems(GuiGraphics guiGraphics, Matrix3x2fStack poseStack) {
-        int visibleCount = slotMachineConfig.itemVisibleCount.get();
+        int visibleCount = visibleCount();
         float spacing = slotHeight();
         float halfSpan = visibleCount * spacing / 2f;
         float baseScale = BASE_SCALE_PERCENT / 100f;
@@ -446,7 +464,7 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     public void skipToEnd() {
-        visualOffset = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
+        visualOffset = -resultIndex + (visibleCount() - 1) / 2f;
         complete = true;
         playPassSound();
         playRewardSound(result.getCountItemStack());
