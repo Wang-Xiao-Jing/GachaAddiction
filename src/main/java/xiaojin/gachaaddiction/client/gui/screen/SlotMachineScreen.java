@@ -72,6 +72,11 @@ public class SlotMachineScreen extends BasicGachaScreen {
     }
 
     private void computeLayout(int total) {
+        if (width <= 0 || height <= 0) {
+            gridVisible = Math.max(MIN_VISIBLE, slotMachineConfig.itemVisibleCount.get());
+            pageSize = Math.max(pageSize, 1);
+            return;
+        }
         int cols = Math.max(1, (width - SIDE_MARGIN * 2) / VerticalReelWidget.RAIL_STEP);
         int available = Math.max(VerticalReelWidget.MIN_SLOT_HEIGHT, height - BOTTOM_RESERVED);
         int maxVisible = Math.max(MIN_VISIBLE, slotMachineConfig.itemVisibleCount.get());
