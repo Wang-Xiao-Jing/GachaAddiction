@@ -1,12 +1,11 @@
 package xiaojin.gachaaddiction.client.gui.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -14,6 +13,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3x2fStack;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.api.client.ReelHost;
@@ -74,15 +74,14 @@ public class VerticalReelWidget extends AbstractWidget {
 
         tickAnimation(partialTick);
 
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-        poseStack.translate(getX(), getY(), 0);
+        Matrix3x2fStack poseStack = guiGraphics.pose();
+        poseStack.pushMatrix();
+        poseStack.translate(getX(), getY());
         renderItems(guiGraphics, poseStack);
         renderBox(guiGraphics, poseStack, result.getCountItemStack());
         renderExitAnimation(guiGraphics, poseStack);
-        poseStack.popPose();
-        renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
-        guiGraphics.flush();
+        poseStack.popMatrix();
+        renderItemTooltip(guiGraphics, mouseX, mouseY);
     }
 
     private boolean isIsHovered(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -158,13 +157,11 @@ public class VerticalReelWidget extends AbstractWidget {
         getSoundManager().play(GachaaAdictionConfigData.getSoundEventsFunction().apply(result));
     }
 
-    private void renderItems(GuiGraphics guiGraphics, PoseStack poseStack) {
+    private void renderItems(GuiGraphics guiGraphics, Matrix3x2fStack poseStack) {
         int visibleCount = slotMachineConfig.itemVisibleCount.get();
-        float maxAlpha = slotMachineConfig.itemMaxAlpha.get().floatValue();
-        float minAlpha = slotMachineConfig.itemMinAlpha.get().floatValue();
         float itemSpacing = slotMachineConfig.itemSpacing.get().floatValue();
 
-        poseStack.pushPose();
+        poseStack.pushMatrix();
         for (int i = 0; i < decoys.size(); i++) {
             float value = (i + visualOffset) - ((visibleCount - 1) / 2f);
             float clamped = Math.clamp(value, -visibleCount, visibleCount);
@@ -172,48 +169,41 @@ public class VerticalReelWidget extends AbstractWidget {
             if (normalized >= 1.1f) continue;
 
             float scale = 1.0f + 0.25f * (1.0f - Math.min(normalized / 0.20f, 1.0f));
-            float alpha = maxAlpha - (maxAlpha - minAlpha) * normalized;
-            if (alpha <= 0f || scale <= 0f) continue;
+            if (scale <= 0f) continue;
 
-            poseStack.pushPose();
-            int finalI = i;
-            alphaDraw(guiGraphics, () -> {
-                poseStack.translate(0f, itemSpacing * clamped, 0f);
-                poseStack.scale(scale, scale, scale);
-                if (finalI == resultIndex && complete) {
-                    guiGraphics.renderItem(result.getCountItemStack(), -8, -8);
-                    guiGraphics.renderItemDecorations(getFont(), result.getCountItemStack(), -8, -8);
-                } else {
-                    guiGraphics.renderFakeItem(decoys.get(finalI), -8, -8);
-                }
-            }, alpha);
-            poseStack.popPose();
+            poseStack.pushMatrix();
+            poseStack.translate(0f, itemSpacing * clamped);
+            poseStack.scale(scale, scale);
+            if (i == resultIndex && complete) {
+                guiGraphics.renderItem(result.getCountItemStack(), -8, -8);
+                guiGraphics.renderItemDecorations(getFont(), result.getCountItemStack(), -8, -8);
+            } else {
+                guiGraphics.renderFakeItem(decoys.get(i), -8, -8);
+            }
+            poseStack.popMatrix();
         }
-        poseStack.popPose();
-        guiGraphics.flush();
+        poseStack.popMatrix();
+
+        renderEdgeFade(guiGraphics);
     }
 
-    private void alphaDraw(GuiGraphics guiGraphics, Runnable runnable, float alpha) {
-        if (alpha < 0.999F) {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
-            guiGraphics.setColor(1.0F, 1.0F, 1.0F, alpha);
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.disableDepthTest();
-            runnable.run();
-            guiGraphics.flush();
-            RenderSystem.enableDepthTest();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.disableBlend();
-        } else {
-            RenderSystem.disableDepthTest();
-            runnable.run();
-            RenderSystem.enableDepthTest();
+    private void renderEdgeFade(GuiGraphics guiGraphics) {
+        float maxAlpha = slotMachineConfig.itemMaxAlpha.get().floatValue();
+        float minAlpha = slotMachineConfig.itemMinAlpha.get().floatValue();
+        int strength = (int) (Math.clamp(maxAlpha - minAlpha, 0f, 1f) * 255f);
+        if (strength <= 0) {
+            return;
         }
+
+        int halfHeight = getHeight() / 2;
+        int halfWidth = getWidth() / 2;
+        int opaque = strength << 24;
+
+        guiGraphics.fillGradient(-halfWidth, -halfHeight, halfWidth, 0, opaque, 0);
+        guiGraphics.fillGradient(-halfWidth, 0, halfWidth, halfHeight, 0, opaque);
     }
 
-    private void renderExitAnimation(GuiGraphics guiGraphics, PoseStack poseStack) {
+    private void renderExitAnimation(GuiGraphics guiGraphics, Matrix3x2fStack poseStack) {
         if (!exitStarted) {
             return;
         }
@@ -223,19 +213,20 @@ public class VerticalReelWidget extends AbstractWidget {
             return;
         }
 
-        poseStack.pushPose();
-        poseStack.scale(scale, scale, scale);
-        alphaDraw(guiGraphics, () -> {
-            guiGraphics.renderFakeItem(result.getCountItemStack(), -8, -8);
-            renderBox(guiGraphics, poseStack, result.getCountItemStack());
-        }, alpha);
-        poseStack.popPose();
+        poseStack.pushMatrix();
+        poseStack.scale(scale, scale);
+        guiGraphics.renderFakeItem(result.getCountItemStack(), -8, -8);
+        renderBox(guiGraphics, poseStack, result.getCountItemStack());
+        int veil = (int) ((1.0f - alpha) * 255f) << 24;
+        if (veil != 0) {
+            guiGraphics.fill(-12, -12, 12, 12, veil);
+        }
+        poseStack.popMatrix();
     }
 
-    private void renderBox(GuiGraphics guiGraphics, PoseStack poseStack, ItemStack stack) {
-        poseStack.pushPose();
-        poseStack.translate(0, 0, 1000);
-        poseStack.scale(1.25f, 1.25f, 1.25f);
+    private void renderBox(GuiGraphics guiGraphics, Matrix3x2fStack poseStack, ItemStack stack) {
+        poseStack.pushMatrix();
+        poseStack.scale(1.25f, 1.25f);
         int i = 18 / 2;
         int color;
         if (complete) {
@@ -247,22 +238,19 @@ public class VerticalReelWidget extends AbstractWidget {
         guiGraphics.hLine(-i, i - 1, i - 1, color);
         guiGraphics.vLine(-i, -i, i - 1, color);
         guiGraphics.vLine(i - 1, -i, i - 1, color);
-        poseStack.popPose();
+        poseStack.popMatrix();
     }
 
     @Override
-    protected boolean isValidClickButton(int button) {
+    protected boolean isValidClickButton(MouseButtonInfo button) {
         return false;
     }
 
-    private void renderItemTooltip(GuiGraphics guiGraphics, PoseStack poseStack, int mouseX, int mouseY) {
+    private void renderItemTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         if (!isHovered || !complete) {
             return;
         }
-        poseStack.pushPose();
-        poseStack.translate(0, 0, 1000);
-        guiGraphics.renderTooltip(getFont(), result.getCountItemStack(), mouseX, mouseY);
-        poseStack.popPose();
+        guiGraphics.setTooltipForNextFrame(getFont(), result.getCountItemStack(), mouseX, mouseY);
     }
 
     private @NotNull SoundManager getSoundManager() {

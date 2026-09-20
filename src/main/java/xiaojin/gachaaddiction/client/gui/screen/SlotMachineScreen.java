@@ -1,7 +1,7 @@
 package xiaojin.gachaaddiction.client.gui.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -175,7 +175,6 @@ public class SlotMachineScreen extends BasicGachaScreen {
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTransparentBackground(guiGraphics);
-        guiGraphics.flush();
     }
 
     @Override
@@ -194,15 +193,11 @@ public class SlotMachineScreen extends BasicGachaScreen {
         Component text = Component.translatable(SKIP_HINT);
         float alpha = (float) ((Math.sin((blinkTicks + partialTick) * 0.15f) + 1.0) / 2.0);
         alpha = 0.3f + 0.7f * alpha;
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-        // TODO 解决方块物品透明度问题
-        guiGraphics.setColor(1, 1, 1, alpha);
-        poseStack.translate(0, 0, 1000);
-        guiGraphics.drawString(font, text, (width - font.width(text)) / 2, height - 30, 0xFFFFFF, true);
-        guiGraphics.setColor(1, 1, 1, 1);
-        guiGraphics.flush();
-        poseStack.popPose();
+        int textAlpha = (int) (Math.clamp(alpha, 0f, 1f) * 255f) & 0xFF;
+        if (textAlpha > 0) {
+            guiGraphics.drawString(font, text, (width - font.width(text)) / 2, height - 30,
+                    (textAlpha << 24) | 0xFFFFFF, true);
+        }
     }
 
     @Override
@@ -216,10 +211,10 @@ public class SlotMachineScreen extends BasicGachaScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_SPACE && handleSpaceKey()) {
+    public boolean keyPressed(KeyEvent keyEvent) {
+        if (keyEvent.key() == GLFW.GLFW_KEY_SPACE && handleSpaceKey()) {
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(keyEvent);
     }
 }

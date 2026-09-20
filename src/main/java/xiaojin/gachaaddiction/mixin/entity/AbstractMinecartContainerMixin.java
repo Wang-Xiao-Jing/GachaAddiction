@@ -59,7 +59,7 @@ public abstract class AbstractMinecartContainerMixin extends AbstractMinecart im
         if (lootTable == null && this.getLootTable() != null) {
             gachaaddiction$isOpenGachaaUi = true;
         }
-        gachaaddiction$oldLootTable = this.getLootTable();
+        gachaaddiction$oldLootTable = this.getContainerLootTable();
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))

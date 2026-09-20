@@ -31,7 +31,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
+public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener<JsonElement> implements IdentifiableResourceReloadListener {
     public static final Pattern TAG_PATTERN = Pattern.compile(
             "^#[a-z0-9_.-]+:[a-z0-9_.-]+$");
     public static final Pattern ID_PATTERN = Pattern.compile(
