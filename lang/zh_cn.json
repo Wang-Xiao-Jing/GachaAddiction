@@ -1,9 +1,11 @@
 {
+  "commands.gachaaddiction.gacha.error": "执行命令时出错: %s",
+  "commands.gachaaddiction.gacha.invalid_loot_table": "无效的战利品表: %s",
+  "commands.gachaaddiction.gacha.invalid_type": "无效的抽奖类型: %s",
+  "commands.gachaaddiction.gacha.success": "已为 %s 名玩家执行 %s 次战利品表: %s",
   "ftbquests.reward.ftbquests.loot.gachaaddiction:gacha_type": "抽卡样式",
   "gacha_type.gachaaddiction:empty": "无",
   "gacha_type.gachaaddiction:slot_machine": "老虎机",
-  "commands.gachaaddiction.gacha.invalid_type": "无效的抽奖类型: %s",
-  "commands.gachaaddiction.gacha.invalid_loot_table": "无效的战利品表: %s",
-  "commands.gachaaddiction.gacha.success": "已为 %s 名玩家执行 %s 次战利品表: %s",
-  "commands.gachaaddiction.gacha.error": "执行命令时出错: %s"
+  "gachaaddiction.configuration.gachaa_screen.rarity_from_loot_table": "按战利品表判定稀有度",
+  "gachaaddiction.configuration.gachaa_screen.rarity_from_loot_table.tooltip": "根据物品在该容器战利品表中的出现概率判定稀有度，而不使用原版稀有度。"
 }

@@ -7,6 +7,8 @@ public class RewardData {
     private final ItemStack itemStack;
     private final int count;
     private final ItemStack countItemStack;
+    private int rarityLevel = -1;
+    private int rarityColor;
 
     public RewardData(ItemStack itemStack, int count) {
         this.itemStack = itemStack;
@@ -26,12 +28,17 @@ public class RewardData {
         return count;
     }
 
+    public void setRarity(int level, int color) {
+        this.rarityLevel = level;
+        this.rarityColor = color;
+    }
+
     public int getRarityLevel() {
-        return RarityUtil.getRarityLevel(itemStack);
+        return rarityLevel >= 0 ? rarityLevel : RarityUtil.getRarityLevel(itemStack);
     }
 
     public int getRarityColor() {
-        return RarityUtil.getRarityColor(itemStack);
+        return rarityLevel >= 0 ? rarityColor : RarityUtil.getRarityColor(itemStack);
     }
 
     @Override

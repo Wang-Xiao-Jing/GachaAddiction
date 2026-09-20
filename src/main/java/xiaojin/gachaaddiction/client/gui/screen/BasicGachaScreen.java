@@ -12,6 +12,7 @@ import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.api.client.ReelHost;
 import xiaojin.gachaaddiction.config.ClientConfig;
+import xiaojin.gachaaddiction.util.GachaRarity;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -21,6 +22,8 @@ public abstract class BasicGachaScreen extends Screen implements ReelHost {
     protected final ClientConfig clientConfig = GachaAddictionConfig.CLIENT;
     protected final boolean isMerge = clientConfig.mergeItem.get();
     protected final boolean raritySorting = clientConfig.raritySorting.get();
+    protected final boolean rarityFromLootTable = clientConfig.rarityFromLootTable.get();
+    private GachaRarity.Scale rarityScale;
     protected final @Nullable Screen originalScreen;
     protected final List<@Nullable Identifier> lootTableId = new ArrayList<>();
     protected final List<ItemStackEntry> itemStackEntries = new ArrayList<>();
@@ -48,7 +51,7 @@ public abstract class BasicGachaScreen extends Screen implements ReelHost {
     public abstract void updateRewards(NonNullList<ItemStack> item);
 
     public void rewardReceived(ItemStack itemStack, boolean isRefreshWidget) {
-        rewards.add(new RewardData(itemStack.copyWithCount(1), itemStack.getCount()));
+        rewards.add(createReward(itemStack.copyWithCount(1), itemStack.getCount()));
         if (raritySorting) {
             raritySorting();
         }
@@ -60,10 +63,25 @@ public abstract class BasicGachaScreen extends Screen implements ReelHost {
         }
     }
 
+    protected RewardData createReward(ItemStack itemStack, int count) {
+        RewardData data = new RewardData(itemStack, count);
+        if (!rarityFromLootTable) {
+            return data;
+        }
+        if (rarityScale == null) {
+            rarityScale = GachaRarity.scaleOf(itemStackEntries);
+        }
+        int level = rarityScale.levelOf(itemStack);
+        if (level >= 0) {
+            data.setRarity(level, GachaRarity.colorOf(level));
+        }
+        return data;
+    }
+
     protected abstract void refreshWidgets();
 
     public void rewardReceived(ItemStack itemStack, int count, boolean isRefreshWidget) {
-        rewards.add(new RewardData(itemStack.copyWithCount(1), Math.max(1, count)));
+        rewards.add(createReward(itemStack.copyWithCount(1), Math.max(1, count)));
         if (raritySorting) {
             raritySorting();
         }
@@ -80,7 +98,7 @@ public abstract class BasicGachaScreen extends Screen implements ReelHost {
         rewards.clear();
         rewards.addAll(mergePreservingOrder(rewards1,
                 (stack, other) -> ItemStack.isSameItemSameComponents(stack.getItemStack(), other.getItemStack()),
-                (oldData, newData) -> new RewardData(oldData.getItemStack(), oldData.getCount() + newData.getCount())));
+                (oldData, newData) -> createReward(oldData.getItemStack(), oldData.getCount() + newData.getCount())));
     }
 
     public static <T> List<T> mergePreservingOrder(
