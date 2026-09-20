@@ -19,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.registry.GachaTypes;
@@ -117,7 +117,7 @@ public class GachaCommand {
                     }
                 }
             }
-            PacketDistributor.sendToPlayer(player, new OpenGachaScreenPayload(
+            ServerPlayNetworking.send(player, new OpenGachaScreenPayload(
                     gachaType.isEmpty() ? Optional.empty() : Optional.of(gachaType),
                     List.of(lootTableLocation),
                     entries,

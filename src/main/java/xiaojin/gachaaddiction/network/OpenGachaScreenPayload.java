@@ -1,19 +1,15 @@
 package xiaojin.gachaaddiction.network;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
 import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
-import xiaojin.gachaaddiction.registry.client.GachaTypeClients;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,26 +38,5 @@ public record OpenGachaScreenPayload(
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
-    }
-
-    public void handle(IPayloadContext context) {
-        context.enqueueWork(() -> {
-            GachaType gachaType;
-            if (this.gachaType.isPresent()) {
-                if (this.gachaType.get().isEmpty()) {
-                    return;
-                }
-                gachaType = this.gachaType.get();
-            } else {
-                gachaType = GachaAddictionConfig.CLIENT.getDefaultGachaaType();
-            }
-            var client = GachaTypeClients.get(gachaType);
-            if (client == null) {
-                return;
-            }
-            var screen = client.open(lootTableIds, entries);
-            NonNullList<ItemStack> items = NonNullList.of(ItemStack.EMPTY, rewards.toArray(ItemStack[]::new));
-            screen.updateRewards(items);
-        });
     }
 }

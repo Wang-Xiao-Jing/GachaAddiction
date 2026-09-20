@@ -13,9 +13,11 @@ import dev.ftb.mods.ftbquests.client.gui.RewardKey;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 
+@Pseudo
 @Mixin(FTBQuestsNetClient.class)
 public abstract class FTBquestsNetClientMixin {
     @WrapOperation(method = "displayItemRewardToast", at = @At(value = "INVOKE", target = "Ldev/ftb/mods/ftbquests/client/gui/IRewardListenerScreen;add(Ldev/ftb/mods/ftbquests/client/gui/RewardKey;I)Z"))

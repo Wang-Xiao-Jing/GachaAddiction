@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "xiaojin.gachaaddiction.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "client.MinecraftMixin",
+    "client.ClientPacketListenerMixin",
+    "compat.ftb.FTBquestsNetClientMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  }
+}

@@ -8,11 +8,12 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
@@ -29,7 +30,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
+public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
     public static final Pattern TAG_PATTERN = Pattern.compile(
             "^#[a-z0-9_.-]+:[a-z0-9_.-]+$");
     public static final Pattern ID_PATTERN = Pattern.compile(
@@ -37,7 +38,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
     public static final Pattern RARITY_PATTERN = Pattern.compile(
             "^-?\\d+$");
     public static final GachaaAdictionConfigData INSTANCE = new GachaaAdictionConfigData();
-    private static final SimpleSoundInstance DEFAULT_SIMPLE_SOUND_INSTANCE = SimpleSoundInstance.forUI(ModSoundEvents.LEVEL0.get(), 1.0f, 2.0f);
+    private static final SimpleSoundInstance DEFAULT_SIMPLE_SOUND_INSTANCE = SimpleSoundInstance.forUI(ModSoundEvents.LEVEL0, 1.0f, 2.0f);
     private static SimpleSoundInstance defaultRewardsSounnd;
     private static Function<ItemStack, SimpleSoundInstance> soundEventsFunction;
 
@@ -88,7 +89,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
 
             if (k.startsWith("#") && TAG_PATTERN.matcher(k).matches()) {
                 ResourceLocation key = ResourceLocation.parse(k.substring(1));
-                tagKeyMap.put(ItemTags.create(key), simpleSoundInstance);
+                tagKeyMap.put(TagKey.create(Registries.ITEM, key), simpleSoundInstance);
                 continue;
             }
 
@@ -180,5 +181,10 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
         }
 
         return createSimpleSoundInstance(id, pitch, volume);
+    }
+
+    @Override
+    public ResourceLocation getFabricId() {
+        return ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "gachaaadiction");
     }
 }

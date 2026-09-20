@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xiaojin.gachaaddiction.mixed.IAbstractMinecartContainer;
 import xiaojin.gachaaddiction.util.ModUtil;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @Mixin(AbstractMinecartContainer.class)
 public abstract class AbstractMinecartContainerMixin extends AbstractMinecart implements IAbstractMinecartContainer, ContainerEntity {

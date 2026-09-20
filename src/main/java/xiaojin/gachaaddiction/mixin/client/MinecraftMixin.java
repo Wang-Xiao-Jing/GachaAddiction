@@ -1,34 +1,37 @@
 package xiaojin.gachaaddiction.mixin.client;
 
-import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
-    @Inject(method = "setScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;removed()V"))
-    private void gachaaddiction$setScreen(
-            Screen guiScreen,
-            CallbackInfo ci,
-            @Local(ordinal = 1) Screen old,
-            @Local(ordinal = 0, argsOnly = true) LocalRef<Screen> guiScreen1) {
-        if (!(old instanceof BasicGachaScreen slotMachineScreen)) {
-            return;
+    @Shadow
+    public @Nullable Screen screen;
+
+    @ModifyVariable(
+            method = "setScreen(Lnet/minecraft/client/gui/screens/Screen;)V",
+            at = @At("HEAD"),
+            argsOnly = true)
+    private Screen gachaaddiction$setScreen(Screen guiScreen) {
+        if (!(this.screen instanceof BasicGachaScreen slotMachineScreen)) {
+            return guiScreen;
         }
 
         Screen originalScreen = slotMachineScreen.getOriginalScreen();
         if (originalScreen == null) {
-            return;
+            return guiScreen;
         }
 
-        if (slotMachineScreen.isReturnOriginalScreen()) {
-            guiScreen1.set(originalScreen);
+        if (!slotMachineScreen.isReturnOriginalScreen()) {
+            return guiScreen;
         }
+
+        return originalScreen;
     }
 }

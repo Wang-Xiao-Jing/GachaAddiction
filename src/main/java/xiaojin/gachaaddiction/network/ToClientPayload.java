@@ -1,7 +1,6 @@
 package xiaojin.gachaaddiction.network;
 
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public interface ToClientPayload {
-    void handle(IPayloadContext context);
+public interface ToClientPayload extends CustomPacketPayload {
 }

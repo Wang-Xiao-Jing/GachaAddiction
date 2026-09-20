@@ -6,23 +6,16 @@
     "entity.AbstractContainerMenuMixin",
     "entity.AbstractMinecartContainerMixin",
     "block.ChestBlock_2_1Mixin",
-    "entity.MenuTypeMixin",
     "block.RandomizableContainerBlockEntityMixin",
     "entity.ServerPlayerMixin",
-    "accessor.LanguageProviderAccessor",
     "accessor.LootItemAccessor",
     "accessor.LootPoolAccessor",
     "accessor.LootPoolSingletonContainerAccessor",
     "accessor.LootTableAccessor",
-    "client.ClientPacketListenerMixin",
-    "compat.ftb.FTBquestsNetClientMixin",
     "compat.ftb.LootCrateItemMixin",
     "compat.ftb.LootRewardMixin",
     "compat.lootr.LootrInventoryMixin",
-    "compat.lootr.LootrSavedDataMixin",
-    "compat.treasurebags.LootContainerItemMixin",
-    "compat.treasurebags.TreasureBagItemMixin",
-    "compat.lootbundles.LootBundleMixin"
+    "compat.lootr.LootrSavedDataMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -30,9 +23,6 @@
   "overwrites": {
     "requireAnnotations": true
   },
-  "client": [
-    "client.MinecraftMixin"
-  ],
   "mixinextras": {
     "minVersion": "0.5.0"
   }

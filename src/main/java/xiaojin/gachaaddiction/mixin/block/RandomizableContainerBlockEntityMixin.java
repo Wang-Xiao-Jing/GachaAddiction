@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xiaojin.gachaaddiction.mixed.IRandomizableContainerBlockEntity;
 import xiaojin.gachaaddiction.util.ModUtil;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @Mixin(RandomizableContainerBlockEntity.class)
 public abstract class RandomizableContainerBlockEntityMixin extends BaseContainerBlockEntity implements IRandomizableContainerBlockEntity, RandomizableContainer {
