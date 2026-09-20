@@ -121,7 +121,7 @@ public class SlotMachineScreen extends BasicGachaScreen {
 
     private void initializePage(int page) {
         removeAllReelWidgets();
-        pageSize = Math.max(1, width / 3 * 2 / 32);
+        pageSize = Math.max(1, width / 3 * 2 / VerticalReelWidget.RAIL_STEP);
         int from = page * pageSize;
         int to = Math.min(from + pageSize, verticalReelWidgets.size());
 
@@ -130,12 +130,12 @@ public class SlotMachineScreen extends BasicGachaScreen {
         }
 
         List<VerticalReelWidget> pageWidgets = verticalReelWidgets.subList(from, to);
-        int totalWidth = pageWidgets.size() * 32;
-        int startX = (width - totalWidth) / 2 + 16;
+        int totalWidth = pageWidgets.size() * VerticalReelWidget.RAIL_STEP;
+        int startX = (width - totalWidth) / 2 + VerticalReelWidget.RAIL_STEP / 2;
 
         for (int i = 0; i < pageWidgets.size(); i++) {
             VerticalReelWidget w = pageWidgets.get(i);
-            int x = startX + i * 32;
+            int x = startX + i * VerticalReelWidget.RAIL_STEP;
             w.setX(x);
             w.setY(height / 2);
             addRenderableWidget(w);
