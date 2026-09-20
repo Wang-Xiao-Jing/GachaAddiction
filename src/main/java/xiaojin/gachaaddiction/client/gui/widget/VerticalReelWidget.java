@@ -239,7 +239,7 @@ public class VerticalReelWidget extends AbstractWidget {
         if (!host.tryClaimCompleteSound()) {
             return;
         }
-        getSoundManager().play(GachaaAdictionConfigData.getSoundEventsFunction().apply(result));
+        getSoundManager().play(GachaaAdictionConfigData.getSoundEventsFunction().select(result, resultLevel));
     }
 
     private void renderRail(GuiGraphics guiGraphics, int halfWidth, int halfHeight) {

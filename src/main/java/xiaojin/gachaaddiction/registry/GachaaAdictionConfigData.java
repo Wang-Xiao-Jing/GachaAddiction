@@ -23,12 +23,10 @@ import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.registry.sound.ModSoundEvents;
-import xiaojin.gachaaddiction.util.RarityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener<JsonElement> implements IdentifiableResourceReloadListener {
@@ -41,13 +39,13 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener<J
     public static final GachaaAdictionConfigData INSTANCE = new GachaaAdictionConfigData();
     private static final SimpleSoundInstance DEFAULT_SIMPLE_SOUND_INSTANCE = SimpleSoundInstance.forUI(ModSoundEvents.LEVEL0, 1.0f, 2.0f);
     private static SimpleSoundInstance defaultRewardsSounnd;
-    private static Function<ItemStack, SimpleSoundInstance> soundEventsFunction;
+    private static RewardSoundSelector soundEventsFunction;
 
     public GachaaAdictionConfigData() {
         super(ExtraCodecs.JSON, FileToIdConverter.json("gachaaadiction"));
     }
 
-    public static Function<ItemStack, SimpleSoundInstance> getSoundEventsFunction() {
+    public static RewardSoundSelector getSoundEventsFunction() {
         return soundEventsFunction;
     }
 
@@ -68,9 +66,9 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener<J
         soundEventsFunction = createSimpleSoundInstanceFunction(soundManager, jsonObject, profiler);
     }
 
-    private Function<ItemStack, SimpleSoundInstance> createSimpleSoundInstanceFunction(SoundManager soundManager, JsonObject jsonObject, ProfilerFiller profiler) {
+    private RewardSoundSelector createSimpleSoundInstanceFunction(SoundManager soundManager, JsonObject jsonObject, ProfilerFiller profiler) {
         if (!jsonObject.has("match")) {
-            return itemStack -> defaultRewardsSounnd;
+            return (itemStack, rarityLevel) -> defaultRewardsSounnd;
         }
 
         Map<Item, SimpleSoundInstance> itemMap = new HashMap<>();
@@ -109,7 +107,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener<J
             }
         }
 
-        return itemStack -> {
+        return (itemStack, rarityLevel) -> {
             SimpleSoundInstance simpleSoundInstance = itemMap.get(itemStack.getItem());
             if (simpleSoundInstance != null) {
                 return simpleSoundInstance;
@@ -120,8 +118,7 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener<J
                 }
             }
 
-            int level = RarityUtil.getRarityLevel(itemStack);
-            Integer floorKey = levelMap.floorKey(level);
+            Integer floorKey = levelMap.floorKey(rarityLevel);
             if (floorKey != null) {
                 return levelMap.get(floorKey);
             }
@@ -182,6 +179,11 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener<J
         }
 
         return createSimpleSoundInstance(id, pitch, volume);
+    }
+
+    @FunctionalInterface
+    public interface RewardSoundSelector {
+        SimpleSoundInstance select(ItemStack itemStack, int rarityLevel);
     }
 
     @Override

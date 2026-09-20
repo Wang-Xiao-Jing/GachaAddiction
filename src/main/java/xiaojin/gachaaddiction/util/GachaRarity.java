@@ -27,11 +27,14 @@ public final class GachaRarity {
         int total = 0;
         for (ItemStackEntry entry : entries) {
             int weight = entry.weight();
-            if (weight <= 0 || entry.stack().isEmpty()) {
+            if (weight <= 0) {
+                continue;
+            }
+            total += weight;
+            if (entry.stack().isEmpty()) {
                 continue;
             }
             weights.merge(entry.stack().getItem(), weight, Integer::sum);
-            total += weight;
         }
         return new Scale(weights, total);
     }
