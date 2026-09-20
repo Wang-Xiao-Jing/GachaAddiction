@@ -23,15 +23,24 @@ import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 import java.util.List;
 
 public class VerticalReelWidget extends AbstractWidget {
-    public static final int RAIL_WIDTH = 32;
-    public static final int RAIL_STEP = 44;
+    public static final int RAIL_WIDTH = 36;
+    public static final int RAIL_STEP = 52;
 
-    private static final int RAIL_FILL = 0xD00E0E14;
-    private static final int RAIL_BORDER = 0xFF2E2E3C;
-    private static final int RAIL_INNER_SHADOW = 0x400B0B10;
-    private static final int WINDOW_TINT = 0x14FFFFFF;
-    private static final int FADE_OPAQUE = 0xF00E0E14;
-    private static final int FADE_CLEAR = 0x000E0E14;
+    private static final int MIN_SLOT_HEIGHT = 26;
+    private static final int BASE_SCALE_PERCENT = 125;
+    private static final int CAP_HEIGHT = 3;
+
+    private static final int SHADOW = 0x66000000;
+    private static final int FRAME_OUTER = 0xFF3C3C4E;
+    private static final int FRAME_CAP = 0xFF2A2A38;
+    private static final int FRAME_CAP_LINE = 0xFF12121A;
+    private static final int RAIL_EDGE = 0xFF1C1C28;
+    private static final int RAIL_CORE = 0xFF0A0A10;
+    private static final int RAIL_LIGHT = 0x26FFFFFF;
+    private static final int RAIL_SHADE = 0x1E000000;
+    private static final int WINDOW_TINT = 0x12FFFFFF;
+    private static final int WINDOW_SPLIT = 0xFF05050A;
+    private static final int IDLE_FRAME = 0x90FFFFFF;
 
     private final ClientConfig clientConfig = GachaAddictionConfig.CLIENT;
     private final ClientConfig.SlotMachineConfig slotMachineConfig = clientConfig.slotMachineConfig;
@@ -48,7 +57,7 @@ public class VerticalReelWidget extends AbstractWidget {
     private boolean soundPlayed;
     private boolean exitStarted;
     private float exitProgress;
-    private float landProgress;
+    private float age;
     private final float speedMultiplier;
     private final float decelZone;
     private final float minSpeed;
@@ -80,11 +89,19 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     private float slotHeight() {
-        return slotMachineConfig.itemSpacing.get().floatValue();
+        return Math.max(slotMachineConfig.itemSpacing.get().floatValue(), MIN_SLOT_HEIGHT);
+    }
+
+    private int slotHalf() {
+        return Math.round(slotHeight() / 2f);
     }
 
     private int railHeight() {
         return Math.round(slotHeight() * slotMachineConfig.itemVisibleCount.get());
+    }
+
+    private float pop() {
+        return exitStarted ? Math.clamp(exitProgress, 0f, 1f) : 0f;
     }
 
     @Override
@@ -99,6 +116,7 @@ public class VerticalReelWidget extends AbstractWidget {
         int halfHeight = railHeight() / 2;
 
         Matrix3x2fStack poseStack = guiGraphics.pose();
+
         poseStack.pushMatrix();
         poseStack.translate(centerX, centerY);
         renderRail(guiGraphics, halfWidth, halfHeight);
@@ -108,14 +126,16 @@ public class VerticalReelWidget extends AbstractWidget {
         poseStack.pushMatrix();
         poseStack.translate(centerX, centerY);
         renderItems(guiGraphics, poseStack);
+        renderEdgeFade(guiGraphics, halfWidth, halfHeight);
+        renderBeam(guiGraphics, halfWidth, halfHeight);
+        renderSparks(guiGraphics, halfWidth, halfHeight);
         poseStack.popMatrix();
         guiGraphics.disableScissor();
 
         poseStack.pushMatrix();
         poseStack.translate(centerX, centerY);
-        renderEdgeFade(guiGraphics, halfWidth, halfHeight);
         renderWindow(guiGraphics, halfWidth);
-        renderExitAnimation(guiGraphics, poseStack);
+        renderBurst(guiGraphics, halfWidth);
         poseStack.popMatrix();
 
         renderItemTooltip(guiGraphics, mouseX, mouseY);
@@ -123,7 +143,7 @@ public class VerticalReelWidget extends AbstractWidget {
 
     private boolean isIsHovered(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         int halfWidth = RAIL_WIDTH / 2;
-        int halfSlot = Math.round(slotHeight() / 2f);
+        int halfSlot = slotHalf();
         return guiGraphics.containsPointInScissor(mouseX, mouseY) &&
                 mouseX >= this.getX() - halfWidth &&
                 mouseY >= this.getY() - halfSlot &&
@@ -144,37 +164,37 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     private void tickAnimation(float partialTick) {
+        age += partialTick;
+
         if (exitStarted) {
             exitProgress = Math.min(exitProgress + partialTick * slotMachineConfig.exitSpeed.get().floatValue(), 1f);
         }
 
-        if (complete) {
-            landProgress = Math.min(landProgress + partialTick * 0.2f, 1f);
-            return;
-        }
+        if (!complete) {
+            float target = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
+            float remaining = target - visualOffset;
 
-        float target = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
-        float remaining = target - visualOffset;
-
-        if (remaining >= 0f) {
-            visualOffset = target;
-            complete = true;
-        } else {
-            float dist = -remaining;
-            float speedMul;
-            if (dist > decelZone) {
-                speedMul = 1f;
+            if (remaining >= 0f) {
+                visualOffset = target;
+                complete = true;
             } else {
-                float t = dist / decelZone;
-                speedMul = Math.max(minSpeed, t * t * (3f - 2f * t));
+                float dist = -remaining;
+                float speedMul;
+                if (dist > decelZone) {
+                    speedMul = 1f;
+                } else {
+                    float t = dist / decelZone;
+                    speedMul = Math.max(minSpeed, t * t * (3f - 2f * t));
+                }
+                float move = partialTick * slotMachineConfig.itemsPerSecond.get().floatValue() * speedMul * speedMultiplier / 20f;
+                visualOffset = Math.max(target, visualOffset - move);
             }
-            float move = partialTick * slotMachineConfig.itemsPerSecond.get().floatValue() * speedMul * speedMultiplier / 20f;
-            visualOffset = Math.max(target, visualOffset - move);
+
+            if (slotMachineConfig.passSoundEffects.get()) {
+                playPassSound();
+            }
         }
 
-        if (slotMachineConfig.passSoundEffects.get()) {
-            playPassSound();
-        }
         if (clientConfig.rewardSoundEffects.get()) {
             playRewardSound(result.getCountItemStack());
         }
@@ -205,19 +225,27 @@ public class VerticalReelWidget extends AbstractWidget {
     }
 
     private void renderRail(GuiGraphics guiGraphics, int halfWidth, int halfHeight) {
-        guiGraphics.fill(-halfWidth, -halfHeight, halfWidth, halfHeight, RAIL_FILL);
-        guiGraphics.fill(-halfWidth, -halfHeight, -halfWidth + 1, halfHeight, RAIL_INNER_SHADOW);
-        guiGraphics.fill(halfWidth - 1, -halfHeight, halfWidth, halfHeight, RAIL_INNER_SHADOW);
-        guiGraphics.hLine(-halfWidth, halfWidth - 1, -halfHeight, RAIL_BORDER);
-        guiGraphics.hLine(-halfWidth, halfWidth - 1, halfHeight - 1, RAIL_BORDER);
-        guiGraphics.vLine(-halfWidth, -halfHeight, halfHeight - 1, RAIL_BORDER);
-        guiGraphics.vLine(halfWidth - 1, -halfHeight, halfHeight - 1, RAIL_BORDER);
+        guiGraphics.fill(-halfWidth - 2, -halfHeight - 2, halfWidth + 2, halfHeight + 2, SHADOW);
+        guiGraphics.fill(-halfWidth - 1, -halfHeight - 1, halfWidth + 1, halfHeight + 1,
+                complete ? blend(FRAME_OUTER, resultColor, 0.45f) : FRAME_OUTER);
+
+        guiGraphics.fillGradient(-halfWidth, -halfHeight, halfWidth, 0, RAIL_EDGE, RAIL_CORE);
+        guiGraphics.fillGradient(-halfWidth, 0, halfWidth, halfHeight, RAIL_CORE, RAIL_EDGE);
+
+        guiGraphics.fill(-halfWidth, -halfHeight, -halfWidth + 1, halfHeight, RAIL_LIGHT);
+        guiGraphics.fill(halfWidth - 1, -halfHeight, halfWidth, halfHeight, RAIL_SHADE);
+
+        guiGraphics.fill(-halfWidth, -halfHeight, halfWidth, -halfHeight + CAP_HEIGHT, FRAME_CAP);
+        guiGraphics.fill(-halfWidth, halfHeight - CAP_HEIGHT, halfWidth, halfHeight, FRAME_CAP);
+        guiGraphics.hLine(-halfWidth, halfWidth - 1, -halfHeight + CAP_HEIGHT, FRAME_CAP_LINE);
+        guiGraphics.hLine(-halfWidth, halfWidth - 1, halfHeight - CAP_HEIGHT - 1, FRAME_CAP_LINE);
     }
 
     private void renderItems(GuiGraphics guiGraphics, Matrix3x2fStack poseStack) {
         int visibleCount = slotMachineConfig.itemVisibleCount.get();
         float spacing = slotHeight();
         float halfSpan = visibleCount * spacing / 2f;
+        float baseScale = BASE_SCALE_PERCENT / 100f;
 
         for (int i = 0; i < decoys.size(); i++) {
             float value = (i + visualOffset) - ((visibleCount - 1) / 2f);
@@ -225,12 +253,18 @@ public class VerticalReelWidget extends AbstractWidget {
             if (y < -halfSpan - spacing || y > halfSpan + spacing) continue;
 
             float distance = Math.min(Math.abs(y) / Math.max(halfSpan, 1f), 1f);
-            float scale = 1.25f - 0.55f * distance * distance;
+            float scale = baseScale - 0.55f * distance * distance;
+            boolean isResult = i == resultIndex && complete;
+            if (isResult) {
+                float p = pop();
+                float bump = (float) Math.sin(p * Math.PI) * (1f - p);
+                scale = baseScale * (1f + slotMachineConfig.exitMaxScale.get().floatValue() * bump);
+            }
 
             poseStack.pushMatrix();
             poseStack.translate(0f, y);
             poseStack.scale(scale, scale);
-            if (i == resultIndex && complete) {
+            if (isResult) {
                 guiGraphics.renderItem(result.getCountItemStack(), -8, -8);
                 guiGraphics.renderItemDecorations(getFont(), result.getCountItemStack(), -8, -8);
             } else {
@@ -248,27 +282,112 @@ public class VerticalReelWidget extends AbstractWidget {
             return;
         }
 
-        int opaque = scaleAlpha(FADE_OPAQUE, strength);
-        int halfSlot = Math.round(slotHeight() / 2f);
+        int opaque = scaleAlpha(RAIL_EDGE, strength);
+        int clear = RAIL_EDGE & 0xFFFFFF;
+        int halfSlot = slotHalf();
 
-        guiGraphics.fillGradient(-halfWidth, -halfHeight, halfWidth, -halfSlot, opaque, FADE_CLEAR);
-        guiGraphics.fillGradient(-halfWidth, halfSlot, halfWidth, halfHeight, FADE_CLEAR, opaque);
+        guiGraphics.fillGradient(-halfWidth, -halfHeight, halfWidth, -halfSlot, opaque, clear);
+        guiGraphics.fillGradient(-halfWidth, halfSlot, halfWidth, halfHeight, clear, opaque);
+    }
+
+    private void renderBeam(GuiGraphics guiGraphics, int halfWidth, int halfHeight) {
+        if (!complete || resultLevel < 2) {
+            return;
+        }
+        float breathe = 0.6f + 0.4f * (float) Math.sin(age * 0.12f);
+        int beam = scaleAlpha(resultColor, 0.20f * breathe * (0.4f + 0.6f * pop()));
+        int clear = resultColor & 0xFFFFFF;
+        int halfSlot = slotHalf();
+
+        guiGraphics.fillGradient(-halfWidth + 1, -halfHeight + CAP_HEIGHT, halfWidth - 1, -halfSlot, clear, beam);
+        guiGraphics.fillGradient(-halfWidth + 1, halfSlot, halfWidth - 1, halfHeight - CAP_HEIGHT, beam, clear);
+    }
+
+    private void renderSparks(GuiGraphics guiGraphics, int halfWidth, int halfHeight) {
+        if (!complete || resultLevel < 2) {
+            return;
+        }
+        int count = (resultLevel - 1) * 4;
+        int halfSlot = slotHalf();
+        float travel = halfHeight - CAP_HEIGHT - halfSlot;
+        if (travel <= 0) {
+            return;
+        }
+
+        for (int i = 0; i < count; i++) {
+            float seedX = hash(i * 2);
+            float seedT = hash(i * 2 + 1);
+            float phase = ((age * 0.014f) + seedT) % 1f;
+            float fade = 1f - phase;
+            int alphaColor = scaleAlpha(resultColor, 0.75f * fade * fade);
+            if ((alphaColor >>> 24) == 0) continue;
+
+            int x = Math.round((seedX * 2f - 1f) * (halfWidth - 4));
+            int up = Math.round(halfSlot + phase * travel);
+            int size = seedX > 0.6f ? 2 : 1;
+
+            guiGraphics.fill(x, -up, x + size, -up + size, alphaColor);
+            guiGraphics.fill(-x - size, up - size, -x, up, alphaColor);
+        }
     }
 
     private void renderWindow(GuiGraphics guiGraphics, int halfWidth) {
-        int halfSlot = Math.round(slotHeight() / 2f);
-        guiGraphics.fill(-halfWidth + 1, -halfSlot, halfWidth - 1, halfSlot, WINDOW_TINT);
+        int halfSlot = slotHalf();
+        float p = pop();
+        float settle = complete ? 1f - p : 0f;
+
+        guiGraphics.fill(-halfWidth, -halfSlot, halfWidth, halfSlot,
+                complete ? scaleAlpha(resultColor, 0.10f) : WINDOW_TINT);
+        guiGraphics.hLine(-halfWidth, halfWidth - 1, -halfSlot - 1, WINDOW_SPLIT);
+        guiGraphics.hLine(-halfWidth, halfWidth - 1, halfSlot, WINDOW_SPLIT);
 
         if (complete) {
-            float pulse = 1f - landProgress;
-            for (int ring = 3; ring >= 1; ring--) {
-                float ringAlpha = (0.16f + 0.34f * pulse) / ring;
-                int glow = scaleAlpha(resultColor, ringAlpha);
-                drawOutline(guiGraphics, -halfWidth - ring, -halfSlot - ring, halfWidth + ring, halfSlot + ring, glow);
+            int rings = 1 + resultLevel;
+            for (int ring = rings; ring >= 1; ring--) {
+                float ringAlpha = (0.14f + 0.40f * settle) / ring;
+                drawOutline(guiGraphics, -halfWidth - ring, -halfSlot - ring, halfWidth + ring, halfSlot + ring,
+                        scaleAlpha(resultColor, ringAlpha));
             }
         }
 
-        drawOutline(guiGraphics, -halfWidth, -halfSlot, halfWidth, halfSlot, complete ? resultColor : 0x80FFFFFF);
+        drawOutline(guiGraphics, -halfWidth, -halfSlot, halfWidth, halfSlot, complete ? resultColor : IDLE_FRAME);
+
+        if (complete) {
+            int notchColor = scaleAlpha(resultColor, 0.55f + 0.45f * settle);
+            for (int k = 0; k < 4; k++) {
+                guiGraphics.fill(-halfWidth - 4 + k, -k, -halfWidth - 3 + k, k + 1, notchColor);
+                guiGraphics.fill(halfWidth + 3 - k, -k, halfWidth + 4 - k, k + 1, notchColor);
+            }
+        }
+    }
+
+    private void renderBurst(GuiGraphics guiGraphics, int halfWidth) {
+        if (!exitStarted) {
+            return;
+        }
+        float p = pop();
+        float fade = 1f - p;
+        if (fade <= 0f) {
+            return;
+        }
+        int halfSlot = slotHalf();
+
+        int flash = scaleAlpha(0xFFFFFFFF, 0.45f * fade * fade);
+        if ((flash >>> 24) > 0) {
+            guiGraphics.fill(-halfWidth, -halfSlot, halfWidth, halfSlot, flash);
+        }
+
+        int waves = 1 + resultLevel;
+        for (int wave = 0; wave < waves; wave++) {
+            float offset = wave * 0.18f;
+            float wp = p - offset;
+            if (wp <= 0f || wp >= 1f) continue;
+            int spread = Math.round(wp * (6 + 5 * resultLevel));
+            int ringColor = scaleAlpha(resultColor, 0.60f * (1f - wp) * (1f - wp));
+            if ((ringColor >>> 24) == 0) continue;
+            drawOutline(guiGraphics, -halfWidth - spread, -halfSlot - spread,
+                    halfWidth + spread, halfSlot + spread, ringColor);
+        }
     }
 
     private void drawOutline(GuiGraphics guiGraphics, int left, int top, int right, int bottom, int color) {
@@ -278,29 +397,24 @@ public class VerticalReelWidget extends AbstractWidget {
         guiGraphics.vLine(right - 1, top, bottom - 1, color);
     }
 
-    private int scaleAlpha(int color, float factor) {
+    private static float hash(int i) {
+        int h = i * 374761393 + 668265263;
+        h = (h ^ (h >>> 13)) * 1274126177;
+        return ((h ^ (h >>> 16)) & 0xFFFF) / 65535f;
+    }
+
+    private static int scaleAlpha(int color, float factor) {
         int alpha = (int) (((color >>> 24) & 0xFF) * Math.clamp(factor, 0f, 1f));
         return (alpha << 24) | (color & 0xFFFFFF);
     }
 
-    private void renderExitAnimation(GuiGraphics guiGraphics, Matrix3x2fStack poseStack) {
-        if (!exitStarted) {
-            return;
-        }
-        float scale = 1.0f + slotMachineConfig.exitMaxScale.get().floatValue() * exitProgress;
-        float alpha = 1.0f - exitProgress;
-        if (scale <= 0 || alpha <= 0) {
-            return;
-        }
-
-        poseStack.pushMatrix();
-        poseStack.scale(scale, scale);
-        guiGraphics.renderFakeItem(result.getCountItemStack(), -8, -8);
-        int veil = scaleAlpha(FADE_OPAQUE, 1.0f - alpha);
-        if (veil != 0) {
-            guiGraphics.fill(-9, -9, 9, 9, veil);
-        }
-        poseStack.popMatrix();
+    private static int blend(int base, int other, float amount) {
+        float t = Math.clamp(amount, 0f, 1f);
+        int a = (base >>> 24) & 0xFF;
+        int r = Math.round((((base >> 16) & 0xFF) * (1f - t)) + (((other >> 16) & 0xFF) * t));
+        int g = Math.round((((base >> 8) & 0xFF) * (1f - t)) + (((other >> 8) & 0xFF) * t));
+        int b = Math.round(((base & 0xFF) * (1f - t)) + ((other & 0xFF) * t));
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     @Override
