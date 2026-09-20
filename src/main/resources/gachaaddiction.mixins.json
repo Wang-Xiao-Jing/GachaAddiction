@@ -13,8 +13,7 @@
     "accessor.LootPoolSingletonContainerAccessor",
     "accessor.LootTableAccessor",
     "compat.ftb.LootCrateItemMixin",
-    "compat.lootr.LootrInventoryMixin",
-    "compat.lootr.LootrSavedDataMixin"
+    "compat.lootr.LootrInventoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1
