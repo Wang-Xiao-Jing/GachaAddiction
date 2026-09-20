@@ -63,7 +63,8 @@ public class VerticalReelWidget extends AbstractWidget {
     private final float minSpeed;
     private final RandomSource randomSource;
 
-    public VerticalReelWidget(ReelHost host, RewardData result, List<ItemStack> decoys, int resultIndex) {
+    public VerticalReelWidget(ReelHost host, RewardData result, List<ItemStack> decoys, int resultIndex,
+                              float speedMultiplier) {
         super(0, 0, RAIL_WIDTH, RAIL_WIDTH, Component.empty());
         this.host = host;
         this.result = result;
@@ -73,7 +74,6 @@ public class VerticalReelWidget extends AbstractWidget {
         this.resultLevel = result.getRarityLevel();
         this.randomSource = RandomSource.create();
 
-        double speedVarianceMin = slotMachineConfig.speedVarianceMin.get();
         double decelZone = slotMachineConfig.decelZone.get();
         double decelZoneVarianceMin = slotMachineConfig.decelZoneVarianceMin.get();
         double decelZoneVarianceMax = slotMachineConfig.decelZoneVarianceMax.get();
@@ -81,7 +81,7 @@ public class VerticalReelWidget extends AbstractWidget {
         double minSpeedVarianceMax = slotMachineConfig.minSpeedVarianceMax.get();
         double minSpeedVarianceMin = slotMachineConfig.minSpeedVarianceMin.get();
 
-        this.speedMultiplier = (float) (speedVarianceMin + randomSource.nextFloat() * (slotMachineConfig.speedVarianceMax.get() - speedVarianceMin));
+        this.speedMultiplier = Math.max(0.05f, speedMultiplier);
         this.decelZone = (float) Math.max(1,
                 decelZone * decelZoneVarianceMin + randomSource.nextFloat() * (decelZoneVarianceMax - decelZoneVarianceMin));
         this.minSpeed = (float) Math.max(minSpeed,

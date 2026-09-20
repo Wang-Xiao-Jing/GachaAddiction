@@ -18,6 +18,7 @@ import xiaojin.gachaaddiction.config.ClientConfig;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,11 @@ public class SlotMachineScreen extends BasicGachaScreen {
     public static final String SKIP_HINT = TranslationKeys.GUI_SLOT_MACHINES_KIP_HINT;
     protected final ClientConfig.SlotMachineConfig slotMachineConfig = clientConfig.slotMachineConfig;
     private final List<VerticalReelWidget> verticalReelWidgets = new ArrayList<>();
+    private static final int BASE_SPIN = 18;
+    private static final int SPIN_PER_RANK = 7;
+    private static final int SPIN_JITTER = 3;
+    private static final int SPIN_TAIL = 6;
+
     private int currentPage;
     private int pageSize;
     private int blinkTicks;
@@ -46,10 +52,37 @@ public class SlotMachineScreen extends BasicGachaScreen {
     protected void refreshWidgets() {
         clearReels();
         RandomSource random = RandomSource.create();
-        for (RewardData data : rewards) {
-            verticalReelWidgets.add(createReelWidget(this, data, itemStackEntries, slotMachineConfig, random));
+        int perPage = computePageSize();
+        for (int start = 0; start < rewards.size(); start += perPage) {
+            int end = Math.min(start + perPage, rewards.size());
+            List<RewardData> group = rewards.subList(start, end);
+            int[] ranks = stopRanks(group);
+            for (int i = 0; i < group.size(); i++) {
+                verticalReelWidgets.add(createReelWidget(this, group.get(i), itemStackEntries,
+                        slotMachineConfig, random, ranks[i], group.size()));
+            }
         }
         initReels();
+    }
+
+    private int computePageSize() {
+        if (width <= 0) {
+            return 1;
+        }
+        return Math.max(1, width / 3 * 2 / VerticalReelWidget.RAIL_STEP);
+    }
+
+    private static int[] stopRanks(List<RewardData> group) {
+        List<Integer> byRarity = new ArrayList<>();
+        for (int i = 0; i < group.size(); i++) {
+            byRarity.add(i);
+        }
+        byRarity.sort(Comparator.comparingInt(index -> group.get(index).getRarityLevel()));
+        int[] ranks = new int[group.size()];
+        for (int rank = 0; rank < byRarity.size(); rank++) {
+            ranks[byRarity.get(rank)] = rank;
+        }
+        return ranks;
     }
 
     @Override
@@ -96,32 +129,34 @@ public class SlotMachineScreen extends BasicGachaScreen {
                                                       List<ItemStackEntry> entries,
                                                       ClientConfig.SlotMachineConfig slotMachineConfig,
                                                       RandomSource random) {
-        int rarityLevel = data.getRarityLevel();
+        return createReelWidget(host, data, entries, slotMachineConfig, random, 0, 1);
+    }
+
+    public static VerticalReelWidget createReelWidget(ReelHost host, RewardData data,
+                                                      List<ItemStackEntry> entries,
+                                                      ClientConfig.SlotMachineConfig slotMachineConfig,
+                                                      RandomSource random,
+                                                      int stopRank, int reelCount) {
         int slotSize = slotMachineConfig.itemSlotSize.get();
-        int decoyCount = 40;
-        if (rarityLevel < 0) {
-            decoyCount -= random.nextInt(Math.min(20, -rarityLevel * 2));
-        } else if (rarityLevel > 0) {
-            int min = rarityLevel * 2;
-            int max = rarityLevel * slotSize;
-            if (max > min) decoyCount += random.nextInt(min, max);
-        } else {
-            decoyCount += random.nextInt(0, slotSize);
-        }
+        int spin = BASE_SPIN + stopRank * SPIN_PER_RANK + random.nextInt(SPIN_JITTER);
+        int decoyCount = spin + slotSize + SPIN_TAIL;
 
         List<ItemStack> decoys = ItemStackEntry.generateGachaResult(entries, decoyCount, random);
 
-        int resultIndex = decoys.size() > slotSize
-                ? random.nextInt(decoys.size() - slotSize) + slotSize
-                : Math.max(0, decoys.size() - 1);
-
+        int resultIndex = Math.clamp(spin, 0, decoys.size());
         decoys.add(resultIndex, data.getItemStack().getItem().getDefaultInstance());
-        return new VerticalReelWidget(host, data, decoys, resultIndex);
+
+        double fastest = slotMachineConfig.speedVarianceMax.get();
+        double slowest = slotMachineConfig.speedVarianceMin.get();
+        float ratio = reelCount <= 1 ? 0f : stopRank / (float) (reelCount - 1);
+        float speed = (float) (fastest + (slowest - fastest) * ratio);
+
+        return new VerticalReelWidget(host, data, decoys, resultIndex, speed);
     }
 
     private void initializePage(int page) {
         removeAllReelWidgets();
-        pageSize = Math.max(1, width / 3 * 2 / VerticalReelWidget.RAIL_STEP);
+        pageSize = computePageSize();
         int from = page * pageSize;
         int to = Math.min(from + pageSize, verticalReelWidgets.size());
 
