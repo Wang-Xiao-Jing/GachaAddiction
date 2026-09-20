@@ -1,6 +1,7 @@
 package xiaojin.gachaaddiction.mixin.entity;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
@@ -41,7 +42,7 @@ public abstract class AbstractMinecartContainerMixin extends AbstractMinecart im
 
     @Override
     public boolean gachaaddiction$isOpenGachaaUi() {
-        return gachaaddiction$isOpenGachaaUi || getLootTable() != null;
+        return gachaaddiction$isOpenGachaaUi || getContainerLootTable() != null;
     }
 
     @Override
@@ -55,26 +56,24 @@ public abstract class AbstractMinecartContainerMixin extends AbstractMinecart im
     }
 
     @Inject(method = "setLootTable*", at = @At("HEAD"))
-    private void gachaaddiction$setLootTable(ResourceKey<LootTable> lootTable, CallbackInfo ci) {
-        if (lootTable == null && this.getLootTable() != null) {
+    private void gachaaddiction$setLootTable(ResourceKey<LootTable> lootTable, long seed, CallbackInfo ci) {
+        if (lootTable == null && this.getContainerLootTable() != null) {
             gachaaddiction$isOpenGachaaUi = true;
         }
         gachaaddiction$oldLootTable = this.getContainerLootTable();
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
-    private void gachaaddiction$addAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
-        if (compound.contains(ModUtil.OPEN_GACHAA_UI)) {
-            this.gachaaddiction$isOpenGachaaUi = compound.getBooleanOr(ModUtil.OPEN_GACHAA_UI, false);
+    private void gachaaddiction$addAdditionalSaveData(ValueOutput output, CallbackInfo ci) {
+        if (gachaaddiction$isOpenGachaaUi) {
+            output.putBoolean(ModUtil.OPEN_GACHAA_UI, true);
         } else {
-            this.gachaaddiction$isOpenGachaaUi = false;
+            output.discard(ModUtil.OPEN_GACHAA_UI);
         }
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
-    private void gachaaddiction$readAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
-        if (gachaaddiction$isOpenGachaaUi) {
-            compound.putBoolean(ModUtil.OPEN_GACHAA_UI, true);
-        }
+    private void gachaaddiction$readAdditionalSaveData(ValueInput input, CallbackInfo ci) {
+        this.gachaaddiction$isOpenGachaaUi = input.getBooleanOr(ModUtil.OPEN_GACHAA_UI, false);
     }
 }
