@@ -1,12 +1,8 @@
 package xiaojin.gachaaddiction.client.compat.ldlib2;
 
-import com.lowdragmc.lowdraglib2.Platform;
-import com.lowdragmc.lowdraglib2.editor.resource.FileResourceProvider;
-import com.lowdragmc.lowdraglib2.editor.resource.UIResource;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UI;
-import com.lowdragmc.lowdraglib2.gui.ui.UITemplate;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.*;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.util.TreeNode;
@@ -17,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModContainer;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.client.AdminWorkbenchClient;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.config.entry.BasicConfigEntry;
 import xiaojin.gachaaddiction.generator.lang.LangHandler;
@@ -25,13 +22,14 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import static xiaojin.gachaaddiction.util.TranslationKeys.GUI_CONFIG_EMPTY;
-import static xiaojin.gachaaddiction.util.TranslationKeys.GUI_CONFIG_TITLE;
+import static xiaojin.gachaaddiction.util.TranslationKeys.*;
 
 public class LDLib2ConfigScreen {
     private static boolean resourcesRegistered;
 
     public static Screen create(ModContainer modContainer, Screen parent) {
+        registerResources();
+        LDLib2ConfigPackProvider.prepare();
         var root = new UITemplateElement(LDLib2Templates.CONFIG_SCREEN);
         var template = root.getTemplate();
         if (template != null) {
@@ -48,8 +46,9 @@ public class LDLib2ConfigScreen {
         navigationContent(root, breadCrumbs, configOptionsContainer);
         previewWindowButton(root);
         finishButton(root);
+        localEditorButton(root);
 
-        return new ConfigScreen(modContainer, ModularUI.of(UI.of(root)), Component.translatable(GUI_CONFIG_TITLE), parent);
+        return new ConfigScreen(modContainer, ModularUI.of(UI.of(root)), Component.translatable(GUI_CONFIG_LDLIB2_TITLE), parent);
     }
 
     @SuppressWarnings("unused")
@@ -57,13 +56,37 @@ public class LDLib2ConfigScreen {
         var previewWindowButton = root.select("#preview_window_button", Button.class)
                 .findFirst()
                 .orElseThrow();
-        // TODO 打开配置界面预览小窗
+        var window = new AtomicReference<LDLib2ConfigPreviewWindow>();
+        previewWindowButton.setText(Component.translatable(GUI_CONFIG_PREVIEW));
+        previewWindowButton.setOnClick(event -> {
+            var previous = window.get();
+            if (previous != null && previous.getParent() != null) {
+                previous.focus();
+                return;
+            }
+            var preview = new LDLib2ConfigPreviewWindow(event.x, event.y);
+            window.set(preview);
+            preview.setOnClose(() -> window.compareAndSet(preview, null));
+            preview.show(root);
+        });
+    }
+
+    private static void localEditorButton(UITemplateElement root) {
+        var finish = root.select("#finish_button", Button.class).findFirst().orElseThrow();
+        var editor = new Button().setText(Component.translatable(
+                GUI_LOCAL_PACK_TITLE));
+        editor.setOnClick(event -> AdminWorkbenchClient.open());
+        var toolbar = finish.getParent();
+        if (toolbar != null) {
+            toolbar.addChildAt(editor, toolbar.getChildren().indexOf(finish));
+        }
     }
 
     private static void finishButton(UITemplateElement root) {
         var finishButton = root.select("#finish_button", Button.class)
                 .findFirst()
                 .orElseThrow();
+        finishButton.setText(Component.translatable(GUI_CONFIG_FINISH));
         finishButton.setOnClick(event -> {
             Screen screen = Minecraft.getInstance().screen;
             if (screen != null) {
@@ -217,11 +240,7 @@ public class LDLib2ConfigScreen {
             return;
         }
 
-        var resources = UIResource.INSTANCE.getResourceInstance();
-        FileResourceProvider<UITemplate> provider = new FileResourceProvider<>(resources,
-                Platform.getGamePath().resolve("ldlib2/assets/gachaaddiction").toFile());
-        provider.setName(GachaAddiction.MODID);
-        resources.addBuiltinProvider(provider);
+        LDLib2ConfigPackProvider.register();
         resourcesRegistered = true;
     }
 

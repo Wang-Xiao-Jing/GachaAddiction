@@ -12,8 +12,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import xiaojin.gachaaddiction.config.GachaAddictionConfig;
+import xiaojin.gachaaddiction.client.GachaAnnouncementClient;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
+import xiaojin.gachaaddiction.client.gui.screen.ModernGachaScreen;
+import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 
 import java.util.List;
 
@@ -23,6 +25,7 @@ public abstract class ClientPacketListenerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;initializeContents(ILjava/util/List;Lnet/minecraft/world/item/ItemStack;)V"))
     private void gachaaddiction$handleContainerContent$initializeContents(AbstractContainerMenu instance, int stateId, List<ItemStack> items, ItemStack carried, Operation<Void> original) {
         original.call(instance, stateId, items, carried);
+        GachaAnnouncementClient.INSTANCE.containerContents(instance);
         Minecraft mc = Minecraft.getInstance();
         Screen screen = mc.screen;
         if (screen == null) {
@@ -42,6 +45,10 @@ public abstract class ClientPacketListenerMixin {
             return;
         }
 
+        if (slotMachineScreen instanceof ModernGachaScreen modern && modern.hasReceivedResults()) {
+            return;
+        }
+
         NonNullList<ItemStack> menuItems = menu.getItems();
         // TODO 或许可以优化
         // 排除玩家本身的物品
@@ -51,7 +58,8 @@ public abstract class ClientPacketListenerMixin {
         }
         menuItems.removeIf(ItemStack::isEmpty);
 
-        if (menuItems.stream().noneMatch(GachaAddictionConfig.CLIENT::filter)) {
+        if (!slotMachineScreen.isForceWatch() && !slotMachineScreen.hasExplicitAnimation()
+                && menuItems.stream().noneMatch(GachaAddictionConfig.CLIENT::filter)) {
             slotMachineScreen.onClose();
             return;
         }

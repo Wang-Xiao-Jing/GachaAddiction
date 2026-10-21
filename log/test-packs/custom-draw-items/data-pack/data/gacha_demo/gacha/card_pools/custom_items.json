@@ -1,0 +1,36 @@
+{
+    "format_version": 1,
+    "reward_pool": "gacha_demo:custom_items",
+    "parameter_bindings": [],
+    "packages": [
+        {
+            "id": "gacha_demo:single",
+            "rounds": 1,
+            "parameters": {},
+            "consumption": [],
+            "minimum_durability": "SYNC"
+        },
+        {
+            "id": "gacha_demo:triple",
+            "rounds": 3,
+            "parameters": {},
+            "consumption": [],
+            "minimum_durability": "SYNC"
+        }
+    ],
+    "presentation": {
+        "title": "block.minecraft.chest",
+        "icon": {
+            "id": "minecraft:chest",
+            "count": 1
+        },
+        "result_style": "SUMMARY"
+    },
+    "availability": {
+        "enabled": true,
+        "minimum_permission_level": 2
+    },
+    "delivery": {
+        "mode": "INVENTORY"
+    }
+}

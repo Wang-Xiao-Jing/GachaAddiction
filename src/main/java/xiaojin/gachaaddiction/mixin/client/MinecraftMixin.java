@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xiaojin.gachaaddiction.client.GachaAnnouncementClient;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 
 @Mixin(Minecraft.class)
@@ -30,5 +31,10 @@ public abstract class MinecraftMixin {
         if (slotMachineScreen.isReturnOriginalScreen()) {
             guiScreen1.set(originalScreen);
         }
+    }
+
+    @Inject(method = "setScreen", at = @At("RETURN"))
+    private void gachaaddiction$setScreen$announcement(Screen guiScreen, CallbackInfo ci) {
+        GachaAnnouncementClient.INSTANCE.screenChanged(Minecraft.getInstance().screen);
     }
 }

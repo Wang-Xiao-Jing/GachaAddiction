@@ -17,10 +17,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public class LangHandler {
-    private static final Map<String, Map<String, LangSet>> MOD_LANG_MAP = new HashMap<>();
     public static final String EN_US = "en_us";
     public static final String ZH_CN = "zh_cn";
     public static final String RU_RU = "ru_ru";
+    private static final Map<String, Map<String, LangSet>> MOD_LANG_MAP = new HashMap<>();
 
     public static String getConfigTranslation(String modId, String... keys) {
         StringBuilder builder = new StringBuilder(modId + ".configuration");

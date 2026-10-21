@@ -1,10 +1,11 @@
 package xiaojin.gachaaddiction.registry;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.api.GachaType;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.api.GachaType;
+import xiaojin.gachaaddiction.client.compat.ldlib2.LDLib2GachaUiConstants;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +18,14 @@ public class GachaTypes {
     private static final List<GachaType> GACHA_TYPE_LIST = new ObjectArrayList<>();
     public static final GachaType EMPTY = register("empty", GachaType::new);
     public static final GachaType SLOT_MACHINE = register("slot_machine", GachaType::new);
+    public static final GachaType INTERACTIVE_SLOT_MACHINE = register("interactive_slot_machine", GachaType::new);
+    public static final GachaType MODERN = register("modern", GachaType::new);
+    public static final GachaType MODERN_2 = register("modern_2", GachaType::new);
+    public static final GachaType CHEST = register("chest", GachaType::new);
+    public static final GachaType CSGO = register("csgo", GachaType::new);
+    public static final GachaType WHEEL = register("wheel", GachaType::new);
+    public static final GachaType TOTEM = register("totem", GachaType::new);
+    public static final GachaType LDLIB2 = register(LDLib2GachaUiConstants.GACHA_TYPE_PATH, GachaType::new);
 
     public static <T extends GachaType> T register(ResourceLocation id, Function<ResourceLocation, T> function) {
         T type = function.apply(id);
@@ -43,8 +52,8 @@ public class GachaTypes {
     }
 
     public static GachaType getDefault(ResourceLocation id) {
-        if (!GACHA_TYPE_MPA.containsKey(id)){
-            return SLOT_MACHINE;
+        if (!GACHA_TYPE_MPA.containsKey(id)) {
+            return MODERN;
         }
         return get(id);
     }

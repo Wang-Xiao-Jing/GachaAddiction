@@ -40,4 +40,5 @@ repo/
 !**/src/**/repo/
 
 /src/generated/
-/src/generated/
+/log/测试.md
+/patches/

@@ -1,6 +1,7 @@
 package xiaojin.gachaaddiction.api.client;
 
 import net.minecraft.client.Minecraft;
+import xiaojin.gachaaddiction.api.RewardData;
 
 /**
  * 老虎机转轮（{@link xiaojin.gachaaddiction.client.gui.widget.VerticalReelWidget}）的宿主抽象。
@@ -28,4 +29,14 @@ public interface ReelHost {
      * 宿主所在的 Minecraft 实例。
      */
     Minecraft getMinecraft();
+
+    /**
+     * 真实动画在揭晓时通知；本地预览沿用空实现，不产生拿取请求。
+     */
+    default void onRewardRevealed(RewardData reward) {
+    }
+
+    default boolean canAnnounceReward(RewardData reward) {
+        return false;
+    }
 }

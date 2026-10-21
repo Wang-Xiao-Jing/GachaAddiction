@@ -10,11 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.client.compat.ldlib2.LDLib2Templates;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class SearchConfigEntryElement extends BasicConfigEntryElement<String> {
@@ -73,42 +69,6 @@ public class SearchConfigEntryElement extends BasicConfigEntryElement<String> {
                 valueElement.setValue(text, false);
             }
         });
-    }
-
-    public SearchComponent<String> getValueElement() {
-        return valueElement;
-    }
-
-    public TextField getTextField() {
-        return valueElement.textField;
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public SearchConfigEntryElement setTextValidator(Predicate<String> textValidator) {
-        getTextField().setTextValidator(textValidator);
-        return this;
-    }
-
-    @Override
-    public String getValue() {
-        return getTextField().getValue();
-    }
-
-    @Override
-    public SearchConfigEntryElement setText(String text) {
-        return (SearchConfigEntryElement) super.setText(text);
-    }
-
-    @Override
-    public SearchConfigEntryElement setText(Component component) {
-        return (SearchConfigEntryElement) super.setText(component);
-    }
-
-    @Override
-    public SearchConfigEntryElement setValue(String value) {
-        searchText = value;
-        valueElement.setValue(value, false);
-        return this;
     }
 
     private static List<String> createCandidates() {
@@ -172,6 +132,42 @@ public class SearchConfigEntryElement extends BasicConfigEntryElement<String> {
             case '[', '{', ';' -> true;
             default -> false;
         };
+    }
+
+    public SearchComponent<String> getValueElement() {
+        return valueElement;
+    }
+
+    public TextField getTextField() {
+        return valueElement.textField;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public SearchConfigEntryElement setTextValidator(Predicate<String> textValidator) {
+        getTextField().setTextValidator(textValidator);
+        return this;
+    }
+
+    @Override
+    public String getValue() {
+        return getTextField().getValue();
+    }
+
+    @Override
+    public SearchConfigEntryElement setText(String text) {
+        return (SearchConfigEntryElement) super.setText(text);
+    }
+
+    @Override
+    public SearchConfigEntryElement setText(Component component) {
+        return (SearchConfigEntryElement) super.setText(component);
+    }
+
+    @Override
+    public SearchConfigEntryElement setValue(String value) {
+        searchText = value;
+        valueElement.setValue(value, false);
+        return this;
     }
 
     private record CandidateCache(List<String> values, Set<String> valueSet) {

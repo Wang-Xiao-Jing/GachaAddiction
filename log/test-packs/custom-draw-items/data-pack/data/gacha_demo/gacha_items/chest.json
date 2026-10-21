@@ -1,0 +1,12 @@
+{
+    "card_pool": "gacha_demo:custom_items",
+    "package": "gacha_demo:triple",
+    "source": {
+        "gacha_type": "gachaaddiction:chest",
+        "secondary_type": "multiple"
+    },
+    "item": {
+        "id": "gachaaddiction:sealed_chest",
+        "count": 1
+    }
+}

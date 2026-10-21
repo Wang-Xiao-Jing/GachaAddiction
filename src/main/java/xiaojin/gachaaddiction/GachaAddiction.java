@@ -7,6 +7,9 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
+import xiaojin.gachaaddiction.registry.GachaSources;
+import xiaojin.gachaaddiction.registry.GachaTypes;
+import xiaojin.gachaaddiction.registry.item.GachaDrawItems;
 import xiaojin.gachaaddiction.registry.sound.ModSoundEvents;
 
 @Mod(GachaAddiction.MODID)
@@ -17,9 +20,14 @@ public class GachaAddiction {
     public static final boolean LOOTR_LOADED = ModList.get().isLoaded("lootr");
     public static final boolean RARITYCORE_LOADED = ModList.get().isLoaded("raritycore");
     public static final boolean CONFLUENCE_MAGIC_LIB_LOADED = ModList.get().isLoaded("confluence_magic_lib");
+    public static final boolean LDLIB2_LOADED = ModList.get().isLoaded("ldlib2");
+    public static final boolean COLORTOOLTIPS_LOADED = ModList.get().isLoaded("colortooltips");
 
     public GachaAddiction(IEventBus modEventBus, ModContainer modContainer) {
+        GachaTypes.init();
         GachaAddictionConfig.register(modContainer);
         ModSoundEvents.REGISTRY.register(modEventBus);
+        GachaDrawItems.REGISTRY.register(modEventBus);
+        GachaSources.register(modEventBus);
     }
 }

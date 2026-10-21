@@ -1,0 +1,10 @@
+{
+    "targets": ["object", "swap"],
+    "passes": [
+        {
+            "name": "gachaaddiction:object_outline",
+            "intarget": "object",
+            "outtarget": "swap"
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+xiaojin.gachaaddiction.compat.kubejs.GachaKubeJSPlugin

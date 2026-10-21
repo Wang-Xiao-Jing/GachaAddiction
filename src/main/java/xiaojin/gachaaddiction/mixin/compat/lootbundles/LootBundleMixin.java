@@ -2,6 +2,7 @@ package xiaojin.gachaaddiction.mixin.compat.lootbundles;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import cy.jdkdigital.lootbundles.item.LootBundle;
@@ -17,7 +18,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
-import xiaojin.gachaaddiction.network.OpenGachaScreenPayload;
+import xiaojin.gachaaddiction.network.stc.OpenGachaScreenPayload;
+import xiaojin.gachaaddiction.util.GachaAnnouncements;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +32,15 @@ import java.util.Optional;
  */
 @Mixin(LootBundle.class)
 public abstract class LootBundleMixin {
-    @WrapOperation(method = "use",
+    @WrapOperation(method = "use", remap = false,
             at = @At(value = "INVOKE", target = "Lcy/jdkdigital/lootbundles/item/LootBundle;dropContents(Ljava/util/List;Lnet/minecraft/world/entity/player/Player;)Z"))
     private boolean gachaaddiction$use$dropContents(List<ItemStack> items, Player player, Operation<Boolean> original,
-                                                    @Share("gachaaddiction$allItems") LocalRef<List<ItemStack>> allItems) {
+                                                    @Share("gachaaddiction$allItems") LocalRef<List<ItemStack>> allItems,
+                                                    @Share("gachaaddiction$container") LocalRef<ItemStack> container,
+                                                    @Local(argsOnly = true) InteractionHand hand) {
+        if (container.get() == null) {
+            container.set(player.getItemInHand(hand).copy());
+        }
         boolean result = original.call(items, player);
         if (allItems.get() == null) {
             allItems.set(new ArrayList<>());
@@ -45,7 +52,8 @@ public abstract class LootBundleMixin {
     @Inject(method = "use", at = @At("RETURN"))
     private void gachaaddiction$use$return(Level level, Player player, InteractionHand hand,
                                            CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir,
-                                           @Share("gachaaddiction$allItems") LocalRef<List<ItemStack>> allItems) {
+                                           @Share("gachaaddiction$allItems") LocalRef<List<ItemStack>> allItems,
+                                           @Share("gachaaddiction$container") LocalRef<ItemStack> container) {
         if (level.isClientSide()) {
             return;
         }
@@ -60,6 +68,9 @@ public abstract class LootBundleMixin {
             entries.add(new ItemStackEntry(stack.copy(), 1));
         }
 
+        if (container.get() != null) {
+            GachaAnnouncements.openRewards((ServerPlayer) player, container.get(), items);
+        }
         PacketDistributor.sendToPlayer((ServerPlayer) player,
                 new OpenGachaScreenPayload(Optional.empty(), List.of(), entries, items));
     }

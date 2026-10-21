@@ -14,10 +14,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.api.client.ReelHost;
+import xiaojin.gachaaddiction.client.render.GachaRenderState;
+import xiaojin.gachaaddiction.client.render.GuiItemRenderer;
 import xiaojin.gachaaddiction.config.ClientConfig;
+import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 
 import java.util.List;
@@ -31,17 +33,16 @@ public class VerticalReelWidget extends AbstractWidget {
     private final int resultLevel;
     private final List<ItemStack> decoys;
     private final int resultIndex;
-
+    private final float speedMultiplier;
+    private final float decelZone;
+    private final RandomSource randomSource;
     private float visualOffset;
     private boolean complete;
     private int lastPassedIndex;
     private boolean soundPlayed;
     private boolean exitStarted;
     private float exitProgress;
-    private final float speedMultiplier;
-    private final float decelZone;
-    private float minSpeed;
-    private final RandomSource randomSource;
+    private final float minSpeed;
 
     public VerticalReelWidget(ReelHost host, RewardData result, List<ItemStack> decoys, int resultIndex) {
         super(0, 0, 32, 32, Component.empty());
@@ -70,19 +71,22 @@ public class VerticalReelWidget extends AbstractWidget {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.isHovered = isIsHovered(guiGraphics, mouseX, mouseY);
+        try (GachaRenderState previousState = new GachaRenderState()) {
+            this.isHovered = isIsHovered(guiGraphics, mouseX, mouseY);
 
-        tickAnimation(partialTick);
+            tickAnimation(partialTick);
 
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-        poseStack.translate(getX(), getY(), 0);
-        renderItems(guiGraphics, poseStack);
-        renderBox(guiGraphics, poseStack, result.getCountItemStack());
-        renderExitAnimation(guiGraphics, poseStack);
-        poseStack.popPose();
-        renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
-        guiGraphics.flush();
+            PoseStack poseStack = guiGraphics.pose();
+            poseStack.pushPose();
+            poseStack.translate(getX(), getY(), 0);
+            renderItems(guiGraphics, poseStack);
+            renderExitAnimation(guiGraphics, poseStack);
+            guiGraphics.flush();
+            renderBox(guiGraphics, poseStack, result.getCountItemStack());
+            poseStack.popPose();
+            renderItemTooltip(guiGraphics, poseStack, mouseX, mouseY);
+            guiGraphics.flush();
+        }
     }
 
     private boolean isIsHovered(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -105,7 +109,7 @@ public class VerticalReelWidget extends AbstractWidget {
 
     private void tickAnimation(float partialTick) {
         if (exitStarted) {
-        exitProgress = Math.min(exitProgress + partialTick * slotMachineConfig.exitSpeed.get().floatValue(), 1f);
+            exitProgress = Math.min(exitProgress + partialTick * slotMachineConfig.exitSpeed.get().floatValue(), 1f);
         }
 
         if (complete) {
@@ -118,18 +122,19 @@ public class VerticalReelWidget extends AbstractWidget {
         if (remaining >= 0f) {
             visualOffset = target;
             complete = true;
+            host.onRewardRevealed(result);
         } else {
             float dist = -remaining;
             float speedMul = dist > decelZone ? 1f
                     : Math.max(minSpeed, dist / decelZone);
-        float move = partialTick * slotMachineConfig.itemsPerSecond.get().floatValue() * speedMul * speedMultiplier / 20f;
+            float move = partialTick * slotMachineConfig.itemsPerSecond.get().floatValue() * speedMul * speedMultiplier / 20f;
             visualOffset = Math.max(target, visualOffset - move);
         }
 
         if (slotMachineConfig.passSoundEffects.get()) {
             playPassSound();
         }
-            if (clientConfig.rewardSoundEffects.get()) {
+        if (clientConfig.rewardSoundEffects.get()) {
             playRewardSound(result.getCountItemStack());
         }
         if (complete && soundPlayed && !exitStarted) {
@@ -181,10 +186,10 @@ public class VerticalReelWidget extends AbstractWidget {
                 poseStack.translate(0f, itemSpacing * clamped, 0f);
                 poseStack.scale(scale, scale, scale);
                 if (finalI == resultIndex && complete) {
-                    guiGraphics.renderItem(result.getCountItemStack(), -8, -8);
+                    GuiItemRenderer.renderItem(guiGraphics, result.getCountItemStack(), -8, -8, alpha);
                     guiGraphics.renderItemDecorations(getFont(), result.getCountItemStack(), -8, -8);
                 } else {
-                    guiGraphics.renderFakeItem(decoys.get(finalI), -8, -8);
+                    GuiItemRenderer.renderFakeItem(guiGraphics, decoys.get(finalI), -8, -8, alpha);
                 }
             }, alpha);
             poseStack.popPose();
@@ -226,7 +231,7 @@ public class VerticalReelWidget extends AbstractWidget {
         poseStack.pushPose();
         poseStack.scale(scale, scale, scale);
         alphaDraw(guiGraphics, () -> {
-            guiGraphics.renderFakeItem(result.getCountItemStack(), -8, -8);
+            GuiItemRenderer.renderFakeItem(guiGraphics, result.getCountItemStack(), -8, -8, alpha);
             renderBox(guiGraphics, poseStack, result.getCountItemStack());
         }, alpha);
         poseStack.popPose();
@@ -283,7 +288,10 @@ public class VerticalReelWidget extends AbstractWidget {
 
     public void skipToEnd() {
         visualOffset = -resultIndex + (slotMachineConfig.itemVisibleCount.get() - 1) / 2f;
-        complete = true;
+        if (!complete) {
+            complete = true;
+            host.onRewardRevealed(result);
+        }
         playPassSound();
         playRewardSound(result.getCountItemStack());
         if (soundPlayed && !exitStarted) {

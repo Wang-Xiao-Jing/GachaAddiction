@@ -2,8 +2,8 @@ package xiaojin.gachaaddiction.config.entry;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.Function;
 
 public class SelectorConfigEntry<V> extends ConfigEntry<V> {
@@ -16,12 +16,12 @@ public class SelectorConfigEntry<V> extends ConfigEntry<V> {
         this.allowedValues = List.copyOf(allowedValues);
     }
 
-    public List<V> allowedValues() {
-        return allowedValues;
-    }
-
     public static <V> Builder<V> builder(ModConfigSpec.Builder specBuilder, String modId, List<String> currentPath) {
         return new Builder<>(specBuilder, modId, currentPath);
+    }
+
+    public List<V> allowedValues() {
+        return allowedValues;
     }
 
     public static class Builder<V> extends ConfigEntry.Builder<V, SelectorConfigEntry<V>, Builder<V>> {

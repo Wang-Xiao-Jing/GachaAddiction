@@ -14,16 +14,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
+import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(LootCrateItem.class)
 public abstract class LootCrateItemMixin {
-    @WrapOperation(method = "use", at = @At(value = "INVOKE", target = "Ldev/ftb/mods/ftbquests/client/gui/RewardNotificationsScreen;openGui()V"))
+    @WrapOperation(method = "use", remap = false, at = @At(value = "INVOKE", target = "Ldev/ftb/mods/ftbquests/client/gui/RewardNotificationsScreen;openGui()V"))
     private void gachaaddiction$use$openGui(RewardNotificationsScreen instance, Operation<Void> original,
                                             @Local(argsOnly = true) Player player,
                                             @Local(argsOnly = true) InteractionHand hand) {

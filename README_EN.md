@@ -21,6 +21,10 @@ You can press SPACE to skip the current reel animation or hold ESC to dismiss al
 - **Required**: NeoForge 21.1.200+ (both server and client)
 - **Recommended**: RarityCore, ColorTooltips
 
+## Development documentation
+
+Version 2.0.0 is under development. See the [documentation index](log/README.md) for current behavior, remaining work and validation status, and the [2.0.0 changelog](log/2.0.0.md) for key changes.
+
 ## License
 
 This project is licensed under CC BY-NC-SA 4.0.

@@ -20,12 +20,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
+import xiaojin.gachaaddiction.config.GachaAddictionConfig;
+import xiaojin.gachaaddiction.mixed.ILootRewardModeMap;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 import xiaojin.gachaaddiction.util.FtbUtil;
-import xiaojin.gachaaddiction.mixed.ILootRewardModeMap;
 
 import java.util.ArrayList;
 import java.util.List;

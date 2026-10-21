@@ -1,0 +1,25 @@
+{
+    "format_version": 1,
+    "parameters": [],
+    "source_strategy": "COLLECT_ALL_SOURCES",
+    "source_count": 1,
+    "sources": [
+        {
+            "id": "gacha_demo:end_city",
+            "type": "vanilla_loot_table",
+            "table": "minecraft:chests/end_city_treasure",
+            "weight": 1
+        }
+    ],
+    "limits": {
+        "max_logical_quantity": 1000000,
+        "max_logical_rewards": 512,
+        "max_physical_stacks": 512,
+        "max_rounds": 32,
+        "max_source_selections": 32,
+        "max_rule_actions": 1024,
+        "max_custom_table_depth": 16,
+        "max_custom_entry_visits": 4096
+    },
+    "rules": []
+}

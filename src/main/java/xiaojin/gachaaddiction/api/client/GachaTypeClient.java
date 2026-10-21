@@ -7,8 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.GachaaData;
-import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
+import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 
 import java.util.ArrayList;
 import java.util.List;

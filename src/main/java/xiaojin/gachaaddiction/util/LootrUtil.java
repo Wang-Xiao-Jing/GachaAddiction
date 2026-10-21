@@ -1,5 +1,6 @@
 package xiaojin.gachaaddiction.util;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -21,6 +22,10 @@ public class LootrUtil {
 
     public static boolean isOpen(MenuProvider provider) {
         return getIiLootrInventory(provider).gachaaddiction$isOpen();
+    }
+
+    public static BlockPos getAnnouncementPosition(MenuProvider provider) {
+        return ((ILootrInventory) provider).getInfo().getInfoPos();
     }
 
     public static void setOpen(MenuProvider provider, boolean isOpen) {

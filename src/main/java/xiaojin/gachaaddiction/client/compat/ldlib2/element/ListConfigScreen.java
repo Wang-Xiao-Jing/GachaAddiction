@@ -3,11 +3,7 @@ package xiaojin.gachaaddiction.client.compat.ldlib2.element;
 import com.lowdragmc.lowdraglib2.gui.ColorPattern;
 import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Dialog;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.UITemplateElement;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.*;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.util.WindowDragHelper;
@@ -18,21 +14,13 @@ import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.client.compat.ldlib2.LDLib2Layouts;
 import xiaojin.gachaaddiction.client.compat.ldlib2.LDLib2Templates;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static xiaojin.gachaaddiction.util.TranslationKeys.GUI_CONFIG_CANCEL;
-import static xiaojin.gachaaddiction.util.TranslationKeys.GUI_CONFIG_CONFIRM;
-import static xiaojin.gachaaddiction.util.TranslationKeys.GUI_CONFIG_LIST_INVALID;
+import static xiaojin.gachaaddiction.util.TranslationKeys.*;
 
 public class ListConfigScreen<V> extends Dialog {
     private static final float WINDOW_SIZE = 150;
@@ -53,12 +41,12 @@ public class ListConfigScreen<V> extends Dialog {
     private ListNode<V> dragCandidate;
 
     public ListConfigScreen(Component title, Collection<? extends V> value,
-                             Supplier<V> newValueSupplier,
-                             Function<V, BasicConfigEntryElement<V>> entryFactory,
-                             Predicate<List<V>> valueValidator,
-                             boolean allowEmpty,
-                             Consumer<List<V>> onValueChanged,
-                             float mouseX, float mouseY) {
+                            Supplier<V> newValueSupplier,
+                            Function<V, BasicConfigEntryElement<V>> entryFactory,
+                            Predicate<List<V>> valueValidator,
+                            boolean allowEmpty,
+                            Consumer<List<V>> onValueChanged,
+                            float mouseX, float mouseY) {
         this.newValueSupplier = Objects.requireNonNull(newValueSupplier);
         this.entryFactory = Objects.requireNonNull(entryFactory);
         this.valueValidator = Objects.requireNonNull(valueValidator);
@@ -140,17 +128,16 @@ public class ListConfigScreen<V> extends Dialog {
                     search.getTextField().setTextResponder(ignored -> updateSearchValue(node, entry, search));
             case FieldConfigEntryElement<?> field ->
                     field.getValueElement().setTextResponder(ignored -> updateFieldValue(node, entry, field));
-            case ListConfigEntryElement<?> list ->
-                    list.setOnValueChanged(ignored -> {
-                        if (list instanceof FilterRuleConfigEntryElement ruleEntry) {
-                            if (ruleEntry.getValue().isEmpty()) {
-                                removeNode(node);
-                                return;
-                            }
-                            ruleEntry.refreshValidationState();
-                        }
-                        updateValue(node, entry);
-                    });
+            case ListConfigEntryElement<?> list -> list.setOnValueChanged(ignored -> {
+                if (list instanceof FilterRuleConfigEntryElement ruleEntry) {
+                    if (ruleEntry.getValue().isEmpty()) {
+                        removeNode(node);
+                        return;
+                    }
+                    ruleEntry.refreshValidationState();
+                }
+                updateValue(node, entry);
+            });
             case SelectorConfigEntryElement<?> selector ->
                     selector.setOnValueChanged(ignored -> updateValue(node, entry));
             case SwitchConfigEntryElement switchElement ->

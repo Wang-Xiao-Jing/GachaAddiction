@@ -1,0 +1,21 @@
+{
+    "card_pool": "gacha_demo:custom_items",
+    "package": "gacha_demo:triple",
+    "source": {
+        "gacha_type": "gachaaddiction:modern_2",
+        "force_watch": false
+    },
+    "item": {
+        "id": "gachaaddiction:wish_totem",
+        "count": 1,
+        "components": {
+            "minecraft:item_name": "星辉抽奖券",
+            "minecraft:custom_model_data": 1
+        }
+    },
+    "preview_items": [
+        "minecraft:diamond",
+        "minecraft:emerald",
+        "minecraft:enchanted_book"
+    ]
+}

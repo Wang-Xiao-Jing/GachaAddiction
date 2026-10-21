@@ -1,8 +1,8 @@
 package xiaojin.gachaaddiction.config.entry;
 
+import com.mojang.logging.LogUtils;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.slf4j.Logger;
-import com.mojang.logging.LogUtils;
 import xiaojin.gachaaddiction.generator.lang.LangHandler;
 
 import java.util.ArrayList;

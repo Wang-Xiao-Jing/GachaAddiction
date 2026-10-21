@@ -14,7 +14,7 @@ public class FtbUtil {
     public static GachaType byId(String loot) {
         GachaType gachaType = GachaTypes.get(ResourceLocation.parse(loot));
         if (gachaType == null) {
-            return GachaTypes.SLOT_MACHINE;
+            return GachaTypes.MODERN;
         }
         return gachaType;
     }

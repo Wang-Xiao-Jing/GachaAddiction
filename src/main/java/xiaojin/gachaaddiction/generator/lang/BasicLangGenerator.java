@@ -15,7 +15,6 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.LanguageProvider;
-import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.mixin.accessor.LanguageProviderAccessor;
 
 import java.io.BufferedReader;

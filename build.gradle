@@ -20,13 +20,14 @@ sourceSets.main.resources {
     exclude("src/generated/**/.cache")
 }
 
+boolean onlyCompile = false // 仅编译
+
 boolean kubejs = true
 boolean ftb = true // FTB系列
-boolean onlyCompile = false // 仅编译
 boolean lootr = true
-boolean raritycore = false
-boolean colortooltips = false
-boolean confluence = false
+boolean raritycore = true
+boolean colortooltips = true
+boolean confluence = true
 boolean clavis = true
 boolean treasurebags = true
 boolean lootbundles = true
@@ -119,6 +120,7 @@ repositories {
             includeGroup "dev.ftb.mods"
         }
     }
+
 }
 
 base {
@@ -137,6 +139,17 @@ neoForge {
     runs {
         client {
             client()
+            programArguments.addAll "--username", "a"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        client1 {
+            client()
+            programArguments.addAll "--username", "b"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        client2 {
+            client()
+            programArguments.addAll "--username", "c"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -227,7 +240,6 @@ dependencies {
         if (lootr) {
             runtimeOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
         }
-
         if (colortooltips) {
             runtimeOnly "maven.modrinth:colortooltips:${colortooltips_version}"
         }

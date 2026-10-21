@@ -30,6 +30,7 @@ public class Datagen {
             addProvider(generator, new BasicLangGenerator(output, GachaAddiction.MODID, LangHandler.ZH_CN));
             addProvider(generator, new BasicLangGenerator(output, GachaAddiction.MODID, LangHandler.EN_US));
             addProvider(generator, new BasicLangGenerator(output, GachaAddiction.MODID, LangHandler.RU_RU));
+            addProvider(generator, new DatagenItemModel(output, GachaAddiction.MODID, existingFileHelper));
         }
 
         if (event.includeServer()) {

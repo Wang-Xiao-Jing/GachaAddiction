@@ -1,0 +1,14 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "gachaaddiction:item/wish_totem"
+    },
+    "overrides": [
+        {
+            "predicate": {
+                "custom_model_data": 1
+            },
+            "model": "gacha_demo:item/olive_ticket"
+        }
+    ]
+}

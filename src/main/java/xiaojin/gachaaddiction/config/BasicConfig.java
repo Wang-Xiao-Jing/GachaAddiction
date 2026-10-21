@@ -53,14 +53,14 @@ public class BasicConfig {
 
     @SuppressWarnings("unused")
     protected StringListConfigEntry defineList(List<? extends String> defaultValue, Predicate<Object> elementValidator,
-                                                String key, String... comment) {
+                                               String key, String... comment) {
         return define(StringListConfigEntry.builder(builder, modId, currentPath), entry -> entry
                 .key(key).comments(comment).defaultValue(defaultValue).elementValidator(elementValidator));
     }
 
     protected FilterListConfigEntry defineFilterList(List<? extends List<String>> defaultValue,
-                                                      Predicate<Object> conditionValidator,
-                                                      String key, String... comment) {
+                                                     Predicate<Object> conditionValidator,
+                                                     String key, String... comment) {
         return define(FilterListConfigEntry.builder(builder, modId, currentPath), entry -> entry
                 .key(key).comments(comment).defaultValue(defaultValue).conditionValidator(conditionValidator));
     }

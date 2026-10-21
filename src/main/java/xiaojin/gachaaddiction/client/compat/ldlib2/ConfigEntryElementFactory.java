@@ -4,30 +4,13 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.TextElement;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
+import com.lowdragmc.lowdraglib2.gui.ui.utils.UIElementProvider;
 import net.minecraft.network.chat.Component;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.BasicConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.DoubleConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.FilterConditionConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.FilterRuleConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.IntConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.ListConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.LongConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.NumberConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.SelectorConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.StringConfigEntryElement;
-import xiaojin.gachaaddiction.client.compat.ldlib2.element.SwitchConfigEntryElement;
+import xiaojin.gachaaddiction.api.GachaSecondaryType;
+import xiaojin.gachaaddiction.cardpool.transaction.GachaDurability;
+import xiaojin.gachaaddiction.client.compat.ldlib2.element.*;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
-import xiaojin.gachaaddiction.config.entry.BasicConfigEntry;
-import xiaojin.gachaaddiction.config.entry.BooleanConfigEntry;
-import xiaojin.gachaaddiction.config.entry.ConfigEntry;
-import xiaojin.gachaaddiction.config.entry.DoubleConfigEntry;
-import xiaojin.gachaaddiction.config.entry.FilterListConfigEntry;
-import xiaojin.gachaaddiction.config.entry.IntConfigEntry;
-import xiaojin.gachaaddiction.config.entry.LongConfigEntry;
-import xiaojin.gachaaddiction.config.entry.RangedNumberConfigEntry;
-import xiaojin.gachaaddiction.config.entry.SelectorConfigEntry;
-import xiaojin.gachaaddiction.config.entry.StringConfigEntry;
-import xiaojin.gachaaddiction.config.entry.StringListConfigEntry;
+import xiaojin.gachaaddiction.config.entry.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +18,7 @@ import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER;
-import static xiaojin.gachaaddiction.util.TranslationKeys.GUI_CONFIG_FILTER_RULE_TITLE;
-import static xiaojin.gachaaddiction.util.TranslationKeys.GUI_CONFIG_UNSUPPORTED;
+import static xiaojin.gachaaddiction.util.TranslationKeys.*;
 
 public final class ConfigEntryElementFactory {
     private ConfigEntryElementFactory() {
@@ -181,11 +163,31 @@ public final class ConfigEntryElementFactory {
 
     private static <V> Runnable bindSelector(SelectorConfigEntryElement<String> element,
                                              SelectorConfigEntry<V> entry) {
+        if (entry.defaultValue() instanceof GachaDurability) {
+            element.getValueElement().setCandidateUIProvider(UIElementProvider.text(value -> durabilityLabel(entry, value)));
+        } else if (entry.defaultValue() instanceof GachaSecondaryType) {
+            element.getValueElement().setCandidateUIProvider(UIElementProvider.text(value ->
+                    Component.translatable(GachaSecondaryType.byName(value).getTranslationKey())));
+        }
         element.setCandidates(entry.allowedValues().stream().map(entry::encode).toList());
         Runnable refresh = () -> element.setValue(entry.encode(entry.get()), false);
         refresh.run();
         element.setOnValueChanged(value -> entry.tryParse(value).ifPresent(next -> update(element, entry, next)));
         return refresh;
+    }
+
+    private static Component durabilityLabel(SelectorConfigEntry<?> entry, String value) {
+        if (value == null) {
+            return Component.empty();
+        }
+        if (entry.tryParse(value).orElse(null) instanceof GachaDurability durability) {
+            return Component.translatable(switch (durability) {
+                case SYNC -> CONFIG_DURABILITY_SYNC;
+                case GROUP_COMMIT -> CONFIG_DURABILITY_GROUP_COMMIT;
+                case ASYNC -> CONFIG_DURABILITY_ASYNC;
+            });
+        }
+        return Component.literal(value);
     }
 
     private static <V> Runnable bindConfigEntry(StringConfigEntryElement element, ConfigEntry<V> entry) {

@@ -12,6 +12,7 @@ import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.mixed.IAbstractMinecartContainer;
 import xiaojin.gachaaddiction.mixed.IMenuProviderLootExtension;
 import xiaojin.gachaaddiction.mixed.IRandomizableContainerBlockEntity;
+import xiaojin.gachaaddiction.registry.GachaSources;
 import xiaojin.gachaaddiction.util.LootrUtil;
 
 import java.util.List;
@@ -30,6 +31,11 @@ public record MenuProviderData(
     }
 
     public static MenuProviderData create(MenuProvider menuProvider) {
+        IGachaSource source = GachaSources.find(menuProvider);
+        return source == null ? inspectLegacy(menuProvider) : source.inspect(menuProvider);
+    }
+
+    public static MenuProviderData inspectLegacy(MenuProvider menuProvider) {
         if (GachaAddiction.LOOTR_LOADED && LootrUtil.isInstanceofILootrInventory(menuProvider)) {
             return new MenuProviderData(LootrUtil.getInfoLootTable(menuProvider),
                     !LootrUtil.isOpen(menuProvider));
@@ -81,6 +87,15 @@ public record MenuProviderData(
     }
 
     public static void open(MenuProvider menuProvider) {
+        IGachaSource source = GachaSources.find(menuProvider);
+        if (source == null) {
+            openLegacy(menuProvider);
+        } else {
+            source.opened(menuProvider);
+        }
+    }
+
+    public static void openLegacy(MenuProvider menuProvider) {
         if (GachaAddiction.LOOTR_LOADED && LootrUtil.isInstanceofILootrInventory(menuProvider)) {
             LootrUtil.setOpen(menuProvider, true);
         }

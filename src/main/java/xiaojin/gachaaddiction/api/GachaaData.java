@@ -26,7 +26,7 @@ public record GachaaData(
 
     public static final StreamCodec<RegistryFriendlyByteBuf, Optional<GachaaData>> OPTIONAL_STREAM_CODEC = ByteBufCodecs.optional(STREAM_CODEC);
 
-    public GachaType getGachaType(){
+    public GachaType getGachaType() {
         if (gachaType.isPresent()) {
             return gachaType.orElse(GachaTypes.EMPTY);
         }

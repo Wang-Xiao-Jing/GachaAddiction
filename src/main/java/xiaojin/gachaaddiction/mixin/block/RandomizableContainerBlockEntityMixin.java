@@ -26,20 +26,18 @@ public abstract class RandomizableContainerBlockEntityMixin extends BaseContaine
     @Shadow
     @Nullable
     protected ResourceKey<LootTable> lootTable;
-
-    @Shadow
-    @Nullable
-    public abstract ResourceKey<LootTable> getLootTable();
-
     @Nullable
     @Unique
     private ResourceKey<LootTable> gachaaddiction$oldLootTable;
     @Unique
     private boolean gachaaddiction$isOpenGachaaUi;
-
     protected RandomizableContainerBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
+
+    @Shadow
+    @Nullable
+    public abstract ResourceKey<LootTable> getLootTable();
 
     @Override
     public boolean gachaaddiction$isOpenGachaaUi() {

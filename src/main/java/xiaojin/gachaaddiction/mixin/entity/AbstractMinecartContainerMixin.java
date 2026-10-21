@@ -23,21 +23,20 @@ import javax.annotation.Nullable;
 public abstract class AbstractMinecartContainerMixin extends AbstractMinecart implements IAbstractMinecartContainer, ContainerEntity {
     @Shadow
     @Nullable
-    public abstract ResourceKey<LootTable> getLootTable();
-
-    @Shadow
-    @Nullable
     private ResourceKey<LootTable> lootTable;
     @Nullable
     @Unique
     private ResourceKey<LootTable> gachaaddiction$oldLootTable;
-
     @Unique
     private boolean gachaaddiction$isOpenGachaaUi;
 
     protected AbstractMinecartContainerMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
     }
+
+    @Shadow
+    @Nullable
+    public abstract ResourceKey<LootTable> getLootTable();
 
     @Override
     public boolean gachaaddiction$isOpenGachaaUi() {

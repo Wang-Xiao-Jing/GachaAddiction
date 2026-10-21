@@ -3,6 +3,13 @@
   "package": "xiaojin.gachaaddiction.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "accessor.CompoundContainerAccessor",
+    "entity.GachaContainerAccessMixin",
+    "block.GachaHopperProtectionMixin",
+    "block.GachaDispenserProtectionMixin",
+    "block.GachaBlockCapabilityMixin",
+    "entity.GachaEntityCapabilityMixin",
+    "entity.GachaItemCapabilityMixin",
     "entity.AbstractContainerMenuMixin",
     "entity.AbstractMinecartContainerMixin",
     "block.ChestBlock_2_1Mixin",
@@ -31,6 +38,8 @@
     "requireAnnotations": true
   },
   "client": [
+    "client.ChestRendererMixin",
+    "client.ChestBlockEntityMixin",
     "client.MinecraftMixin"
   ],
   "mixinextras": {

@@ -1,0 +1,24 @@
+{
+    "targets": [
+        "item",
+        "swap"
+    ],
+    "passes": [
+        {
+            "name": "gachaaddiction:modern",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "auxtargets": [
+                {
+                    "name": "ItemSampler",
+                    "id": "item"
+                }
+            ]
+        },
+        {
+            "name": "minecraft:blit",
+            "intarget": "swap",
+            "outtarget": "minecraft:main"
+        }
+    ]
+}

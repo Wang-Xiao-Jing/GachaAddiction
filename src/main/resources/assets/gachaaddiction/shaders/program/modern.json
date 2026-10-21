@@ -1,0 +1,120 @@
+{
+    "blend": {
+        "func": "add",
+        "srcrgb": "one",
+        "dstrgb": "zero"
+    },
+    "vertex": "minecraft:blit",
+    "fragment": "gachaaddiction:modern",
+    "attributes": [
+        "Position"
+    ],
+    "samplers": [
+        {
+            "name": "DiffuseSampler"
+        },
+        {
+            "name": "ItemSampler"
+        }
+    ],
+    "uniforms": [
+        {
+            "name": "EntranceOpacity",
+            "type": "float",
+            "count": 1,
+            "values": [1]
+        },
+        {
+            "name": "BackdropProgress",
+            "type": "float",
+            "count": 1,
+            "values": [1]
+        },
+        {
+            "name": "RimProgress",
+            "type": "float",
+            "count": 1,
+            "values": [1]
+        },
+        {
+            "name": "BackdropOffset",
+            "type": "float",
+            "count": 1,
+            "values": [
+                0
+            ]
+        },
+        {
+            "name": "ProjMat",
+            "type": "matrix4x4",
+            "count": 16,
+            "values": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ]
+        },
+        {
+            "name": "OutSize",
+            "type": "float",
+            "count": 2,
+            "values": [
+                1,
+                1
+            ]
+        },
+        {
+            "name": "RevealProgress",
+            "type": "float",
+            "count": 1,
+            "values": [
+                0
+            ]
+        },
+        {
+            "name": "EffectTime",
+            "type": "float",
+            "count": 1,
+            "values": [
+                0
+            ]
+        },
+        {
+            "name": "RarityRed",
+            "type": "float",
+            "count": 1,
+            "values": [
+                1
+            ]
+        },
+        {
+            "name": "RarityGreen",
+            "type": "float",
+            "count": 1,
+            "values": [
+                0.33
+            ]
+        },
+        {
+            "name": "RarityBlue",
+            "type": "float",
+            "count": 1,
+            "values": [
+                1
+            ]
+        }
+    ]
+}

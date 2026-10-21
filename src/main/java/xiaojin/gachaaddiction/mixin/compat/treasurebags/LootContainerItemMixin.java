@@ -3,7 +3,6 @@ package xiaojin.gachaaddiction.mixin.compat.treasurebags;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -18,10 +17,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xiaojin.gachaaddiction.registry.GachaTypes;
-import xiaojin.gachaaddiction.network.OpenGachaScreenPayload;
+import xiaojin.gachaaddiction.network.stc.OpenGachaScreenPayload;
+import xiaojin.gachaaddiction.util.GachaAnnouncements;
 import xiaojin.gachaaddiction.util.LootDisplayCache;
 
 import java.util.ArrayList;
@@ -50,6 +48,7 @@ public abstract class LootContainerItemMixin {
         }
 
         ResourceKey<LootTable> lootTable = this.getLootTable(heldItem);
+        GachaAnnouncements.openRewards((ServerPlayer) player, heldItem, itemList.get());
         // TODO 自定义GachaType
         PacketDistributor.sendToPlayer((ServerPlayer) player, new OpenGachaScreenPayload(
                 Optional.empty(),

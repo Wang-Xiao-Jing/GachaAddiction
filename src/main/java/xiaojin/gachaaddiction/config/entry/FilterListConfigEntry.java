@@ -24,18 +24,6 @@ public class FilterListConfigEntry extends BasicConfigEntry<List<List<String>>> 
         return new Builder(specBuilder, modId, currentPath);
     }
 
-    public boolean isConditionValid(String condition) {
-        try {
-            return conditionValidator.test(condition);
-        } catch (RuntimeException ignored) {
-            return false;
-        }
-    }
-
-    public boolean isRuleValid(List<String> rule) {
-        return isRuleValid(rule, conditionValidator);
-    }
-
     private static List<List<String>> decode(List<?> values, Predicate<Object> conditionValidator) {
         List<List<String>> rules = new ArrayList<>();
         for (Object value : values) {
@@ -131,6 +119,18 @@ public class FilterListConfigEntry extends BasicConfigEntry<List<List<String>>> 
         }
         conditions.add(value.substring(conditionStart).strip());
         return List.copyOf(conditions);
+    }
+
+    public boolean isConditionValid(String condition) {
+        try {
+            return conditionValidator.test(condition);
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    public boolean isRuleValid(List<String> rule) {
+        return isRuleValid(rule, conditionValidator);
     }
 
     @SuppressWarnings("UnusedReturnValue")

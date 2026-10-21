@@ -14,6 +14,14 @@ public class DatagenSoundDefinitionsProvider extends SoundDefinitionsProvider {
         super(output, GachaAddiction.MODID, helper);
     }
 
+    public static String getSubtitle(SoundEvent soundEvent) {
+        return getSubtitle(soundEvent.getLocation());
+    }
+
+    public static String getSubtitle(ResourceLocation location) {
+        return "sound." + location.toLanguageKey();
+    }
+
     @Override
     public void registerSounds() {
         add(ModSoundEvents.LEVEL0.get(), 0.5f, 0.5f, 1, 8);
@@ -41,13 +49,5 @@ public class DatagenSoundDefinitionsProvider extends SoundDefinitionsProvider {
                     .attenuationDistance(attenuationDistance));
         }
         add(soundEvent, definition.subtitle(getSubtitle(location)).replace(true));
-    }
-
-    public static String getSubtitle(SoundEvent soundEvent) {
-        return getSubtitle(soundEvent.getLocation());
-    }
-
-    public static String getSubtitle(ResourceLocation location) {
-        return "sound." + location.toLanguageKey();
     }
 }

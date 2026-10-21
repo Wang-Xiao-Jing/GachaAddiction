@@ -25,6 +25,18 @@ public class ListConfigEntry<V> extends BasicConfigEntry<List<V>> {
         this.encode = Objects.requireNonNull(encode);
     }
 
+    private static <V> boolean isElementValid(V value, Predicate<Object> validator, Function<V, String> encode) {
+        if (value == null) {
+            return false;
+        }
+        try {
+            String encoded = encode.apply(value);
+            return encoded != null && validator.test(encoded);
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
     @SuppressWarnings("unused")
     public Predicate<Object> elementValidator() {
         return elementValidator;
@@ -48,18 +60,6 @@ public class ListConfigEntry<V> extends BasicConfigEntry<List<V>> {
             return encode.apply(value);
         } catch (RuntimeException ignored) {
             return null;
-        }
-    }
-
-    private static <V> boolean isElementValid(V value, Predicate<Object> validator, Function<V, String> encode) {
-        if (value == null) {
-            return false;
-        }
-        try {
-            String encoded = encode.apply(value);
-            return encoded != null && validator.test(encoded);
-        } catch (RuntimeException ignored) {
-            return false;
         }
     }
 

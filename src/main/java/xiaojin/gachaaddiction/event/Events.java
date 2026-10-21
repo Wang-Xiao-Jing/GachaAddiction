@@ -1,49 +1,127 @@
 package xiaojin.gachaaddiction.event;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.api.GachaType;
-import xiaojin.gachaaddiction.api.ItemStackEntry;
+import xiaojin.gachaaddiction.cardpool.GachaServerRuntimeManager;
 import xiaojin.gachaaddiction.command.GachaCommand;
-import xiaojin.gachaaddiction.registry.GachaTypes;
-import xiaojin.gachaaddiction.network.OpenGachaScreenPayload;
+import xiaojin.gachaaddiction.data.GachaDefinitionReloadListener;
+import xiaojin.gachaaddiction.data.GachaDefinitionRepository;
+import xiaojin.gachaaddiction.data.GachaRuntimeRegistries;
+import xiaojin.gachaaddiction.item.GachaItemDraws;
+import xiaojin.gachaaddiction.item.GachaDrawItemDefinitions;
+import xiaojin.gachaaddiction.registry.Payloads;
+import xiaojin.gachaaddiction.registry.item.GachaDrawItems;
+import xiaojin.gachaaddiction.util.GachaAnnouncements;
+import xiaojin.gachaaddiction.util.GachaPresentations;
 import xiaojin.gachaaddiction.util.LootDisplayCache;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 @EventBusSubscriber(modid = GachaAddiction.MODID)
 public class Events {
+
+    @SubscribeEvent
+    public static void onAddReloadListeners(AddReloadListenerEvent event) {
+        GachaRuntimeRegistries.registerAndFreeze();
+        event.addListener(new GachaDefinitionReloadListener(event.getRegistryAccess(),
+                GachaRuntimeRegistries.PARAMETER_TYPES, GachaDefinitionRepository.INSTANCE));
+        event.addListener(new GachaDrawItemDefinitions(event.getRegistryAccess()));
+    }
+
+    @SubscribeEvent
+    public static void creativeContents(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES)) {
+            event.accept(GachaDrawItems.SEALED_CHEST);
+            event.accept(GachaDrawItems.GACHA_KEY);
+            event.accept(GachaDrawItems.WHEEL_TICKET);
+            event.accept(GachaDrawItems.SLOT_TOKEN);
+            event.accept(GachaDrawItems.WISH_TOTEM);
+        }
+    }
+
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
         ServerLevel level = event.getServer().overworld();
         LootDisplayCache.reload(level);
+        GachaServerRuntimeManager.start(event.getServer()).exceptionally(failure -> {
+            GachaAddiction.LOGGER.error("Failed to recover gacha transactions", failure);
+            return null;
+        });
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        GachaPresentations.clear();
+        GachaItemDraws.clear();
+        GachaDrawItemDefinitions.clear();
+        GachaAnnouncements.clear();
+        GachaServerRuntimeManager.stop();
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        GachaPresentations.forget(event.getEntity().getUUID());
+        GachaItemDraws.forget(event.getEntity().getUUID());
+        GachaAnnouncements.forget(event.getEntity().getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onContainerClosed(PlayerContainerEvent.Close event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            GachaPresentations.closeMenu(player, event.getContainer().containerId);
+            GachaAnnouncements.closeMenu(player, event.getContainer().containerId);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        GachaServerRuntimeManager.current().ifPresent(runtime -> {
+            try {
+                runtime.reconcilePlayerDeliveries(player);
+            } catch (RuntimeException failure) {
+                GachaAddiction.LOGGER.error("Failed to reconcile gacha reward delivery for player {}",
+                        player.getUUID(), failure);
+            }
+            runtime.recover(context -> context.playerId().equals(player.getUUID())).exceptionally(failure -> {
+                GachaAddiction.LOGGER.error("Failed to recover gacha transactions for player {}",
+                        player.getUUID(), failure);
+                return null;
+            });
+        });
+    }
+
+    @SubscribeEvent
+    public static void onPlayerSaved(PlayerEvent.SaveToFile event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        GachaServerRuntimeManager.current().ifPresent(runtime -> {
+            try {
+                runtime.acknowledgePlayerSave(player);
+            } catch (RuntimeException failure) {
+                GachaAddiction.LOGGER.error("Failed to acknowledge gacha reward delivery for player {}",
+                        player.getUUID(), failure);
+            }
+        });
     }
 
     @SubscribeEvent
@@ -52,9 +130,6 @@ public class Events {
         LootDisplayCache.reload(level);
     }
 
-    @SubscribeEvent
-    public static void onPlayerContainerOpen(PlayerContainerEvent.Open event) {
-    }
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -64,7 +139,29 @@ public class Events {
 
     @SubscribeEvent
     public static void onRegisterPayloadHandlers(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1");
-        registrar.playToClient(OpenGachaScreenPayload.TYPE, OpenGachaScreenPayload.STREAM_CODEC, OpenGachaScreenPayload::handle);
+        Payloads.registrar(event);
+    }
+
+    @SubscribeEvent
+    public static void onPresentationTick(ServerTickEvent.Post event) {
+        GachaPresentations.tick(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void onProtectedBlockBroken(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer player) {
+            var holder = event.getLevel().getBlockEntity(event.getPos());
+            if (holder != null && !GachaPresentations.mayAccess(player, holder)) {
+                event.setCanceled(true);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onProtectedEntityAttacked(AttackEntityEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player
+                && !GachaPresentations.mayAccess(player, event.getTarget())) {
+            event.setCanceled(true);
+        }
     }
 }

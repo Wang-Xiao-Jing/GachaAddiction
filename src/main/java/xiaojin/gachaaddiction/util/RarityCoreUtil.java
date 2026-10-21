@@ -1,5 +1,6 @@
 package xiaojin.gachaaddiction.util;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.yanbwe.raritycore.api.RarityCoreAPI;
 
@@ -11,5 +12,9 @@ public class RarityCoreUtil {
 
     public static int getRarity(ItemStack itemStack) {
         return RarityCoreAPI.getRarity(itemStack);
+    }
+
+    public static Component getName(ItemStack itemStack) {
+        return Component.literal(RarityCoreAPI.getLocalizedTooltip(itemStack));
     }
 }

@@ -49,6 +49,60 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
         return soundEventsFunction;
     }
 
+    private static boolean hasSound(SoundManager soundManager, ResourceLocation v) {
+        return soundManager.getSoundEvent(v) != null;
+    }
+
+    private static SimpleSoundInstance createDefaultSimpleSoundInstance(SoundManager soundManager, JsonObject jsonObject, ProfilerFiller profiler) {
+        if (!jsonObject.has("default")) {
+            return DEFAULT_SIMPLE_SOUND_INSTANCE;
+        }
+        SimpleSoundInstance instance = createSimpleSoundInstance(soundManager, jsonObject.get("default"));
+        if (instance == null) {
+            return DEFAULT_SIMPLE_SOUND_INSTANCE;
+        }
+        return instance;
+    }
+
+    private static SimpleSoundInstance createSimpleSoundInstance(ResourceLocation location, float pitch, float volume) {
+        return new SimpleSoundInstance(location, SoundSource.MASTER, volume, pitch, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true);
+    }
+
+    @Nullable
+    private static SimpleSoundInstance createSimpleSoundInstance(SoundManager soundManager, JsonElement element) {
+        if (!element.isJsonObject()) {
+            ResourceLocation id = ResourceLocation.parse(element.getAsString());
+            if (!hasSound(soundManager, id)) {
+                GachaAddiction.LOGGER.error("未找到id");
+                return null;
+            }
+            return createSimpleSoundInstance(id, 1.0f, 2.0f);
+        }
+        JsonObject object = element.getAsJsonObject();
+        if (!object.has("id")) {
+            GachaAddiction.LOGGER.error("未找到id");
+            return null;
+        }
+
+        ResourceLocation id = ResourceLocation.parse(object.get("id").getAsString());
+        if (!hasSound(soundManager, id)) {
+            GachaAddiction.LOGGER.error("未找到id为 {} 的音效", id);
+            return null;
+        }
+
+        float pitch = 1.0f;
+        if (object.has("pitch")) {
+            pitch = object.get("pitch").getAsFloat();
+        }
+
+        float volume = 2.0f;
+        if (object.has("volume")) {
+            volume = object.get("volume").getAsFloat();
+        }
+
+        return createSimpleSoundInstance(id, pitch, volume);
+    }
+
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler) {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
@@ -126,59 +180,5 @@ public class GachaaAdictionConfigData extends SimpleJsonResourceReloadListener {
 
             return defaultRewardsSounnd;
         };
-    }
-
-    private static boolean hasSound(SoundManager soundManager, ResourceLocation v) {
-        return soundManager.getSoundEvent(v) != null;
-    }
-
-    private static SimpleSoundInstance createDefaultSimpleSoundInstance(SoundManager soundManager, JsonObject jsonObject, ProfilerFiller profiler) {
-        if (!jsonObject.has("default")) {
-            return DEFAULT_SIMPLE_SOUND_INSTANCE;
-        }
-        SimpleSoundInstance instance = createSimpleSoundInstance(soundManager, jsonObject.get("default"));
-        if (instance == null) {
-            return DEFAULT_SIMPLE_SOUND_INSTANCE;
-        }
-        return instance;
-    }
-
-    private static SimpleSoundInstance createSimpleSoundInstance(ResourceLocation location, float pitch, float volume) {
-        return new SimpleSoundInstance(location, SoundSource.MASTER, volume, pitch, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true);
-    }
-
-    @Nullable
-    private static SimpleSoundInstance createSimpleSoundInstance(SoundManager soundManager, JsonElement element) {
-        if (!element.isJsonObject()) {
-            ResourceLocation id = ResourceLocation.parse(element.getAsString());
-            if (!hasSound(soundManager, id)) {
-                GachaAddiction.LOGGER.error("未找到id");
-                return null;
-            }
-            return createSimpleSoundInstance(id, 1.0f, 2.0f);
-        }
-        JsonObject object = element.getAsJsonObject();
-        if (!object.has("id")) {
-            GachaAddiction.LOGGER.error("未找到id");
-            return null;
-        }
-
-        ResourceLocation id = ResourceLocation.parse(object.get("id").getAsString());
-        if (!hasSound(soundManager, id)) {
-            GachaAddiction.LOGGER.error("未找到id为 {} 的音效", id);
-            return null;
-        }
-
-        float pitch = 1.0f;
-        if (object.has("pitch")) {
-            pitch = object.get("pitch").getAsFloat();
-        }
-
-        float volume = 2.0f;
-        if (object.has("volume")) {
-            volume = object.get("volume").getAsFloat();
-        }
-
-        return createSimpleSoundInstance(id, pitch, volume);
     }
 }

@@ -2,17 +2,26 @@ package xiaojin.gachaaddiction.config;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import xiaojin.gachaaddiction.api.GachaType;
+import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import xiaojin.gachaaddiction.api.GachaSecondaryType;
+import xiaojin.gachaaddiction.api.GachaType;
+import xiaojin.gachaaddiction.client.compat.ldlib2.LDLib2GachaUiConstants;
 import xiaojin.gachaaddiction.config.entry.*;
 import xiaojin.gachaaddiction.config.filter.FilterRuleMatcher;
 import xiaojin.gachaaddiction.config.filter.FilterRuleParser;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ClientConfig extends BasicConfig {
+    private static final int DEFAULT_MINIMUM_REWARD_RARITY = Rarity.RARE.ordinal();
+    private static final String MINIMUM_REWARD_RARITY_KEY = "minimum_reward_rarity";
+    private static final String ANNOUNCEMENT_SECTION = "announcement";
+    private static final int DEFAULT_ANNOUNCEMENT_SECONDS = 8;
+    private static final int MAXIMUM_ANNOUNCEMENT_SECONDS = 60;
     private static final String WHITELIST_COMMENT = "Items matched by this list trigger the gacha animation and take priority over the blacklist.";
     private static final String BLACKLIST_COMMENT = "Items matched by this list do not trigger the gacha animation.";
     private static final String COMPOUND_RULE_COMMENT = "Separate compound conditions with ; and compare rarity with <1, =1, >1, <=1, or >=1.";
@@ -23,10 +32,22 @@ public class ClientConfig extends BasicConfig {
     private static final String FTB_QUESTS_GACHA_COMMENT = "Open the gacha screen for FTB Quest rewards even when the quest does not enable it.";
     private static final String DEFAULT_GACHA_TYPE_COMMENT = "Use this type when the gacha screen type is not defined.";
     private static final String PASS_SOUND_OPTIMIZATION_COMMENT = "Only play the passing sound from one reel at a time.";
+    private static final String LDLIB2_TEMPLATE_COMMENT = "LDLib2 is optional. This client resource-pack template is used only by the selected LDLib2 gacha interface.";
+    private static final String LDLIB2_STYLESHEET_COMMENT = "Optional client resource-pack LSS stylesheet for the LDLib2 gacha interface.";
 
     //region 抽奖屏幕
     public final FilterListConfigEntry whitelistFilterList;
     public final FilterListConfigEntry blacklistFilterList;
+    public final IntConfigEntry minimumRewardRarity;
+    public final BooleanConfigEntry protectLoot;
+    public final SelectorConfigEntry<GachaSecondaryType> secondaryType;
+    public final IntConfigEntry choiceCount;
+    public final BooleanConfigEntry automaticAnnouncements;
+    public final BooleanConfigEntry announcementChat;
+    public final BooleanConfigEntry announcementToast;
+    public final BooleanConfigEntry announcementBanner;
+    public final BooleanConfigEntry announcementTooltips;
+    public final IntConfigEntry announcementSeconds;
     /**
      * 合并物品
      */
@@ -55,29 +76,55 @@ public class ClientConfig extends BasicConfig {
      * 老虎机配置
      */
     public final SlotMachineConfig slotMachineConfig;
+    public final StringConfigEntry ldlib2GachaTemplate;
+    public final StringConfigEntry ldlib2GachaStyleSheet;
     //endregion
 
     public ClientConfig(ModConfigSpec.Builder builder) {
         super(builder);
         //region 抽奖屏幕
         push("gachaa_screen");
+        secondaryType = selectorDefine(GachaSecondaryType.NONE, List.of(GachaSecondaryType.values()), "secondary_type",
+                GachaSecondaryType::byName, GachaSecondaryType::getSerializedName);
+        choiceCount = define(GachaSecondaryType.DEFAULT_CHOICES, 2, GachaSecondaryType.MAXIMUM_CHOICES, "choice_count");
+        protectLoot = define(true, "protect_loot", "Request exclusive access to the source while its gacha animation is playing.");
         whitelistFilterList = defineFilterList(new ArrayList<>(), ClientConfig::testCondition, "whitelist_filter_list",
                 WHITELIST_COMMENT, COMPOUND_RULE_COMMENT, TAG_RULE_COMMENT, ITEM_RULE_COMMENT);
         blacklistFilterList = defineFilterList(new ArrayList<>(), ClientConfig::testCondition, "blacklist_filter_list",
                 BLACKLIST_COMMENT, COMPOUND_RULE_COMMENT, TAG_RULE_COMMENT, ITEM_RULE_COMMENT);
+        minimumRewardRarity = define(DEFAULT_MINIMUM_REWARD_RARITY, Rarity.COMMON.ordinal(),
+                Integer.MAX_VALUE, MINIMUM_REWARD_RARITY_KEY);
         mergeItem = define(true, "merge_item");
         raritySorting = define(true, "rarity_sorting", RARITY_SORTING_COMMENT);
         rewardSoundEffects = define(true, "reward_sound_effects");
         rewardSoundEffectsOptimize = define(true, "reward_sound_effects_optimize", REWARD_SOUND_OPTIMIZATION_COMMENT);
         ftbQuestsGachaa = define(true, "ftb_quests_gachaa", FTB_QUESTS_GACHA_COMMENT);
-        defaultGachaaType = selectorDefine(GachaTypes.SLOT_MACHINE,
+        defaultGachaaType = selectorDefine(GachaTypes.MODERN,
                 GachaTypes.getLiat(), "default_gachaas_type",
                 v -> Objects.requireNonNull(GachaTypes.get(ResourceLocation.parse(v))),
                 v -> Objects.requireNonNull(Objects.requireNonNull(v).getId()).toString(),
                 DEFAULT_GACHA_TYPE_COMMENT);
         slotMachineConfig = new SlotMachineConfig(this);
+        push("ldlib2");
+        ldlib2GachaTemplate = register(StringConfigEntry.builder(builder, modId, currentPath)
+                .key("template").comments(LDLIB2_TEMPLATE_COMMENT)
+                .defaultValue(LDLib2GachaUiConstants.DEFAULT_TEMPLATE_ID.toString())
+                .validator(value -> ResourceLocation.tryParse(value) != null).build());
+        ldlib2GachaStyleSheet = register(StringConfigEntry.builder(builder, modId, currentPath)
+                .key("style_sheet").comments(LDLIB2_STYLESHEET_COMMENT)
+                .defaultValue(LDLib2GachaUiConstants.DEFAULT_STYLESHEET_ID.toString())
+                .validator(value -> ResourceLocation.tryParse(value) != null).build());
+        pop();
         pop();
         //endregion
+        push(ANNOUNCEMENT_SECTION);
+        automaticAnnouncements = define(true, "automatic");
+        announcementChat = define(true, "chat");
+        announcementToast = define(false, "toast");
+        announcementBanner = define(false, "banner");
+        announcementTooltips = define(true, "tooltips");
+        announcementSeconds = define(DEFAULT_ANNOUNCEMENT_SECONDS, 1, MAXIMUM_ANNOUNCEMENT_SECONDS, "seconds");
+        pop();
     }
 
     private static boolean testCondition(Object obj) {

@@ -1,0 +1,16 @@
+{
+    "targets": ["background", "swap"],
+    "passes": [
+        {
+            "name": "gachaaddiction:reel_fade",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "auxtargets": [{"name": "BackgroundSampler", "id": "background"}]
+        },
+        {
+            "name": "minecraft:blit",
+            "intarget": "swap",
+            "outtarget": "minecraft:main"
+        }
+    ]
+}
