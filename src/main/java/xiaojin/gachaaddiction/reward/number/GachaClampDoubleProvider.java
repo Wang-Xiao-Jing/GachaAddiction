@@ -2,8 +2,8 @@ package xiaojin.gachaaddiction.reward.number;
 
 import java.util.Objects;
 
-public record GachaClampDoubleProvider(GachaDoubleProvider value, GachaDoubleProvider minimum,
-                                       GachaDoubleProvider maximum) implements GachaDoubleProvider {
+public record GachaClampDoubleProvider(IGachaDoubleProvider value, IGachaDoubleProvider minimum,
+                                       IGachaDoubleProvider maximum) implements IGachaDoubleProvider {
     public GachaClampDoubleProvider {
         Objects.requireNonNull(value, "value");
         Objects.requireNonNull(minimum, "minimum");
@@ -21,7 +21,7 @@ public record GachaClampDoubleProvider(GachaDoubleProvider value, GachaDoublePro
     }
 
     @Override
-    public GachaNumberExpression expression() {
-        return new GachaNumberExpression.Clamp(value.expression(), minimum.expression(), maximum.expression());
+    public IGachaNumberExpression expression() {
+        return new IGachaNumberExpression.Clamp(value.expression(), minimum.expression(), maximum.expression());
     }
 }

@@ -10,7 +10,7 @@ import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.client.compat.ldlib2.element.LDLib2GachaPreviewElement;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.registry.GachaTypes;
@@ -92,7 +92,7 @@ public class LDLib2ConfigPreviewWindow extends Dialog {
                     addChild(root);
                     return;
                 } catch (RuntimeException failure) {
-                    GachaAddiction.LOGGER.warn(LDLib2GachaUiConstants.FALLBACK_LOG, failure);
+                    GachaConstants.LOGGER.warn(LDLib2GachaUiConstants.FALLBACK_LOG, failure);
                 }
             }
             addChild(preview);

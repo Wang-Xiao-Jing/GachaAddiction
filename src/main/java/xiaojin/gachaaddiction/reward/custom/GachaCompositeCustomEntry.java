@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record GachaCompositeCustomEntry(ResourceLocation id, GachaCompositeEntryMode mode,
-                                        List<GachaCustomEntry> children) implements GachaCustomEntry {
+                                        List<IGachaCustomEntry> children) implements IGachaCustomEntry {
     public GachaCompositeCustomEntry {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(mode, "mode");
@@ -21,7 +21,7 @@ public record GachaCompositeCustomEntry(ResourceLocation id, GachaCompositeEntry
     @Override
     public List<GachaLogicalReward> generate(GachaCustomEntryContext context) {
         List<GachaLogicalReward> rewards = new ArrayList<>();
-        for (GachaCustomEntry child : children) {
+        for (IGachaCustomEntry child : children) {
             List<GachaLogicalReward> generated = child.generate(context.enterEntry(child.id()));
             rewards.addAll(generated);
             if (mode == GachaCompositeEntryMode.ALTERNATIVES && !generated.isEmpty()) {

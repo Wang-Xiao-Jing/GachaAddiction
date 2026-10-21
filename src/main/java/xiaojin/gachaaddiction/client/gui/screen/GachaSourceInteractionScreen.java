@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
 import xiaojin.gachaaddiction.api.GachaType;
@@ -29,7 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-public class GachaSourceInteractionScreen extends ModernGachaScreen {
+public class GachaSourceInteractionScreen extends GachaSummaryScreen {
     private static final long FOCUS_MILLIS = 240;
     private static final long FALL_MILLIS = 350;
     private static final long REFLOW_MILLIS = 300;
@@ -383,7 +384,7 @@ public class GachaSourceInteractionScreen extends ModernGachaScreen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     private void renderBackdrop(GuiGraphics graphics) {
@@ -393,7 +394,7 @@ public class GachaSourceInteractionScreen extends ModernGachaScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         tickPresentation();
         renderBackdrop(graphics);
         renderSourceTitle(graphics);
@@ -698,7 +699,7 @@ public class GachaSourceInteractionScreen extends ModernGachaScreen {
         }
     }
 
-    private class RoundView extends ModernGachaScreen {
+    private class RoundView extends GachaSummaryScreen {
         private boolean ready;
 
         private RoundView(List<ItemStack> items) {
@@ -731,7 +732,7 @@ public class GachaSourceInteractionScreen extends ModernGachaScreen {
         }
 
         @Override
-        public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             renderSummaryItems(graphics, mouseX, mouseY, partialTick);
         }
 

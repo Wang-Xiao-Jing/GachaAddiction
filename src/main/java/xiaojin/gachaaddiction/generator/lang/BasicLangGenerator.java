@@ -16,6 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import xiaojin.gachaaddiction.mixin.accessor.LanguageProviderAccessor;
+import xiaojin.gachaaddiction.registry.language.GachaTranslations;
 
 import java.io.BufferedReader;
 import java.nio.file.Files;
@@ -26,18 +27,18 @@ import java.util.function.Supplier;
 
 public class BasicLangGenerator extends LanguageProvider {
     protected final String modId;
-    protected final LangHandler.LangSet langSet;
+    protected final GachaTranslations.LangSet langSet;
 
     public BasicLangGenerator(PackOutput output, String modId, String locale) {
         super(output, modId, locale);
         this.modId = modId;
-        this.langSet = LangHandler.getLang(modId, locale);
+        this.langSet = GachaTranslations.getLang(modId, locale);
     }
 
     @Override
     public void addTranslations() {
         mergeManualEntries();
-        LangHandler.LangSet lang = getLangSet();
+        GachaTranslations.LangSet lang = getLangSet();
         lang.map.forEach(this::add);
         addMobEffectMap(lang.mobEffects);
         addAttributeMap(lang.attributes);
@@ -48,7 +49,7 @@ public class BasicLangGenerator extends LanguageProvider {
         addTagKeyMap(lang.tagKeys);
     }
 
-    public LangHandler.LangSet getLangSet() {
+    public GachaTranslations.LangSet getLangSet() {
         return langSet;
     }
 

@@ -71,9 +71,9 @@ public final class GachaRuleActionJson {
         return json.getAsJsonObject();
     }
 
-    public List<GachaRuleAction> array(ResourceLocation owner, JsonArray actions,
-                                       GachaParameterSchema schema, String location) {
-        List<GachaRuleAction> decoded = new ArrayList<>();
+    public List<IGachaRuleAction> array(ResourceLocation owner, JsonArray actions,
+                                        GachaParameterSchema schema, String location) {
+        List<IGachaRuleAction> decoded = new ArrayList<>();
         for (int index = 0; index < actions.size(); index++) {
             decoded.add(action(owner, requireObject(actions.get(index), location + "[" + index + "]"), schema,
                     location + "[" + index + "]"));
@@ -81,8 +81,8 @@ public final class GachaRuleActionJson {
         return List.copyOf(decoded);
     }
 
-    public GachaRuleAction action(ResourceLocation owner, JsonObject json,
-                                  GachaParameterSchema schema, String location) {
+    public IGachaRuleAction action(ResourceLocation owner, JsonObject json,
+                                   GachaParameterSchema schema, String location) {
         String type = GachaJson.string(json, "type", location);
         return switch (type) {
             case "remove" -> {
@@ -109,14 +109,14 @@ public final class GachaRuleActionJson {
         };
     }
 
-    private GachaRuleAction appendItem(JsonObject json, String location) {
+    private IGachaRuleAction appendItem(JsonObject json, String location) {
         GachaJson.requireOnly(json, Set.of("type", "id", "item", "stack", "quantity"), location);
         return new GachaAppendItemAction(ResourceLocation.parse(GachaJson.string(json, "id", location)),
                 stack(json, location), GachaNumberProviderJson.longProvider(json.get("quantity"),
                 location + ".quantity"));
     }
 
-    private GachaRuleAction vanillaFunction(JsonObject json, String location) {
+    private IGachaRuleAction vanillaFunction(JsonObject json, String location) {
         GachaJson.requireOnly(json, Set.of("type", "id", "value"), location);
         LootItemFunction function = LootItemFunctions.ROOT_CODEC.parse(ops, json.get("value"))
                 .getOrThrow(JsonParseException::new);
@@ -124,7 +124,7 @@ public final class GachaRuleActionJson {
                 ResourceLocation.parse(GachaJson.string(json, "id", location)), function);
     }
 
-    private GachaRuleAction quantity(JsonObject json, String location) {
+    private IGachaRuleAction quantity(JsonObject json, String location) {
         GachaJson.requireOnly(json, Set.of("type", "operations"), location);
         return new GachaQuantityRuleAction(quantityPipeline(
                 GachaJson.array(json, "operations", location), location + ".operations"));
@@ -132,7 +132,7 @@ public final class GachaRuleActionJson {
 
     public GachaQuantityPipeline quantityPipeline(JsonArray encodedOperations, String location) {
         JsonArray expandedOperations = sharedDefinitions.expandQuantityEntries(encodedOperations, location);
-        List<GachaQuantityOperation> decodedOperations = new ArrayList<>();
+        List<IGachaQuantityOperation> decodedOperations = new ArrayList<>();
         for (int index = 0; index < expandedOperations.size(); index++) {
             String operationLocation = location + "[" + index + "]";
             JsonObject operation = requireObject(expandedOperations.get(index), operationLocation);
@@ -141,7 +141,7 @@ public final class GachaRuleActionJson {
         return new GachaQuantityPipeline(decodedOperations);
     }
 
-    private GachaQuantityOperation quantityOperation(JsonObject json, String location) {
+    private IGachaQuantityOperation quantityOperation(JsonObject json, String location) {
         String type = GachaJson.string(json, "type", location);
         boolean stop = GachaJson.bool(json, "stop", false);
         return switch (type) {
@@ -191,8 +191,8 @@ public final class GachaRuleActionJson {
         };
     }
 
-    private GachaRuleAction pity(ResourceLocation owner, JsonObject json,
-                                 GachaParameterSchema schema, String location) {
+    private IGachaRuleAction pity(ResourceLocation owner, JsonObject json,
+                                  GachaParameterSchema schema, String location) {
         GachaJson.requireOnly(json, Set.of("type", "miss_counter", "hard_pity_draw", "hit_condition",
                 "hard_action", "outputs"), location);
         JsonObject outputs = GachaJson.object(json, "outputs", location);

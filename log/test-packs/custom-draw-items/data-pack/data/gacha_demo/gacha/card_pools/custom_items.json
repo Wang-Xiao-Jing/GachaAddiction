@@ -1,20 +1,23 @@
 {
     "format_version": 1,
-    "reward_pool": "gacha_demo:custom_items",
-    "parameter_bindings": [],
+    "execution_plan": "gacha_demo:custom_items",
+    "parameter_bindings": [
+        {
+            "parameter": "rounds",
+            "source": "CONSTANT",
+            "override_policy": "PACKAGE_VALUE",
+            "value": 1
+        }
+    ],
     "packages": [
         {
             "id": "gacha_demo:single",
-            "rounds": 1,
-            "parameters": {},
-            "consumption": [],
+            "parameters": {"rounds": 1},
             "minimum_durability": "SYNC"
         },
         {
             "id": "gacha_demo:triple",
-            "rounds": 3,
-            "parameters": {},
-            "consumption": [],
+            "parameters": {"rounds": 3},
             "minimum_durability": "SYNC"
         }
     ],

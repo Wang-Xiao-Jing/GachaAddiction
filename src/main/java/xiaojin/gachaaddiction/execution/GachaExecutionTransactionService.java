@@ -22,7 +22,7 @@ public final class GachaExecutionTransactionService {
                                                               GachaExecutionRequest request,
                                                               CompoundTag sourceData,
                                                               GachaDurability durability,
-                                                              GachaTransactionEffects effects) {
+                                                              IGachaTransactionEffects effects) {
         Objects.requireNonNull(playerId, "playerId");
         Objects.requireNonNull(planId, "planId");
         Objects.requireNonNull(request, "request");

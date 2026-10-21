@@ -12,16 +12,16 @@ import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 public final class GachaTransactionCoordinator {
-    private final GachaTransactionJournal journal;
-    private final GachaConsumptionHandlerResolver handlerResolver;
-    private final GachaTransactionPayloadEncoder payloadEncoder;
-    private final GachaTransactionParticipant participant;
+    private final IGachaTransactionJournal journal;
+    private final IGachaConsumptionHandlerResolver handlerResolver;
+    private final IGachaTransactionPayloadEncoder payloadEncoder;
+    private final IGachaTransactionParticipant participant;
     private final Executor mainThreadExecutor;
 
-    public GachaTransactionCoordinator(GachaTransactionJournal journal,
-                                       GachaConsumptionHandlerResolver handlerResolver,
-                                       GachaTransactionPayloadEncoder payloadEncoder,
-                                       GachaTransactionParticipant participant,
+    public GachaTransactionCoordinator(IGachaTransactionJournal journal,
+                                       IGachaConsumptionHandlerResolver handlerResolver,
+                                       IGachaTransactionPayloadEncoder payloadEncoder,
+                                       IGachaTransactionParticipant participant,
                                        Executor mainThreadExecutor) {
         this.journal = Objects.requireNonNull(journal, "journal");
         this.handlerResolver = Objects.requireNonNull(handlerResolver, "handlerResolver");
@@ -34,7 +34,7 @@ public final class GachaTransactionCoordinator {
                                                               List<GachaConsumptionSpec> consumption,
                                                               GachaDurability durability,
                                                               Supplier<GachaTransactionResult> draw,
-                                                              GachaTransactionEffects effects) {
+                                                              IGachaTransactionEffects effects) {
         Objects.requireNonNull(context, "context");
         Objects.requireNonNull(consumption, "consumption");
         Objects.requireNonNull(durability, "durability");
@@ -76,7 +76,7 @@ public final class GachaTransactionCoordinator {
                                                          List<GachaConsumptionSpec> consumption) {
         List<ResolvedConsumption> resolved = new ArrayList<>();
         for (GachaConsumptionSpec specification : consumption) {
-            GachaConsumptionHandler handler = handlerResolver.resolve(specification.type())
+            IGachaConsumptionHandler handler = handlerResolver.resolve(specification.type())
                     .orElseThrow(() -> new IllegalArgumentException("Unknown consumption handler: "
                             + specification.type()));
             handler.validate(context, specification);
@@ -115,7 +115,7 @@ public final class GachaTransactionCoordinator {
     private CompletionStage<GachaCommittedTransaction> commitRecord(GachaTransactionContext context,
                                                                     GachaDurability durability,
                                                                     TransactionWork work,
-                                                                    GachaTransactionEffects effects) {
+                                                                    IGachaTransactionEffects effects) {
         CompoundTag payload = payloadEncoder.rewardComputed(context, work.result, work.reservations);
         return journal.append(context.transactionId(), GachaTransactionStage.COMMITTED, payload, durability)
                 .thenApply(sequence -> {
@@ -169,16 +169,16 @@ public final class GachaTransactionCoordinator {
         }
     }
 
-    private GachaConsumptionHandler resolveHandler(GachaConsumptionReservation reservation) {
+    private IGachaConsumptionHandler resolveHandler(GachaConsumptionReservation reservation) {
         return handlerResolver.resolve(reservation.handlerType())
                 .orElseThrow(() -> new IllegalStateException("Missing consumption handler during commit: "
                         + reservation.handlerType()));
     }
 
-    private record ResolvedConsumption(GachaConsumptionHandler handler, GachaConsumptionSpec specification) {
+    private record ResolvedConsumption(IGachaConsumptionHandler handler, GachaConsumptionSpec specification) {
     }
 
-    private record ResolvedReservation(GachaConsumptionHandler handler,
+    private record ResolvedReservation(IGachaConsumptionHandler handler,
                                        GachaConsumptionReservation reservation) {
     }
 

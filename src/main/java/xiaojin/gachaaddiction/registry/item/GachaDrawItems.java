@@ -2,12 +2,12 @@ package xiaojin.gachaaddiction.registry.item;
 
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.item.GachaDrawItem;
+import xiaojin.gachaaddiction.GachaConstants;
+import xiaojin.gachaaddiction.world.item.GachaDrawItem;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 
 public class GachaDrawItems {
-    public static final DeferredRegister.Items REGISTRY = DeferredRegister.createItems(GachaAddiction.MODID);
+    public static final DeferredRegister.Items REGISTRY = DeferredRegister.createItems(GachaConstants.MODID);
 
     public static final DeferredItem<GachaDrawItem> SEALED_CHEST = REGISTRY.registerItem("sealed_chest",
             properties -> new GachaDrawItem(properties, GachaTypes.CHEST));

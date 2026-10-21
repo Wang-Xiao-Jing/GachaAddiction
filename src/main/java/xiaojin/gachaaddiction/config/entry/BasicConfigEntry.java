@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.config.entry;
 import com.mojang.logging.LogUtils;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.slf4j.Logger;
-import xiaojin.gachaaddiction.generator.lang.LangHandler;
+import xiaojin.gachaaddiction.registry.language.GachaTranslations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -135,7 +135,7 @@ public class BasicConfigEntry<T> {
 
         protected String translationKey() {
             validateBaseDefinition();
-            return LangHandler.getConfigTranslation(modId, path().toArray(String[]::new));
+            return GachaTranslations.getConfigTranslation(modId, path().toArray(String[]::new));
         }
 
         protected ModConfigSpec.Builder prepareDefinition() {

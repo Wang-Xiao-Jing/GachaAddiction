@@ -14,7 +14,7 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.network.IContainerFactory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import xiaojin.gachaaddiction.api.GachaaData;
+import xiaojin.gachaaddiction.api.GachaData;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 
 import java.util.Optional;
@@ -27,7 +27,7 @@ public abstract class MenuTypeMixin<T extends AbstractContainerMenu> implements 
     private T gachaaddiction$hookNeoForgeFactory$create(IContainerFactory<?> factory, int containerId, Inventory inventory, RegistryFriendlyByteBuf buf, Operation<T> original,
                                                         @Share("processed") LocalBooleanRef processed) {
         processed.set(true);
-        Optional<GachaaData> gachaaData = GachaaData.OPTIONAL_STREAM_CODEC.decode(buf);
+        Optional<GachaData> gachaaData = GachaData.OPTIONAL_STREAM_CODEC.decode(buf);
         T menu = original.call(factory, containerId, inventory, buf);
         gachaaData.ifPresent(gachaaData1 -> IAbstractContainerMenu.of(menu).gachaaddiction$setGachaaData(gachaaData1));
         return menu;
@@ -42,7 +42,7 @@ public abstract class MenuTypeMixin<T extends AbstractContainerMenu> implements 
             return original.call(instance, containerId, playerInventory);
         }
         processed.set(true);
-        Optional<GachaaData> gachaaData = GachaaData.OPTIONAL_STREAM_CODEC.decode(buf);
+        Optional<GachaData> gachaaData = GachaData.OPTIONAL_STREAM_CODEC.decode(buf);
         T menu = original.call(instance, containerId, playerInventory);
         gachaaData.ifPresent(gachaaData1 -> IAbstractContainerMenu.of(menu).gachaaddiction$setGachaaData(gachaaData1));
         return menu;

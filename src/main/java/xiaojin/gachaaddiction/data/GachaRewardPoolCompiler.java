@@ -8,9 +8,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.reward.GachaHybridRewardPool;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
-import xiaojin.gachaaddiction.reward.custom.GachaCustomTableResolver;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.IGachaRewardPool;
+import xiaojin.gachaaddiction.reward.custom.IGachaCustomTableResolver;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterDefinition;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSchema;
 import xiaojin.gachaaddiction.reward.quantity.GachaExecutionLimits;
@@ -28,13 +28,13 @@ public final class GachaRewardPoolCompiler {
             "max_custom_table_depth", "max_custom_entry_visits");
 
     private final GachaParameterDefinitionJson parameters;
-    private final GachaCustomTableResolver customTables;
-    private final GachaRuleDefinitionCompiler rules;
+    private final IGachaCustomTableResolver customTables;
+    private final IGachaRuleDefinitionCompiler rules;
     private final GachaSharedDefinitionExpander sharedDefinitions;
 
     public GachaRewardPoolCompiler(GachaParameterDefinitionJson parameters,
-                                   GachaCustomTableResolver customTables,
-                                   GachaRuleDefinitionCompiler rules,
+                                   IGachaCustomTableResolver customTables,
+                                   IGachaRuleDefinitionCompiler rules,
                                    GachaSharedDefinitionExpander sharedDefinitions) {
         this.parameters = Objects.requireNonNull(parameters, "parameters");
         this.customTables = Objects.requireNonNull(customTables, "customTables");
@@ -64,20 +64,20 @@ public final class GachaRewardPoolCompiler {
         return json.has(field) ? GachaJson.array(json, field, location) : new JsonArray();
     }
 
-    public Map<ResourceLocation, GachaRewardPool> compile(Map<ResourceLocation, GachaRawDefinition> definitions) {
-        Map<ResourceLocation, GachaRewardPool> compiled = new LinkedHashMap<>();
+    public Map<ResourceLocation, IGachaRewardPool> compile(Map<ResourceLocation, GachaRawDefinition> definitions) {
+        Map<ResourceLocation, IGachaRewardPool> compiled = new LinkedHashMap<>();
         definitions.forEach((id, definition) -> compiled.put(id, compilePool(id, definition.data())));
         return Map.copyOf(compiled);
     }
 
-    private GachaRewardPool compilePool(ResourceLocation id, JsonObject json) {
+    private IGachaRewardPool compilePool(ResourceLocation id, JsonObject json) {
         String location = "reward pool " + id;
         GachaJson.requireOnly(json, ROOT_FIELDS, location);
         GachaParameterSchema schema = compileParameters(id, GachaJson.array(json, "parameters", location), location);
         JsonArray encodedSources = sharedDefinitions.sources(optionalArray(json, "sources", location),
                 optionalArray(json, "source_groups", location), location + ".source_groups");
         List<GachaWeightedSource> sources = compileSources(encodedSources, location);
-        GachaLongProvider sourceCount = GachaNumberProviderJson.longProvider(json.get("source_count"),
+        IGachaLongProvider sourceCount = GachaNumberProviderJson.longProvider(json.get("source_count"),
                 location + ".source_count");
         GachaExecutionLimits limits = compileLimits(GachaJson.object(json, "limits", location), location + ".limits");
         JsonArray encodedRules = sharedDefinitions.rules(optionalArray(json, "rules", location),
@@ -113,7 +113,7 @@ public final class GachaRewardPoolCompiler {
             GachaJson.requireOnly(source, SOURCE_FIELDS, sourceLocation);
             ResourceLocation sourceId = ResourceLocation.parse(GachaJson.string(source, "id", sourceLocation));
             ResourceLocation table = ResourceLocation.parse(GachaJson.string(source, "table", sourceLocation));
-            GachaRewardSource compiledSource = switch (GachaJson.string(source, "type", sourceLocation)) {
+            IGachaRewardSource compiledSource = switch (GachaJson.string(source, "type", sourceLocation)) {
                 case "vanilla_loot_table" -> new GachaVanillaLootTableSource(sourceId,
                         ResourceKey.create(Registries.LOOT_TABLE, table));
                 case "custom_table" -> {

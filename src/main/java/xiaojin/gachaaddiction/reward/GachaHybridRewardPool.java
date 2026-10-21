@@ -3,12 +3,12 @@ package xiaojin.gachaaddiction.reward;
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.reward.model.GachaResultEditor;
 import xiaojin.gachaaddiction.reward.model.GachaRewardFactory;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSchema;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
-import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescribable;
+import xiaojin.gachaaddiction.reward.probability.IGachaProbabilityDescribable;
 import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescription;
 import xiaojin.gachaaddiction.reward.probability.GachaProbabilitySelectionMode;
 import xiaojin.gachaaddiction.reward.quantity.GachaExecutionLimits;
@@ -19,11 +19,11 @@ import xiaojin.gachaaddiction.reward.source.*;
 
 import java.util.*;
 
-public final class GachaHybridRewardPool implements GachaRewardPool, GachaProbabilityDescribable {
+public final class GachaHybridRewardPool implements IGachaRewardPool, IGachaProbabilityDescribable {
     private final ResourceLocation id;
     private final List<GachaWeightedSource> sources;
     private final GachaSourceSelectionStrategy selectionStrategy;
-    private final GachaLongProvider selectionCount;
+    private final IGachaLongProvider selectionCount;
     private final GachaExecutionLimits executionLimits;
     private final GachaParameterSchema parameterSchema;
     private final GachaRulePipeline rulePipeline;
@@ -31,7 +31,7 @@ public final class GachaHybridRewardPool implements GachaRewardPool, GachaProbab
 
     public GachaHybridRewardPool(ResourceLocation id, List<GachaWeightedSource> sources,
                                  GachaSourceSelectionStrategy selectionStrategy,
-                                 GachaLongProvider selectionCount, GachaExecutionLimits executionLimits,
+                                 IGachaLongProvider selectionCount, GachaExecutionLimits executionLimits,
                                  GachaParameterSchema parameterSchema, List<GachaRuleDefinition> rules) {
         this.id = Objects.requireNonNull(id, "id");
         this.sources = List.copyOf(sources);
@@ -110,13 +110,13 @@ public final class GachaHybridRewardPool implements GachaRewardPool, GachaProbab
             GachaNumberContext numberContext = new GachaNumberContext(normalizedInputs,
                     parameters.currentValues(), request.random());
             int count = Math.toIntExact(selectionCount.get(numberContext));
-            List<GachaRewardSource> selectedSources = GachaSourceSelector.select(sources, selectionStrategy, count,
+            List<IGachaRewardSource> selectedSources = GachaSourceSelector.select(sources, selectionStrategy, count,
                     numberContext);
             sourceSelections = Math.addExact(sourceSelections, selectedSources.size());
             if (sourceSelections > executionLimits.maxSourceSelections()) {
                 throw new IllegalArgumentException("Source selection count exceeds execution limit");
             }
-            for (GachaRewardSource source : selectedSources) {
+            for (IGachaRewardSource source : selectedSources) {
                 GachaResultEditor sourceResults = new GachaResultEditor(List.of());
                 GachaRuleContext sourceContext = new GachaRuleContext(executionRequest, OptionalInt.of(round),
                         Optional.of(source.id()), OptionalInt.empty());

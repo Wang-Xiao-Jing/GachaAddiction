@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xiaojin.gachaaddiction.util.GachaLockedItemHandler;
+import xiaojin.gachaaddiction.presentation.lock.GachaLockedItemHandler;
 
 @Mixin(value = BlockCapability.class, remap = false)
 public abstract class GachaBlockCapabilityMixin {

@@ -1,11 +1,11 @@
 package xiaojin.gachaaddiction.client.compat.ldlib2;
 
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 
 public class LDLib2AdminUiConstants {
     public static final ResourceLocation WINDOW_ID = ResourceLocation.fromNamespaceAndPath(
-            GachaAddiction.MODID, "admin_editor");
+            GachaConstants.MODID, "admin_editor");
     public static final String LDLIB2_TITLE_SUFFIX = " (LDLib2)";
     public static final String LINE_SEPARATOR = "\n";
     public static final String CHANGED_MARKER = " *";

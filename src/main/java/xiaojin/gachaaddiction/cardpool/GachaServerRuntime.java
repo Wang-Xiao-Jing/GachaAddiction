@@ -4,9 +4,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInbox;
+import xiaojin.gachaaddiction.cardpool.delivery.IGachaRewardInbox;
+import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInboxClaim;
+import xiaojin.gachaaddiction.cardpool.delivery.GachaPendingRewardDrops;
+import net.minecraft.world.entity.item.ItemEntity;
 import xiaojin.gachaaddiction.cardpool.parameter.GachaCardPoolParameterResolver;
-import xiaojin.gachaaddiction.cardpool.parameter.GachaParameterStateRepository;
+import xiaojin.gachaaddiction.cardpool.parameter.IGachaParameterStateRepository;
 import xiaojin.gachaaddiction.cardpool.transaction.*;
 import xiaojin.gachaaddiction.data.GachaDefinitionRepository;
 import xiaojin.gachaaddiction.persistence.*;
@@ -16,8 +19,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
@@ -32,19 +35,20 @@ public final class GachaServerRuntime implements AutoCloseable {
     private final GachaTransactionRecovery recovery;
     private final GachaCardPoolService cardPoolService;
     private final GachaDurability recoveryDurability;
-    private final GachaRewardInbox rewardInbox;
+    private final IGachaRewardInbox rewardInbox;
     private final GachaRewardDeliveryServices rewardDeliveryServices;
-    private final GachaCardPoolSnapshotManager snapshots;
-    private final GachaParameterStateRepository parameterState;
+    private final IGachaCardPoolSnapshotManager snapshots;
+    private final IGachaParameterStateRepository parameterState;
     private final GachaPendingDrawService pendingDraws;
-    private CompletionStage<Void> recoveryTail = CompletableFuture.completedFuture(null);
+    private final Executor mainThreadExecutor;
+    private final GachaTransactionQueue transactionQueue;
 
     private GachaServerRuntime(GachaFileTransactionJournal journal, GachaTransactionRecovery recovery,
                                GachaCardPoolService cardPoolService, GachaDurability recoveryDurability,
-                               GachaRewardInbox rewardInbox, GachaRewardDeliveryServices rewardDeliveryServices,
-                               GachaCardPoolSnapshotManager snapshots,
-                               GachaParameterStateRepository parameterState,
-                               GachaPendingDrawService pendingDraws) {
+                               IGachaRewardInbox rewardInbox, GachaRewardDeliveryServices rewardDeliveryServices,
+                               IGachaCardPoolSnapshotManager snapshots,
+                               IGachaParameterStateRepository parameterState,
+                               GachaPendingDrawService pendingDraws, GachaTransactionQueue transactionQueue) {
         this.journal = journal;
         this.recovery = recovery;
         this.cardPoolService = cardPoolService;
@@ -54,13 +58,15 @@ public final class GachaServerRuntime implements AutoCloseable {
         this.snapshots = snapshots;
         this.parameterState = parameterState;
         this.pendingDraws = pendingDraws;
+        this.mainThreadExecutor = transactionQueue;
+        this.transactionQueue = transactionQueue;
     }
 
     public static GachaServerRuntime open(Path storageDirectory, HolderLookup.Provider registries,
                                           MinecraftServer server,
                                           GachaParameterTypeRegistry parameterTypes,
-                                          GachaConsumptionHandlerResolver consumptionHandlers,
-                                          GachaRewardDeliveryHandlerResolver rewardDeliveryHandlers,
+                                          IGachaConsumptionHandlerResolver consumptionHandlers,
+                                          IGachaRewardDeliveryHandlerResolver rewardDeliveryHandlers,
                                           GachaDefinitionRepository definitions,
                                           Executor mainThreadExecutor,
                                           GachaRuntimeSettings settings) throws IOException {
@@ -81,14 +87,15 @@ public final class GachaServerRuntime implements AutoCloseable {
         GachaFileTransactionJournal journal = new GachaFileTransactionJournal(
                 normalizedStorage.resolve(WAL_FILE_NAME), settings.maximumWalPayloadBytes(),
                 settings.groupCommitDelay());
+        GachaTransactionQueue transactionQueue = new GachaTransactionQueue(mainThreadExecutor);
         try {
-            GachaRewardInbox rewardInbox = new GachaFileRewardInbox(
+            IGachaRewardInbox rewardInbox = new GachaFileRewardInbox(
                     normalizedStorage.resolve(INBOX_DIRECTORY_NAME), settings.maximumInboxEntryBytes(), registries);
             GachaFileRewardDeliveryLedger deliveryLedger = new GachaFileRewardDeliveryLedger(
                     normalizedStorage.resolve(DELIVERY_LEDGER_DIRECTORY_NAME),
                     settings.maximumInboxEntryBytes(), registries);
             GachaSha256ParameterFingerprint fingerprint = new GachaSha256ParameterFingerprint(registries);
-            GachaParameterStateRepository parameterState = new GachaFileParameterStateRepository(
+            IGachaParameterStateRepository parameterState = new GachaFileParameterStateRepository(
                     normalizedStorage.resolve(PARAMETER_STATE_FILE_NAME), settings.maximumParameterStateBytes(),
                     fingerprint, parameterTypes, registries);
             GachaPendingDrawService pendingDraws = new GachaPendingDrawService(
@@ -104,15 +111,16 @@ public final class GachaServerRuntime implements AutoCloseable {
             GachaTransactionNbtPayloadEncoder payloadEncoder =
                     new GachaTransactionNbtPayloadEncoder(registries, transactionSchemas);
             GachaTransactionCoordinator coordinator = new GachaTransactionCoordinator(journal, consumptionHandlers,
-                    payloadEncoder, participant, mainThreadExecutor);
+                    payloadEncoder, participant, transactionQueue);
             GachaTransactionRecovery recovery = new GachaTransactionRecovery(journal, consumptionHandlers,
                     new GachaTransactionNbtPayloadDecoder(registries, transactionSchemas), participant, effects,
-                    mainThreadExecutor);
+                    transactionQueue);
             GachaCardPoolService service = new GachaCardPoolService(definitions, definitions, snapshots,
                     new GachaCardPoolParameterResolver(), parameterState, fingerprint, coordinator, effects);
             return new GachaServerRuntime(journal, recovery, service, settings.recoveryDurability(), rewardInbox,
-                    rewardDeliveryServices, snapshots, parameterState, pendingDraws);
+                    rewardDeliveryServices, snapshots, parameterState, pendingDraws, transactionQueue);
         } catch (IOException | RuntimeException | Error failure) {
+            transactionQueue.close();
             journal.close();
             throw failure;
         }
@@ -127,13 +135,7 @@ public final class GachaServerRuntime implements AutoCloseable {
     }
 
     private CompletionStage<Void> enqueueRecovery(Predicate<GachaTransactionContext> commitEligibility) {
-        recoveryTail = recoveryTail.handle((ignored, failure) -> null)
-                .thenCompose(ignored -> recovery.recover(recoveryDurability, commitEligibility));
-        return recoveryTail;
-    }
-
-    public GachaCardPoolService cardPoolService() {
-        return cardPoolService;
+        return transactionQueue.submit(() -> recovery.recover(recoveryDurability, commitEligibility));
     }
 
     public CompletionStage<GachaCommittedTransaction> draw(GachaCardPoolDrawRequest request) {
@@ -145,32 +147,54 @@ public final class GachaServerRuntime implements AutoCloseable {
         return draw(request, expectedSnapshotHash, ItemStack.EMPTY);
     }
 
-    public CompletionStage<GachaCommittedTransaction> draw(GachaCardPoolDrawRequest request,
-                                                           Optional<String> expectedSnapshotHash,
-                                                           ItemStack activationCost) {
+    public synchronized CompletionStage<GachaCommittedTransaction> draw(GachaCardPoolDrawRequest request,
+                                                            Optional<String> expectedSnapshotHash,
+                                                            ItemStack activationCost) {
         Objects.requireNonNull(request, "request");
         ItemStack cost = activationCost.copy();
-        return recover(context -> context.playerId().equals(request.playerId()))
-                .thenCompose(ignored -> cardPoolService.draw(request, expectedSnapshotHash, cost));
+        return transactionQueue.submit(() -> recovery.recover(recoveryDurability,
+                        context -> context.playerId().equals(request.playerId()))
+                .thenComposeAsync(ignored -> cardPoolService.draw(request, expectedSnapshotHash, cost), mainThreadExecutor));
     }
 
     public GachaCardPoolDrawPreview preview(GachaCardPoolDrawRequest request, long previewSeed) {
         return cardPoolService.preview(Objects.requireNonNull(request, "request"), previewSeed);
     }
 
-    public GachaRewardInbox rewardInbox() {
+    public IGachaRewardInbox rewardInbox() {
         return rewardInbox;
     }
 
-    public void reconcilePlayerDeliveries(ServerPlayer player) {
-        rewardDeliveryServices.reconcilePlayer(player);
+    public CompletionStage<Integer> claimRewards(ServerPlayer player, GachaTransactionId inboxEntryId) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(inboxEntryId, "inboxEntryId");
+        return transactionQueue.submit(() -> {
+            if (rewardDeliveryServices.player(player.getUUID()).orElse(null) != player || player.hasDisconnected()) {
+                throw new IllegalStateException("Inbox claimant is no longer connected");
+            }
+            rewardDeliveryServices.reconcilePlayer(player);
+            return CompletableFuture.completedFuture(
+                    GachaRewardInboxClaim.claim(player, rewardDeliveryServices, inboxEntryId));
+        });
     }
 
-    public void acknowledgePlayerSave(ServerPlayer player) {
-        rewardDeliveryServices.acknowledgePlayerSave(player);
+    public void reconcilePendingDrop(ItemEntity entity) {
+        GachaPendingRewardDrops.reconcile(entity, rewardDeliveryServices);
     }
 
-    public GachaParameterStateRepository parameterState() {
+    public CompletionStage<Void> reconcilePlayerDeliveries(ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        return transactionQueue.submit(() -> {
+            if (rewardDeliveryServices.player(player.getUUID()).orElse(null) != player || player.hasDisconnected()) {
+                throw new IllegalStateException("Delivery reconciliation player is no longer connected");
+            }
+            rewardDeliveryServices.reconcilePlayer(player);
+            return CompletableFuture.completedFuture(null);
+        });
+    }
+
+
+    public IGachaParameterStateRepository parameterState() {
         return parameterState;
     }
 
@@ -189,6 +213,7 @@ public final class GachaServerRuntime implements AutoCloseable {
 
     @Override
     public void close() {
+        transactionQueue.close();
         journal.close();
     }
 }

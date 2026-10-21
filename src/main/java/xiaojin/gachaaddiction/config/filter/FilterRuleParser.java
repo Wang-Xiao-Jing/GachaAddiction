@@ -6,13 +6,14 @@ import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public final class FilterRuleParser {
+    public static final Pattern TAG_PATTERN = Pattern.compile(
+            "^#[a-z0-9_.-]+:[a-z0-9_.-]+$");
     private static final ItemParser ITEM_PARSER = new ItemParser(
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     private static final Pattern RARITY_PATTERN = Pattern.compile("^(>=|<=|>|<|=)?(-?\\d+)$");
@@ -27,7 +28,7 @@ public final class FilterRuleParser {
             return false;
         }
         if (value.startsWith("#")) {
-            return GachaaAdictionConfigData.TAG_PATTERN.matcher(value).matches();
+            return TAG_PATTERN.matcher(value).matches();
         }
         if (isRarityCondition(value)) {
             return !condition.startsWith("!");

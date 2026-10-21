@@ -33,18 +33,18 @@ public final class GachaRuleConditionJson {
         this.sharedDefinitions = sharedDefinitions;
     }
 
-    public List<GachaRuleCondition> array(JsonArray conditions, String location) {
+    public List<IGachaRuleCondition> array(JsonArray conditions, String location) {
         JsonArray expanded = sharedDefinitions.expandConditionEntries(conditions, location);
-        List<GachaRuleCondition> decoded = new ArrayList<>();
+        List<IGachaRuleCondition> decoded = new ArrayList<>();
         for (int index = 0; index < expanded.size(); index++) {
             decoded.add(condition(expanded.get(index), location + "[" + index + "]"));
         }
         return List.copyOf(decoded);
     }
 
-    public List<GachaRuleCondition> customEntryArray(JsonArray conditions, String location) {
+    public List<IGachaRuleCondition> customEntryArray(JsonArray conditions, String location) {
         JsonArray expanded = sharedDefinitions.expandConditionEntries(conditions, location);
-        List<GachaRuleCondition> decoded = new ArrayList<>();
+        List<IGachaRuleCondition> decoded = new ArrayList<>();
         for (int index = 0; index < expanded.size(); index++) {
             String conditionLocation = location + "[" + index + "]";
             validateCustomEntryCondition(expanded.get(index), conditionLocation);
@@ -82,7 +82,7 @@ public final class GachaRuleConditionJson {
         }
     }
 
-    public GachaRuleCondition condition(JsonElement json, String location) {
+    public IGachaRuleCondition condition(JsonElement json, String location) {
         if (json == null || !json.isJsonObject()) {
             throw new JsonParseException("Condition must be an object in " + location);
         }

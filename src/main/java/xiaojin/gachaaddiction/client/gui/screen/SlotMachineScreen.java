@@ -12,10 +12,11 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
-import xiaojin.gachaaddiction.api.client.ReelHost;
+import xiaojin.gachaaddiction.client.api.IReelHost;
 import xiaojin.gachaaddiction.client.gui.widget.VerticalReelWidget;
 import xiaojin.gachaaddiction.client.render.LoopingSlotMachineRenderer;
 import xiaojin.gachaaddiction.client.render.ModernGachaEffect;
@@ -24,7 +25,7 @@ import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.util.List;
 
-public class SlotMachineScreen extends ModernGachaScreen {
+public class SlotMachineScreen extends GachaSummaryScreen {
     public static final String SKIP_HINT = TranslationKeys.GUI_SLOT_MACHINES_KIP_HINT;
     private static final long RESULT_HOLD_MILLIS = 450;
     private static final float MILLISECONDS_PER_SECOND = 1000.0F;
@@ -59,7 +60,7 @@ public class SlotMachineScreen extends ModernGachaScreen {
      * @param slotMachineConfig 老虎机配置
      * @param random            随机源
      */
-    public static VerticalReelWidget createReelWidget(ReelHost host, RewardData data,
+    public static VerticalReelWidget createReelWidget(IReelHost host, RewardData data,
                                                       List<ItemStackEntry> entries,
                                                       ClientConfig.SlotMachineConfig slotMachineConfig,
                                                       RandomSource random) {
@@ -115,14 +116,14 @@ public class SlotMachineScreen extends ModernGachaScreen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         if (summary) {
             super.renderBackground(graphics, mouseX, mouseY, partialTick);
         }
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         long now = Util.getMillis();
         if (!summary && knownRewards) {
             passSoundPlayedThisFrame = false;
@@ -147,7 +148,7 @@ public class SlotMachineScreen extends ModernGachaScreen {
             }
         }
         if (summary) {
-            super.render(graphics, mouseX, mouseY, partialTick);
+            renderSummaryScreen(graphics, mouseX, mouseY, partialTick);
             return;
         }
 

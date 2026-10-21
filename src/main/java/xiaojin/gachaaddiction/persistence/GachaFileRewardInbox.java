@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.persistence;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.*;
 import net.minecraft.world.item.ItemStack;
-import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInbox;
+import xiaojin.gachaaddiction.cardpool.delivery.IGachaRewardInbox;
 import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInboxEntry;
 import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInboxEntryKind;
 import xiaojin.gachaaddiction.cardpool.transaction.GachaTransactionContext;
@@ -15,7 +15,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.*;
 
-public final class GachaFileRewardInbox implements GachaRewardInbox {
+public final class GachaFileRewardInbox implements IGachaRewardInbox {
     public static final int FORMAT_VERSION = 2;
 
     private static final String FILE_EXTENSION = ".nbt";
@@ -173,7 +173,7 @@ public final class GachaFileRewardInbox implements GachaRewardInbox {
             encoded = NbtIo.read(input, NbtAccounter.create(maximumEntryBytes));
         }
         int formatVersion = encoded.getInt(FORMAT_VERSION_KEY);
-        if (formatVersion != 1 && formatVersion != FORMAT_VERSION) {
+        if (formatVersion != FORMAT_VERSION) {
             throw new IOException("Unsupported reward inbox entry version: "
                     + encoded.getInt(FORMAT_VERSION_KEY));
         }
@@ -190,8 +190,7 @@ public final class GachaFileRewardInbox implements GachaRewardInbox {
                 rewards.add(reward);
             }
         }
-        GachaRewardInboxEntryKind kind = formatVersion == 1 ? GachaRewardInboxEntryKind.REWARD
-                : GachaRewardInboxEntryKind.valueOf(encoded.getString(KIND_KEY));
+        GachaRewardInboxEntryKind kind = GachaRewardInboxEntryKind.valueOf(encoded.getString(KIND_KEY));
         return new GachaRewardInboxEntry(transactionId, playerId, kind, rewards);
     }
 

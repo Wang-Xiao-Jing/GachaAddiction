@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public final class GachaInboxRewardDeliveryHandler implements GachaRewardDeliveryHandler {
+public final class GachaInboxRewardDeliveryHandler implements IGachaRewardDeliveryHandler {
     private static final Set<GachaRewardDeliveryCapability> CAPABILITIES = Set.of(
             GachaRewardDeliveryCapability.IDEMPOTENT_BY_TRANSACTION,
             GachaRewardDeliveryCapability.DURABLE_BEFORE_ACKNOWLEDGEMENT,

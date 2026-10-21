@@ -1,7 +1,7 @@
 package xiaojin.gachaaddiction.execution;
 
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
+import xiaojin.gachaaddiction.reward.IGachaRewardPool;
 import xiaojin.gachaaddiction.reward.custom.GachaCustomLootTable;
 
 import java.util.*;
@@ -14,7 +14,7 @@ public final class GachaExecutionPlanValidator {
     }
 
     public static void validate(Map<ResourceLocation, GachaExecutionPlanDefinition> plans,
-                                Map<ResourceLocation, GachaRewardPool> rewardPools,
+                                Map<ResourceLocation, IGachaRewardPool> rewardPools,
                                 Map<ResourceLocation, GachaCustomLootTable> customTables,
                                 Set<ResourceLocation> ruleGroups,
                                 Set<ResourceLocation> quantityRules) {
@@ -31,7 +31,7 @@ public final class GachaExecutionPlanValidator {
 
     private static void validatePlan(GachaExecutionPlanDefinition plan,
                                      Map<ResourceLocation, GachaExecutionPlanDefinition> plans,
-                                     Map<ResourceLocation, GachaRewardPool> rewardPools,
+                                     Map<ResourceLocation, IGachaRewardPool> rewardPools,
                                      Map<ResourceLocation, GachaCustomLootTable> customTables,
                                      Set<ResourceLocation> ruleGroups,
                                      Set<ResourceLocation> quantityRules,
@@ -43,10 +43,10 @@ public final class GachaExecutionPlanValidator {
             throw new IllegalArgumentException("Execution plan nesting depth exceeds limit: " + plan.id());
         }
         path.addLast(plan.id());
-        for (GachaExecutionStep step : plan.steps()) {
+        for (IGachaExecutionStep step : plan.steps()) {
             budget.consume(plan.id());
             if (step instanceof GachaRewardPoolExecutionStep rewardPoolStep) {
-                GachaRewardPool rewardPool = rewardPools.get(rewardPoolStep.target());
+                IGachaRewardPool rewardPool = rewardPools.get(rewardPoolStep.target());
                 if (rewardPool == null) {
                     throw missing(plan.id(), rewardPoolStep.type(), rewardPoolStep.target());
                 }

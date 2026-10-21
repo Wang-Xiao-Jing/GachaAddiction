@@ -1,6 +1,6 @@
 package xiaojin.gachaaddiction.reward.number;
 
-public record GachaConstantDoubleProvider(double value) implements GachaDoubleProvider {
+public record GachaConstantDoubleProvider(double value) implements IGachaDoubleProvider {
     public GachaConstantDoubleProvider {
         if (!Double.isFinite(value)) {
             throw new IllegalArgumentException("Constant value must be finite");
@@ -13,7 +13,7 @@ public record GachaConstantDoubleProvider(double value) implements GachaDoublePr
     }
 
     @Override
-    public GachaNumberExpression expression() {
-        return new GachaNumberExpression.DoubleConstant(value);
+    public IGachaNumberExpression expression() {
+        return new IGachaNumberExpression.DoubleConstant(value);
     }
 }

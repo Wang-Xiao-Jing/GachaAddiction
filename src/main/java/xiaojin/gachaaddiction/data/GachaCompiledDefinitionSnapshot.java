@@ -2,14 +2,14 @@ package xiaojin.gachaaddiction.data;
 
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.cardpool.GachaCardPoolDefinition;
-import xiaojin.gachaaddiction.cardpool.GachaCardPoolDefinitionResolver;
-import xiaojin.gachaaddiction.execution.GachaExecutionComponentResolver;
+import xiaojin.gachaaddiction.cardpool.IGachaCardPoolDefinitionResolver;
+import xiaojin.gachaaddiction.execution.IGachaExecutionComponentResolver;
 import xiaojin.gachaaddiction.execution.GachaExecutionPlanDefinition;
-import xiaojin.gachaaddiction.execution.GachaExecutionPlanResolver;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
-import xiaojin.gachaaddiction.reward.GachaRewardPoolResolver;
+import xiaojin.gachaaddiction.execution.IGachaExecutionPlanResolver;
+import xiaojin.gachaaddiction.reward.IGachaRewardPool;
+import xiaojin.gachaaddiction.reward.IGachaRewardPoolResolver;
 import xiaojin.gachaaddiction.reward.custom.GachaCustomLootTable;
-import xiaojin.gachaaddiction.reward.custom.GachaCustomTableResolver;
+import xiaojin.gachaaddiction.reward.custom.IGachaCustomTableResolver;
 import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescription;
 
 import java.util.Collections;
@@ -18,17 +18,17 @@ import java.util.Map;
 import java.util.Optional;
 
 public record GachaCompiledDefinitionSnapshot(Map<ResourceLocation, GachaCustomLootTable> customTables,
-                                              Map<ResourceLocation, GachaRewardPool> rewardPools,
+                                              Map<ResourceLocation, IGachaRewardPool> rewardPools,
                                               Map<ResourceLocation, GachaCardPoolDefinition> cardPools,
                                               Map<ResourceLocation, GachaExecutionPlanDefinition> executionPlans,
-                                              Map<ResourceLocation, GachaRewardPoolRequestPreset> requestPresets) implements GachaCustomTableResolver,
-        GachaRewardPoolResolver, GachaCardPoolDefinitionResolver, GachaExecutionPlanResolver,
-        GachaExecutionComponentResolver {
+                                              Map<ResourceLocation, GachaRewardPoolRequestPreset> requestPresets) implements IGachaCustomTableResolver,
+        IGachaRewardPoolResolver, IGachaCardPoolDefinitionResolver, IGachaExecutionPlanResolver,
+        IGachaExecutionComponentResolver {
     public static final GachaCompiledDefinitionSnapshot EMPTY = new GachaCompiledDefinitionSnapshot(Map.of(),
             Map.of(), Map.of(), Map.of(), Map.of());
 
     public GachaCompiledDefinitionSnapshot(Map<ResourceLocation, GachaCustomLootTable> customTables,
-                                           Map<ResourceLocation, GachaRewardPool> rewardPools,
+                                           Map<ResourceLocation, IGachaRewardPool> rewardPools,
                                            Map<ResourceLocation, GachaCardPoolDefinition> cardPools,
                                            Map<ResourceLocation, GachaExecutionPlanDefinition> executionPlans,
                                            Map<ResourceLocation, GachaRewardPoolRequestPreset> requestPresets) {
@@ -49,13 +49,13 @@ public record GachaCompiledDefinitionSnapshot(Map<ResourceLocation, GachaCustomL
     }
 
     @Override
-    public Optional<GachaRewardPool> resolveRewardPool(ResourceLocation id) {
+    public Optional<IGachaRewardPool> resolveRewardPool(ResourceLocation id) {
         return Optional.ofNullable(rewardPools.get(id));
     }
 
     @Override
     public Optional<GachaProbabilityDescription> describeProbability(ResourceLocation id) {
-        return GachaExecutionComponentResolver.super.describeProbability(id);
+        return IGachaExecutionComponentResolver.super.describeProbability(id);
     }
 
     @Override

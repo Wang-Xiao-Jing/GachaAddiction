@@ -13,8 +13,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.admin.GachaAdminCapability;
-import xiaojin.gachaaddiction.item.GachaDrawItemDefinitions;
+import xiaojin.gachaaddiction.data.drawitem.GachaDrawItemDefinitions;
 import xiaojin.gachaaddiction.util.TranslationKeys;
+import xiaojin.gachaaddiction.world.item.GachaDrawItemFactory;
 
 import java.util.Collection;
 
@@ -46,7 +47,7 @@ public class GachaDrawItemCommand {
             throw UNKNOWN_DEFINITION.create(id);
         }
 
-        ItemStack template = GachaDrawItemDefinitions.create(id.toString());
+        ItemStack template = GachaDrawItemFactory.create(id.toString());
         for (ServerPlayer player : players) {
             int remaining = count;
             while (remaining > 0) {

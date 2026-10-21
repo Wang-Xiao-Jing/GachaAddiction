@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
@@ -26,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-public class GachaAnimationScreen extends ModernGachaScreen {
+public class GachaAnimationScreen extends GachaSummaryScreen {
     private static final long SETTLE_MILLIS = 2200;
     private static final int NEUTRAL_CHEST_LIGHT = 0xD0D0D0;
     private static final long SPIN_MILLIS = 2000;
@@ -106,6 +107,14 @@ public class GachaAnimationScreen extends ModernGachaScreen {
     }
 
     @Override
+    protected void refreshWidgets() {
+        // 全部为普通奖励时，完成通知保持在完整快照到达时发送。
+        if (rewards.stream().noneMatch(reward -> reward.getRarityLevel() > SINGLE_RARITY_THRESHOLD)) {
+            beginSummary();
+        }
+    }
+
+    @Override
     public ItemStack getTriggerItem() {
         ItemStack trigger = super.getTriggerItem();
         return trigger.isEmpty() ? scene.getTriggerItem() : trigger;
@@ -161,14 +170,14 @@ public class GachaAnimationScreen extends ModernGachaScreen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         if (frontStage == FrontStage.SUMMARY && animation != GachaTypes.CHEST) {
             super.renderBackground(graphics, mouseX, mouseY, partialTick);
         }
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         if (animation == GachaTypes.CHEST && frontStage == FrontStage.RUNNING && !chestStarted) {
             startedAt = Util.getMillis();
             chestStarted = true;
@@ -181,7 +190,7 @@ public class GachaAnimationScreen extends ModernGachaScreen {
                 renderSummaryItems(graphics, mouseX, mouseY, partialTick);
                 return;
             }
-            super.render(graphics, mouseX, mouseY, partialTick);
+            renderSummaryScreen(graphics, mouseX, mouseY, partialTick);
             return;
         }
 

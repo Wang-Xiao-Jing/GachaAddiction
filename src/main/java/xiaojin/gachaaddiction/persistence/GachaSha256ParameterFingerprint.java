@@ -2,7 +2,7 @@ package xiaojin.gachaaddiction.persistence;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.NbtIo;
-import xiaojin.gachaaddiction.cardpool.parameter.GachaParameterFingerprint;
+import xiaojin.gachaaddiction.cardpool.parameter.IGachaParameterFingerprint;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSchema;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 
@@ -14,7 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Objects;
 
-public final class GachaSha256ParameterFingerprint implements GachaParameterFingerprint {
+public final class GachaSha256ParameterFingerprint implements IGachaParameterFingerprint {
     private static final String ALGORITHM = "SHA-256";
 
     private final HolderLookup.Provider registries;

@@ -11,8 +11,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.admin.GachaDefinitionDocumentKey;
-import xiaojin.gachaaddiction.client.GachaLocalDocumentState;
-import xiaojin.gachaaddiction.client.GachaLocalWorkspace;
+import xiaojin.gachaaddiction.client.workspace.GachaLocalDocumentState;
+import xiaojin.gachaaddiction.client.workspace.GachaLocalWorkspace;
 import xiaojin.gachaaddiction.data.GachaDefinitionKind;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 

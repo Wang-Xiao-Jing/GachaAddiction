@@ -9,7 +9,7 @@ import java.util.Set;
 public record GachaQuantityRuleExecutionStep(ResourceLocation type, ResourceLocation target,
                                              GachaQuantityPipeline pipeline,
                                              Set<GachaExecutionChannel> reads,
-                                             Set<GachaExecutionChannel> writes) implements GachaExecutionStep {
+                                             Set<GachaExecutionChannel> writes) implements IGachaExecutionStep {
     public GachaQuantityRuleExecutionStep {
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(target, "target");

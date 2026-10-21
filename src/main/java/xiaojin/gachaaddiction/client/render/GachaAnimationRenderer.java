@@ -6,9 +6,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
+import xiaojin.gachaaddiction.GachaModPresence;
 import xiaojin.gachaaddiction.api.GachaType;
-import xiaojin.gachaaddiction.client.compat.colortooltips.ColorTooltipsBorderRenderer;
+import xiaojin.gachaaddiction.registry.client.GachaClientIntegrations;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 import xiaojin.gachaaddiction.registry.item.GachaDrawItems;
 import xiaojin.gachaaddiction.util.RarityUtil;
@@ -52,13 +53,13 @@ public class GachaAnimationRenderer {
     public static void render(GuiGraphics graphics, GachaType type, Layout layout, List<ItemStack> icons,
                               float motion, float seconds, float charge, boolean running,
                               GachaSceneRenderer scene, ItemStack trigger, GachaReelFade reelFade, int lightColor) {
-        if (GachaAddiction.COLORTOOLTIPS_LOADED && !colorTooltipsFailed
+        if (GachaModPresence.COLORTOOLTIPS_LOADED && !colorTooltipsFailed
                 && type != GachaTypes.CHEST && type != GachaTypes.TOTEM) {
             try {
-                borderFlow = ColorTooltipsBorderRenderer.updateFlow(0.0F);
+                borderFlow = GachaClientIntegrations.itemBorders().updateFlow(0.0F);
             } catch (RuntimeException | LinkageError failure) {
                 colorTooltipsFailed = true;
-                GachaAddiction.LOGGER.warn(COLOR_TOOLTIP_WARNING, failure);
+                GachaConstants.LOGGER.warn(COLOR_TOOLTIP_WARNING, failure);
             }
         }
         if (type == GachaTypes.CHEST) {
@@ -225,14 +226,14 @@ public class GachaAnimationRenderer {
             graphics.pose().translate(0, 0, FRAME_DEPTH);
             graphics.setColor(1.0F, 1.0F, 1.0F, opacity);
             boolean custom = false;
-            if (GachaAddiction.COLORTOOLTIPS_LOADED && !colorTooltipsFailed) {
+            if (GachaModPresence.COLORTOOLTIPS_LOADED && !colorTooltipsFailed) {
                 try {
-                    custom = ColorTooltipsBorderRenderer.render(
+                    custom = GachaClientIntegrations.itemBorders().render(
                             graphics, stack, centerX - FRAME_SIZE / 2, centerY - FRAME_SIZE / 2, FRAME_SIZE,
                             borderFlow);
                 } catch (RuntimeException | LinkageError failure) {
                     colorTooltipsFailed = true;
-                    GachaAddiction.LOGGER.warn(COLOR_TOOLTIP_WARNING, failure);
+                    GachaConstants.LOGGER.warn(COLOR_TOOLTIP_WARNING, failure);
                 }
             }
             if (!custom) {

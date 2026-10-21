@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Objects;
 
 public record GachaRuleDefinition(ResourceLocation id, GachaRulePhase phase, GachaRuleScope scope,
-                                  List<GachaRuleCondition> conditions, List<GachaRuleAction> actions,
-                                  GachaRuleFailurePolicy failurePolicy, List<GachaRuleAction> fallbackActions) {
+                                  List<IGachaRuleCondition> conditions, List<IGachaRuleAction> actions,
+                                  GachaRuleFailurePolicy failurePolicy, List<IGachaRuleAction> fallbackActions) {
     public GachaRuleDefinition {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(phase, "phase");

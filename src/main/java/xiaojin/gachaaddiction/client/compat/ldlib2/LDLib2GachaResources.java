@@ -15,6 +15,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
+import xiaojin.gachaaddiction.config.GachaPresentationDefaults;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
@@ -35,7 +36,7 @@ public class LDLib2GachaResources {
         ResourceLocation location = ResourceLocation.parse(GachaAddictionConfig.CLIENT.ldlib2GachaTemplate.get());
         var resource = Minecraft.getInstance().getResourceManager().getResource(location);
         if (resource.isEmpty()) {
-            if (location.equals(LDLib2GachaUiConstants.DEFAULT_TEMPLATE_ID)) {
+            if (location.equals(GachaPresentationDefaults.DEFAULT_TEMPLATE_ID)) {
                 return createDefaultTemplate();
             }
             throw new IllegalStateException(LDLib2GachaUiConstants.TEMPLATE_MISSING + location);
@@ -108,7 +109,7 @@ public class LDLib2GachaResources {
     private static void addStylesheet(UIElement root, ResourceLocation location, boolean allowDefaultMissing) {
         var resource = Minecraft.getInstance().getResourceManager().getResource(location);
         if (resource.isEmpty()) {
-            if (allowDefaultMissing && location.equals(LDLib2GachaUiConstants.DEFAULT_STYLESHEET_ID)) {
+            if (allowDefaultMissing && location.equals(GachaPresentationDefaults.DEFAULT_STYLESHEET_ID)) {
                 return;
             }
             throw new IllegalStateException(LDLib2GachaUiConstants.STYLESHEET_MISSING + location);

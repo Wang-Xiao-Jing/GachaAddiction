@@ -4,11 +4,11 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
-public final class GachaConsumptionHandlerRegistry implements GachaConsumptionHandlerResolver {
-    private final Map<ResourceLocation, GachaConsumptionHandler> handlers = new LinkedHashMap<>();
+public final class GachaConsumptionHandlerRegistry implements IGachaConsumptionHandlerResolver {
+    private final Map<ResourceLocation, IGachaConsumptionHandler> handlers = new LinkedHashMap<>();
     private boolean frozen;
 
-    public synchronized void register(GachaConsumptionHandler handler) {
+    public synchronized void register(IGachaConsumptionHandler handler) {
         Objects.requireNonNull(handler, "handler");
         if (frozen) {
             throw new IllegalStateException("Consumption handler registry is frozen");
@@ -18,13 +18,13 @@ public final class GachaConsumptionHandlerRegistry implements GachaConsumptionHa
         }
     }
 
-    public synchronized Map<ResourceLocation, GachaConsumptionHandler> freeze() {
+    public synchronized Map<ResourceLocation, IGachaConsumptionHandler> freeze() {
         frozen = true;
         return Collections.unmodifiableMap(new LinkedHashMap<>(handlers));
     }
 
     @Override
-    public synchronized Optional<GachaConsumptionHandler> resolve(ResourceLocation type) {
+    public synchronized Optional<IGachaConsumptionHandler> resolve(ResourceLocation type) {
         return Optional.ofNullable(handlers.get(Objects.requireNonNull(type, "type")));
     }
 }

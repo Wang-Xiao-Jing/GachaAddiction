@@ -1,9 +1,13 @@
 {
   "required": true,
   "package": "xiaojin.gachaaddiction.mixin",
+  "plugin": "xiaojin.gachaaddiction.mixin.GachaMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "accessor.CompoundContainerAccessor",
+    "accessor.ServerLevelAccessor",
+    "accessor.PersistentEntitySectionManagerAccessor",
+    "accessor.EntityStorageAccessor",
     "entity.GachaContainerAccessMixin",
     "block.GachaHopperProtectionMixin",
     "block.GachaDispenserProtectionMixin",
@@ -16,14 +20,12 @@
     "entity.MenuTypeMixin",
     "block.RandomizableContainerBlockEntityMixin",
     "entity.ServerPlayerMixin",
+    "entity.ItemEntityMixin",
     "accessor.LanguageProviderAccessor",
     "accessor.LootItemAccessor",
     "accessor.LootPoolAccessor",
     "accessor.LootPoolSingletonContainerAccessor",
     "accessor.LootTableAccessor",
-    "client.ClientPacketListenerMixin",
-    "compat.ftb.FTBquestsNetClientMixin",
-    "compat.ftb.LootCrateItemMixin",
     "compat.ftb.LootRewardMixin",
     "compat.lootr.LootrInventoryMixin",
     "compat.lootr.LootrSavedDataMixin",
@@ -38,6 +40,10 @@
     "requireAnnotations": true
   },
   "client": [
+    "client.ClientPacketListenerMixin",
+    "compat.ftb.FTBquestsNetClientMixin",
+    "compat.ftb.LootCrateItemMixin",
+    "compat.ftb.LootRewardClientMixin",
     "client.ChestRendererMixin",
     "client.ChestBlockEntityMixin",
     "client.MinecraftMixin"

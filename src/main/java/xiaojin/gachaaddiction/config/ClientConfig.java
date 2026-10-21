@@ -6,7 +6,6 @@ import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
 import xiaojin.gachaaddiction.api.GachaType;
-import xiaojin.gachaaddiction.client.compat.ldlib2.LDLib2GachaUiConstants;
 import xiaojin.gachaaddiction.config.entry.*;
 import xiaojin.gachaaddiction.config.filter.FilterRuleMatcher;
 import xiaojin.gachaaddiction.config.filter.FilterRuleParser;
@@ -100,7 +99,7 @@ public class ClientConfig extends BasicConfig {
         rewardSoundEffectsOptimize = define(true, "reward_sound_effects_optimize", REWARD_SOUND_OPTIMIZATION_COMMENT);
         ftbQuestsGachaa = define(true, "ftb_quests_gachaa", FTB_QUESTS_GACHA_COMMENT);
         defaultGachaaType = selectorDefine(GachaTypes.MODERN,
-                GachaTypes.getLiat(), "default_gachaas_type",
+                GachaTypes.getAll(), "default_gachaas_type",
                 v -> Objects.requireNonNull(GachaTypes.get(ResourceLocation.parse(v))),
                 v -> Objects.requireNonNull(Objects.requireNonNull(v).getId()).toString(),
                 DEFAULT_GACHA_TYPE_COMMENT);
@@ -108,11 +107,11 @@ public class ClientConfig extends BasicConfig {
         push("ldlib2");
         ldlib2GachaTemplate = register(StringConfigEntry.builder(builder, modId, currentPath)
                 .key("template").comments(LDLIB2_TEMPLATE_COMMENT)
-                .defaultValue(LDLib2GachaUiConstants.DEFAULT_TEMPLATE_ID.toString())
+                .defaultValue(GachaPresentationDefaults.DEFAULT_TEMPLATE_ID.toString())
                 .validator(value -> ResourceLocation.tryParse(value) != null).build());
         ldlib2GachaStyleSheet = register(StringConfigEntry.builder(builder, modId, currentPath)
                 .key("style_sheet").comments(LDLIB2_STYLESHEET_COMMENT)
-                .defaultValue(LDLib2GachaUiConstants.DEFAULT_STYLESHEET_ID.toString())
+                .defaultValue(GachaPresentationDefaults.DEFAULT_STYLESHEET_ID.toString())
                 .validator(value -> ResourceLocation.tryParse(value) != null).build());
         pop();
         pop();

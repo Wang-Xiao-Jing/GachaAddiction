@@ -20,12 +20,13 @@ import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.zip.CRC32;
 
-public final class GachaFileTransactionJournal implements GachaTransactionJournal {
+public final class GachaFileTransactionJournal implements IGachaTransactionJournal {
     private static final int FIXED_HEADER_SIZE = Integer.BYTES * 4 + Long.BYTES * 3 + Byte.BYTES;
 
     private final int maxPayloadBytes;
     private final long groupCommitDelayMillis;
     private final ScheduledExecutorService ioExecutor;
+    private volatile Thread ioThread;
     private final FileChannel channel;
     private final List<GachaTransactionRecord> records;
     private final List<PendingCommit> pendingGroupCommits = new ArrayList<>();
@@ -52,6 +53,7 @@ public final class GachaFileTransactionJournal implements GachaTransactionJourna
         this.ioExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, GachaWalFormat.IO_THREAD_NAME);
             thread.setDaemon(true);
+            ioThread = thread;
             return thread;
         });
     }
@@ -136,12 +138,17 @@ public final class GachaFileTransactionJournal implements GachaTransactionJourna
         Objects.requireNonNull(payload, "payload");
         Objects.requireNonNull(durability, "durability");
         CompletableFuture<Long> completion = new CompletableFuture<>();
-        ioExecutor.execute(() -> appendOnIoThread(transactionId, stage, payload.copy(), durability, completion));
+        CompoundTag snapshot = payload.copy();
+        ioExecutor.execute(() -> appendOnIoThread(transactionId, stage, snapshot, durability, completion));
         return completion;
     }
 
     @Override
     public List<GachaTransactionRecord> readAll() {
+        if (Thread.currentThread() == ioThread) {
+            return List.copyOf(records);
+        }
+
         return CompletableFuture.supplyAsync(() -> List.copyOf(records), ioExecutor).join();
     }
 
@@ -161,6 +168,10 @@ public final class GachaFileTransactionJournal implements GachaTransactionJourna
 
     @Override
     public void close() {
+        if (Thread.currentThread() == ioThread) {
+            throw new IllegalStateException("Cannot close the WAL from its IO completion callback");
+        }
+
         try {
             flush().toCompletableFuture().join();
         } finally {

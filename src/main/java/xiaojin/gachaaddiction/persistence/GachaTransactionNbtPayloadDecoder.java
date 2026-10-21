@@ -6,7 +6,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import xiaojin.gachaaddiction.cardpool.GachaCardPoolTransactionSource;
 import xiaojin.gachaaddiction.cardpool.transaction.*;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterChangeSet;
 import xiaojin.gachaaddiction.reward.problem.GachaProblem;
@@ -18,9 +17,6 @@ public final class GachaTransactionNbtPayloadDecoder {
     private static final String PAYLOAD_VERSION_KEY = "payload_version";
     private static final String TRANSACTION_ID_KEY = "transaction_id";
     private static final String PLAYER_ID_KEY = "player_id";
-    private static final String CARD_POOL_KEY = "card_pool";
-    private static final String PACKAGE_KEY = "package";
-    private static final String CARD_POOL_SNAPSHOT_KEY = "card_pool_snapshot";
     private static final String EXECUTION_SOURCE_KEY = "execution_source";
     private static final String SOURCE_SNAPSHOT_KEY = "source_snapshot";
     private static final String SOURCE_DATA_KEY = "source_data";
@@ -37,19 +33,12 @@ public final class GachaTransactionNbtPayloadDecoder {
     private static final String CONTEXT_KEY = "context";
 
     private final HolderLookup.Provider registries;
-    private final GachaTransactionParameterSchemaResolver parameterSchemas;
+    private final IGachaTransactionParameterSchemaResolver parameterSchemas;
 
     public GachaTransactionNbtPayloadDecoder(HolderLookup.Provider registries,
-                                             GachaTransactionParameterSchemaResolver parameterSchemas) {
+                                             IGachaTransactionParameterSchemaResolver parameterSchemas) {
         this.registries = Objects.requireNonNull(registries, "registries");
         this.parameterSchemas = Objects.requireNonNull(parameterSchemas, "parameterSchemas");
-    }
-
-    private static GachaTransactionSource decodeLegacySource(CompoundTag payload) {
-        CompoundTag data = new CompoundTag();
-        data.putString(GachaCardPoolTransactionSource.PACKAGE_KEY, payload.getString(PACKAGE_KEY));
-        return new GachaTransactionSource(ResourceLocation.parse(payload.getString(CARD_POOL_KEY)),
-                Optional.of(payload.getString(CARD_POOL_SNAPSHOT_KEY)), data);
     }
 
     private static GachaTransactionSource decodeSource(CompoundTag payload) {
@@ -99,11 +88,11 @@ public final class GachaTransactionNbtPayloadDecoder {
     }
 
     public GachaDecodedTransactionPayload decode(CompoundTag payload) {
-        int version = requireVersion(payload);
+        requireVersion(payload);
         GachaTransactionContext context = new GachaTransactionContext(
                 new GachaTransactionId(payload.getUUID(TRANSACTION_ID_KEY)),
                 payload.getUUID(PLAYER_ID_KEY),
-                version == 1 ? decodeLegacySource(payload) : decodeSource(payload));
+                decodeSource(payload));
         List<GachaConsumptionSpec> consumption = decodeConsumption(payload);
         List<GachaConsumptionReservation> reservations = decodeReservations(payload);
         Optional<GachaTransactionResult> result = payload.contains(REWARDS_KEY)
@@ -111,12 +100,11 @@ public final class GachaTransactionNbtPayloadDecoder {
         return new GachaDecodedTransactionPayload(context, consumption, reservations, result);
     }
 
-    private int requireVersion(CompoundTag payload) {
+    private void requireVersion(CompoundTag payload) {
         int version = payload.getInt(PAYLOAD_VERSION_KEY);
-        if (version != 1 && version != GachaTransactionNbtPayloadEncoder.PAYLOAD_VERSION) {
+        if (version != GachaTransactionNbtPayloadEncoder.PAYLOAD_VERSION) {
             throw new IllegalArgumentException("Unsupported transaction payload version: " + version);
         }
-        return version;
     }
 
     private GachaTransactionResult decodeResult(GachaTransactionContext context, CompoundTag payload) {

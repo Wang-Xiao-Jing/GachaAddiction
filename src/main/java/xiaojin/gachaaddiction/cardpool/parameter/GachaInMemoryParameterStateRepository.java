@@ -6,14 +6,14 @@ import xiaojin.gachaaddiction.reward.parameter.*;
 
 import java.util.*;
 
-public final class GachaInMemoryParameterStateRepository implements GachaParameterStateRepository {
-    private final GachaParameterFingerprint fingerprint;
+public final class GachaInMemoryParameterStateRepository implements IGachaParameterStateRepository {
+    private final IGachaParameterFingerprint fingerprint;
     private final Map<GachaParameterStateAddress, Object> values = new HashMap<>();
     private final Set<GachaTransactionId> appliedTransactions = new HashSet<>();
     private final Map<GachaTransactionId, List<StateUpdate>> pendingTransactions = new HashMap<>();
     private final Map<GachaParameterStateAddress, GachaTransactionId> reservedAddresses = new HashMap<>();
 
-    public GachaInMemoryParameterStateRepository(GachaParameterFingerprint fingerprint) {
+    public GachaInMemoryParameterStateRepository(IGachaParameterFingerprint fingerprint) {
         this.fingerprint = Objects.requireNonNull(fingerprint, "fingerprint");
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public final class GachaTransactionNbtPayloadEncoder implements GachaTransactionPayloadEncoder {
+public final class GachaTransactionNbtPayloadEncoder implements IGachaTransactionPayloadEncoder {
     public static final int PAYLOAD_VERSION = 2;
 
     private static final String PAYLOAD_VERSION_KEY = "payload_version";
@@ -32,10 +32,10 @@ public final class GachaTransactionNbtPayloadEncoder implements GachaTransaction
     private static final String CONTEXT_KEY = "context";
 
     private final HolderLookup.Provider registries;
-    private final GachaTransactionParameterSchemaResolver parameterSchemas;
+    private final IGachaTransactionParameterSchemaResolver parameterSchemas;
 
     public GachaTransactionNbtPayloadEncoder(HolderLookup.Provider registries,
-                                             GachaTransactionParameterSchemaResolver parameterSchemas) {
+                                             IGachaTransactionParameterSchemaResolver parameterSchemas) {
         this.registries = Objects.requireNonNull(registries, "registries");
         this.parameterSchemas = Objects.requireNonNull(parameterSchemas, "parameterSchemas");
     }

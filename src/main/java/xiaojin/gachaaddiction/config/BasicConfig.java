@@ -1,9 +1,9 @@
 package xiaojin.gachaaddiction.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.config.entry.*;
-import xiaojin.gachaaddiction.generator.lang.LangHandler;
+import xiaojin.gachaaddiction.registry.language.GachaTranslations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ public class BasicConfig {
     protected final List<BasicConfigEntry<?>> entries = new ArrayList<>();
 
     public BasicConfig(ModConfigSpec.Builder builder) {
-        this.modId = GachaAddiction.MODID;
+        this.modId = GachaConstants.MODID;
         this.builder = builder;
     }
 
@@ -81,7 +81,7 @@ public class BasicConfig {
     }
 
     protected void push(String key) {
-        builder.translation(LangHandler.getConfigTranslation(modId, getCurrentPath(key)));
+        builder.translation(GachaTranslations.getConfigTranslation(modId, getCurrentPath(key)));
         currentPath.add(key);
         builder.push(key);
     }

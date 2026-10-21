@@ -12,7 +12,7 @@ import xiaojin.gachaaddiction.reward.provenance.GachaRewardOriginTypes;
 import java.util.Objects;
 
 public record GachaVanillaLootFunctionAction(ResourceLocation id,
-                                             LootItemFunction function) implements GachaRuleAction {
+                                             LootItemFunction function) implements IGachaRuleAction {
     public GachaVanillaLootFunctionAction {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(function, "function");

@@ -4,8 +4,8 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.TextElement;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import net.minecraft.network.chat.Component;
-import xiaojin.gachaaddiction.client.GachaLocalDocumentState;
-import xiaojin.gachaaddiction.client.GachaLocalWorkspace;
+import xiaojin.gachaaddiction.client.workspace.GachaLocalDocumentState;
+import xiaojin.gachaaddiction.client.workspace.GachaLocalWorkspace;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 public final class LDLib2AdminDraftDocumentScreen {

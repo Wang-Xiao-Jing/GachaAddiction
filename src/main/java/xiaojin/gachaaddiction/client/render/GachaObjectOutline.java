@@ -11,14 +11,14 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.*;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 
 import java.io.IOException;
 import java.util.function.Consumer;
 
 public class GachaObjectOutline implements AutoCloseable {
     private static final ResourceLocation EFFECT = ResourceLocation.fromNamespaceAndPath(
-            GachaAddiction.MODID, "shaders/post/object_outline.json");
+            GachaConstants.MODID, "shaders/post/object_outline.json");
     private static final String OBJECT = "object";
     private static final String OUTPUT = "swap";
     private static final float OUTLINE_DEPTH = 300.0F;
@@ -75,7 +75,7 @@ public class GachaObjectOutline implements AutoCloseable {
                 current.bindWrite(true);
                 compositeOutline(graphics, chain.getTempTarget(OUTPUT));
             } catch (IOException | RuntimeException failure) {
-                GachaAddiction.LOGGER.warn(WARNING, EFFECT, failure);
+                GachaConstants.LOGGER.warn(WARNING, EFFECT, failure);
                 release();
             }
         }

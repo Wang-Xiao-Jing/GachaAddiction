@@ -1,15 +1,11 @@
 package xiaojin.gachaaddiction.network.stc;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.client.gui.screen.CardPoolDrawConfirmationScreen;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.network.IToClientPayload;
 
 import java.util.ArrayList;
@@ -20,7 +16,7 @@ import java.util.UUID;
 public record OpenCardPoolProbabilityPreviewPayload(UUID token, List<Probability> probabilities)
         implements IToClientPayload {
     public static final Type<OpenCardPoolProbabilityPreviewPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "open_card_pool_probability_preview"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "open_card_pool_probability_preview"));
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenCardPoolProbabilityPreviewPayload> STREAM_CODEC =
             new StreamCodec<>() {
                 @Override
@@ -84,12 +80,6 @@ public record OpenCardPoolProbabilityPreviewPayload(UUID token, List<Probability
         return TYPE;
     }
 
-    @Override
-    public void work(IPayloadContext context, AbstractClientPlayer player) {
-        if (Minecraft.getInstance().screen instanceof CardPoolDrawConfirmationScreen screen) {
-            screen.setProbabilityPreview(token, probabilities);
-        }
-    }
 
     public record Probability(ResourceLocation id, String selectionMode, String selectionCount,
                               List<Candidate> candidates) {

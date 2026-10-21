@@ -63,10 +63,10 @@ public final class GachaRuleRunner {
         };
     }
 
-    private static void applyActions(List<GachaRuleAction> actions, GachaRuleContext context,
+    private static void applyActions(List<IGachaRuleAction> actions, GachaRuleContext context,
                                      GachaResultEditor results, GachaParameterEditor parameters,
                                      GachaRuleExecutionBudget budget) {
-        for (GachaRuleAction action : actions) {
+        for (IGachaRuleAction action : actions) {
             budget.consumeAction();
             action.apply(context, results, parameters);
         }

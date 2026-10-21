@@ -7,7 +7,7 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
+import xiaojin.gachaaddiction.reward.IGachaRewardPool;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterDefinition;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterKey;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSchema;
@@ -28,7 +28,7 @@ public final class GachaRequestPresetCompiler {
 
     public Map<ResourceLocation, GachaRewardPoolRequestPreset> compile(
             Map<ResourceLocation, GachaRawDefinition> definitions,
-            Map<ResourceLocation, GachaRewardPool> rewardPools) {
+            Map<ResourceLocation, IGachaRewardPool> rewardPools) {
         Map<ResourceLocation, GachaRewardPoolRequestPreset> compiled = new LinkedHashMap<>();
         definitions.forEach((id, definition) -> compiled.put(id, compilePreset(id, definition.data(), rewardPools)));
         return Map.copyOf(compiled);
@@ -47,11 +47,11 @@ public final class GachaRequestPresetCompiler {
     }
 
     private GachaRewardPoolRequestPreset compilePreset(ResourceLocation id, JsonObject json,
-                                                       Map<ResourceLocation, GachaRewardPool> rewardPools) {
+                                                       Map<ResourceLocation, IGachaRewardPool> rewardPools) {
         String location = "request preset " + id;
         GachaJson.requireOnly(json, FIELDS, location);
         ResourceLocation rewardPoolId = ResourceLocation.parse(GachaJson.string(json, "reward_pool", location));
-        GachaRewardPool rewardPool = rewardPools.get(rewardPoolId);
+        IGachaRewardPool rewardPool = rewardPools.get(rewardPoolId);
         if (rewardPool == null) {
             throw new JsonParseException("Unknown reward pool '" + rewardPoolId + "' in " + location);
         }

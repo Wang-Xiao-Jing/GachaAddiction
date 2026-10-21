@@ -8,12 +8,11 @@ import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.storage.loot.LootTable;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.GachaAddiction;
 import xiaojin.gachaaddiction.mixed.IAbstractMinecartContainer;
 import xiaojin.gachaaddiction.mixed.IMenuProviderLootExtension;
 import xiaojin.gachaaddiction.mixed.IRandomizableContainerBlockEntity;
 import xiaojin.gachaaddiction.registry.GachaSources;
-import xiaojin.gachaaddiction.util.LootrUtil;
+import xiaojin.gachaaddiction.registry.GachaContainerAdapters;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,13 +31,13 @@ public record MenuProviderData(
 
     public static MenuProviderData create(MenuProvider menuProvider) {
         IGachaSource source = GachaSources.find(menuProvider);
-        return source == null ? inspectLegacy(menuProvider) : source.inspect(menuProvider);
+        return source == null ? inspectContainer(menuProvider) : source.inspect(menuProvider);
     }
 
-    public static MenuProviderData inspectLegacy(MenuProvider menuProvider) {
-        if (GachaAddiction.LOOTR_LOADED && LootrUtil.isInstanceofILootrInventory(menuProvider)) {
-            return new MenuProviderData(LootrUtil.getInfoLootTable(menuProvider),
-                    !LootrUtil.isOpen(menuProvider));
+    public static MenuProviderData inspectContainer(MenuProvider menuProvider) {
+        IGachaContainerAdapter adapter = GachaContainerAdapters.find(menuProvider);
+        if (adapter != null) {
+            return new MenuProviderData(adapter.lootTable(menuProvider), !adapter.isOpen(menuProvider));
         }
 
         if (menuProvider instanceof RandomizableContainerBlockEntity blockEntity) {
@@ -79,8 +78,8 @@ public record MenuProviderData(
         return new MenuProviderData(List.of(), false);
     }
 
-    public static boolean isLootrContainer(MenuProvider menu) {
-        return GachaAddiction.LOOTR_LOADED && LootrUtil.isInstanceofILootrInventory(menu) ||
+    public static boolean isLootContainer(MenuProvider menu) {
+        return GachaContainerAdapters.find(menu) != null ||
                 menu instanceof RandomizableContainer ||
                 menu instanceof ContainerEntity ||
                 menu instanceof IMenuProviderLootExtension;
@@ -89,15 +88,16 @@ public record MenuProviderData(
     public static void open(MenuProvider menuProvider) {
         IGachaSource source = GachaSources.find(menuProvider);
         if (source == null) {
-            openLegacy(menuProvider);
+            openContainer(menuProvider);
         } else {
             source.opened(menuProvider);
         }
     }
 
-    public static void openLegacy(MenuProvider menuProvider) {
-        if (GachaAddiction.LOOTR_LOADED && LootrUtil.isInstanceofILootrInventory(menuProvider)) {
-            LootrUtil.setOpen(menuProvider, true);
+    public static void openContainer(MenuProvider menuProvider) {
+        IGachaContainerAdapter adapter = GachaContainerAdapters.find(menuProvider);
+        if (adapter != null) {
+            adapter.setOpen(menuProvider, true);
         }
 
         if (menuProvider instanceof RandomizableContainerBlockEntity blockEntity) {

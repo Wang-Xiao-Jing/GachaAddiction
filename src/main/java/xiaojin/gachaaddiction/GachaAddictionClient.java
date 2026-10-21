@@ -8,11 +8,16 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import xiaojin.gachaaddiction.client.compat.ldlib2.LDLib2Util;
+import xiaojin.gachaaddiction.client.compat.GachaClientCompatibility;
+import xiaojin.gachaaddiction.client.network.GachaClientPayloadHandler;
+import xiaojin.gachaaddiction.network.GachaClientPayloadDispatcher;
 import xiaojin.gachaaddiction.registry.client.GachaTypeClients;
 
-@Mod(value = GachaAddiction.MODID, dist = Dist.CLIENT)
+@Mod(value = GachaConstants.MODID, dist = Dist.CLIENT)
 public class GachaAddictionClient {
     public GachaAddictionClient(IEventBus modEventBus, ModContainer container) {
+        GachaClientCompatibility.initialize();
+        GachaClientPayloadDispatcher.register(GachaClientPayloadHandler::handle);
         GachaTypeClients.init();
         IConfigScreenFactory iExtensionPoint;
         if (ModList.get().isLoaded("ldlib2")) {

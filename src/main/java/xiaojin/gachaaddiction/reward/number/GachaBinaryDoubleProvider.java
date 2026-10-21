@@ -2,8 +2,8 @@ package xiaojin.gachaaddiction.reward.number;
 
 import java.util.Objects;
 
-public record GachaBinaryDoubleProvider(GachaDoubleProvider left, GachaDoubleOperation operation,
-                                        GachaDoubleProvider right) implements GachaDoubleProvider {
+public record GachaBinaryDoubleProvider(IGachaDoubleProvider left, GachaDoubleOperation operation,
+                                        IGachaDoubleProvider right) implements IGachaDoubleProvider {
     public GachaBinaryDoubleProvider {
         Objects.requireNonNull(left, "left");
         Objects.requireNonNull(operation, "operation");
@@ -29,7 +29,7 @@ public record GachaBinaryDoubleProvider(GachaDoubleProvider left, GachaDoubleOpe
     }
 
     @Override
-    public GachaNumberExpression expression() {
-        return new GachaNumberExpression.Binary(operation, left.expression(), right.expression());
+    public IGachaNumberExpression expression() {
+        return new IGachaNumberExpression.Binary(operation, left.expression(), right.expression());
     }
 }

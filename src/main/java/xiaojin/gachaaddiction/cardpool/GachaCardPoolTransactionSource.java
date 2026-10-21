@@ -39,14 +39,7 @@ public final class GachaCardPoolTransactionSource {
 
     public static ResourceLocation deliveryHandler(GachaTransactionSource source) {
         CompoundTag data = source.data();
-        if (data.contains(DELIVERY_HANDLER_KEY)) {
-            return ResourceLocation.parse(data.getString(DELIVERY_HANDLER_KEY));
-        }
-        String legacyMode = data.getString("delivery_mode");
-        if (legacyMode.equals(GachaRewardDeliveryMode.RETURN.name())) {
-            return GachaBuiltinRewardDeliveryTypes.RETURN;
-        }
-        return GachaBuiltinRewardDeliveryTypes.INBOX;
+        return ResourceLocation.parse(data.getString(DELIVERY_HANDLER_KEY));
     }
 
 }

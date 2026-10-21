@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
+import xiaojin.gachaaddiction.registry.client.GachaTypeClients;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ public abstract class LootCrateItemMixin {
             }
         }
 
-        gachaType.getClientData()
+        GachaTypeClients.get(gachaType)
                 .open(List.of(), itemStackEntries)
                 .setReturnOriginalScreen(false);
     }

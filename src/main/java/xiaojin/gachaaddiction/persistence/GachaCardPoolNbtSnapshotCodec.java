@@ -18,12 +18,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 
-public final class GachaCardPoolNbtSnapshotCodec implements GachaCardPoolSnapshotCodec {
+public final class GachaCardPoolNbtSnapshotCodec implements IGachaCardPoolSnapshotCodec {
     public static final int FORMAT_VERSION = 5;
 
     private static final String FORMAT_VERSION_KEY = "format_version";
     private static final String ID_KEY = "id";
-    private static final String REWARD_POOL_KEY = "reward_pool";
     private static final String EXECUTION_PLAN_KEY = "execution_plan";
     private static final String DEFINITIONS_KEY = "parameter_definitions";
     private static final String BINDINGS_KEY = "parameter_bindings";
@@ -44,11 +43,8 @@ public final class GachaCardPoolNbtSnapshotCodec implements GachaCardPoolSnapsho
     private static final String MAXIMUM_KEY = "maximum";
     private static final String STEP_KEY = "step";
     private static final String VALUES_KEY = "values";
-    private static final String ROUNDS_KEY = "rounds";
     private static final String PARAMETERS_KEY = "parameters";
-    private static final String CONSUMPTION_KEY = "consumption";
     private static final String MINIMUM_DURABILITY_KEY = "minimum_durability";
-    private static final String DATA_KEY = "data";
     private static final String PRESENTATION_KEY = "presentation";
     private static final String AVAILABILITY_KEY = "availability";
     private static final String DELIVERY_MODE_KEY = "delivery_mode";
@@ -63,11 +59,11 @@ public final class GachaCardPoolNbtSnapshotCodec implements GachaCardPoolSnapsho
     private static final String CLOSES_AT_KEY = "closes_at";
 
     private final HolderLookup.Provider registries;
-    private final GachaParameterTypeResolver parameterTypes;
+    private final IGachaParameterTypeResolver parameterTypes;
     private final DynamicOps<Tag> ops;
 
     public GachaCardPoolNbtSnapshotCodec(HolderLookup.Provider registries,
-                                         GachaParameterTypeResolver parameterTypes) {
+                                         IGachaParameterTypeResolver parameterTypes) {
         this.registries = Objects.requireNonNull(registries, "registries");
         this.parameterTypes = Objects.requireNonNull(parameterTypes, "parameterTypes");
         this.ops = RegistryOps.create(NbtOps.INSTANCE, registries);
@@ -94,12 +90,6 @@ public final class GachaCardPoolNbtSnapshotCodec implements GachaCardPoolSnapsho
     @SuppressWarnings("unchecked")
     private static <T> GachaPlayerChoice<T> castPlayerChoice(GachaPlayerChoice<?> choice) {
         return (GachaPlayerChoice<T>) choice;
-    }
-
-    private static ResourceLocation legacyGeneratedPlanId(ResourceLocation cardPoolId, ResourceLocation packageId) {
-        return ResourceLocation.fromNamespaceAndPath(cardPoolId.getNamespace(),
-                "generated/card_pool/" + cardPoolId.getPath() + "/" + packageId.getNamespace()
-                        + "/" + packageId.getPath());
     }
 
     private static CompoundTag encodeKey(GachaParameterKey key) {
@@ -133,20 +123,20 @@ public final class GachaCardPoolNbtSnapshotCodec implements GachaCardPoolSnapsho
     @Override
     public GachaCardPoolDefinition decode(CompoundTag snapshot) {
         int version = snapshot.getInt(FORMAT_VERSION_KEY);
-        if (version != 3 && version != 4 && version != FORMAT_VERSION) {
+        if (version != FORMAT_VERSION) {
             throw new IllegalArgumentException("Unsupported card pool snapshot version: " + version);
         }
         List<GachaParameterDefinition<?>> definitions = decodeDefinitions(snapshot);
         GachaParameterSchema schema = new GachaParameterSchema(definitions);
         List<GachaParameterBinding<?>> bindings = decodeBindings(snapshot, schema);
         ResourceLocation cardPoolId = ResourceLocation.parse(snapshot.getString(ID_KEY));
-        Map<ResourceLocation, GachaDrawPackage> packages = decodePackages(snapshot, schema, cardPoolId, version);
+        Map<ResourceLocation, GachaDrawPackage> packages = decodePackages(snapshot, schema);
         GachaCardPoolPresentation presentation = decodePresentation(snapshot.getCompound(PRESENTATION_KEY));
         GachaCardPoolAvailability availability = decodeAvailability(snapshot.getCompound(AVAILABILITY_KEY));
         return new GachaCardPoolDefinition(cardPoolId, packages, bindings, schema,
                 presentation, availability,
                 GachaRewardDeliveryMode.valueOf(snapshot.getString(DELIVERY_MODE_KEY)),
-                version >= 5 && snapshot.contains(DELIVERY_HANDLER_KEY)
+                snapshot.contains(DELIVERY_HANDLER_KEY)
                         ? Optional.of(ResourceLocation.parse(snapshot.getString(DELIVERY_HANDLER_KEY)))
                         : Optional.empty());
     }
@@ -311,16 +301,14 @@ public final class GachaCardPoolNbtSnapshotCodec implements GachaCardPoolSnapsho
     }
 
     private Map<ResourceLocation, GachaDrawPackage> decodePackages(CompoundTag snapshot,
-                                                                   GachaParameterSchema schema,
-                                                                   ResourceLocation cardPoolId, int version) {
+                                                                   GachaParameterSchema schema) {
         GachaParameterNbtDecoder parameterDecoder = new GachaParameterNbtDecoder(schema, registries);
         Map<ResourceLocation, GachaDrawPackage> decoded = new LinkedHashMap<>();
         ListTag packages = snapshot.getList(PACKAGES_KEY, Tag.TAG_COMPOUND);
         for (int index = 0; index < packages.size(); index++) {
             CompoundTag entry = packages.getCompound(index);
             ResourceLocation id = ResourceLocation.parse(entry.getString(ID_KEY));
-            ResourceLocation executionPlan = version == 3 ? legacyGeneratedPlanId(cardPoolId, id)
-                    : ResourceLocation.parse(entry.getString(EXECUTION_PLAN_KEY));
+            ResourceLocation executionPlan = ResourceLocation.parse(entry.getString(EXECUTION_PLAN_KEY));
             GachaDrawPackage drawPackage = new GachaDrawPackage(id, executionPlan,
                     parameterDecoder.decodeSet(entry.getCompound(PARAMETERS_KEY)),
                     GachaDurability.valueOf(entry.getString(MINIMUM_DURABILITY_KEY)));

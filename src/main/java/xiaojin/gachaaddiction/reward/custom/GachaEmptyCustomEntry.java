@@ -6,7 +6,7 @@ import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
 import java.util.List;
 import java.util.Objects;
 
-public record GachaEmptyCustomEntry(ResourceLocation id) implements GachaCustomEntry {
+public record GachaEmptyCustomEntry(ResourceLocation id) implements IGachaCustomEntry {
     public GachaEmptyCustomEntry {
         Objects.requireNonNull(id, "id");
     }

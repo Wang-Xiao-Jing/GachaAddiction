@@ -16,7 +16,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.*;
 
-public final class GachaFileParameterStateRepository implements GachaParameterStateRepository {
+public final class GachaFileParameterStateRepository implements IGachaParameterStateRepository {
     public static final int FORMAT_VERSION = 1;
 
     private static final String FORMAT_VERSION_KEY = "format_version";
@@ -35,8 +35,8 @@ public final class GachaFileParameterStateRepository implements GachaParameterSt
 
     private final Path file;
     private final int maximumBytes;
-    private final GachaParameterFingerprint fingerprint;
-    private final GachaParameterTypeResolver parameterTypes;
+    private final IGachaParameterFingerprint fingerprint;
+    private final IGachaParameterTypeResolver parameterTypes;
     private final DynamicOps<Tag> ops;
     private final Map<GachaParameterStateAddress, StoredValue> values = new HashMap<>();
     private final Set<GachaTransactionId> appliedTransactions = new HashSet<>();
@@ -44,8 +44,8 @@ public final class GachaFileParameterStateRepository implements GachaParameterSt
     private final Map<GachaParameterStateAddress, GachaTransactionId> reservedAddresses = new HashMap<>();
 
     public GachaFileParameterStateRepository(Path file, int maximumBytes,
-                                             GachaParameterFingerprint fingerprint,
-                                             GachaParameterTypeResolver parameterTypes,
+                                             IGachaParameterFingerprint fingerprint,
+                                             IGachaParameterTypeResolver parameterTypes,
                                              HolderLookup.Provider registries) throws IOException {
         this.file = Objects.requireNonNull(file, "file").toAbsolutePath().normalize();
         if (maximumBytes <= 0) {

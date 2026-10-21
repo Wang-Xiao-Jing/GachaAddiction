@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record GachaCustomTableReferenceEntry(ResourceLocation id, ResourceLocation table,
-                                             GachaCustomTableResolver resolver) implements GachaCustomEntry {
+                                             IGachaCustomTableResolver resolver) implements IGachaCustomEntry {
     public GachaCustomTableReferenceEntry {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(table, "table");

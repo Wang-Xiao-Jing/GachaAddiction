@@ -15,10 +15,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.admin.GachaDefinitionDocumentKey;
-import xiaojin.gachaaddiction.client.GachaLocalDocumentState;
-import xiaojin.gachaaddiction.client.GachaLocalWorkspace;
+import xiaojin.gachaaddiction.client.workspace.GachaLocalDocumentState;
+import xiaojin.gachaaddiction.client.workspace.GachaLocalWorkspace;
 import xiaojin.gachaaddiction.data.GachaDefinitionKind;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class LDLib2LocalDefinitionEditor extends Editor {
     private static final String RELOAD_COMMAND = "gacha reload";
-    private static final ResourceLocation DEFAULT_ID = ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "example");
+    private static final ResourceLocation DEFAULT_ID = ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "example");
     private static final String COPY_SUFFIX = "_copy";
     private final GachaLocalDocumentState state;
     private final TreeList<TreeNode<Component, Void>> tree = new TreeList<>();

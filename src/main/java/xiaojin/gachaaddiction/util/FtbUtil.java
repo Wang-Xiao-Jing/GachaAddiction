@@ -6,7 +6,7 @@ import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 
 public class FtbUtil {
-    public static final NameMap<GachaType> NAME_MAP = NameMap.of(GachaTypes.EMPTY, GachaTypes.getLiat())
+    public static final NameMap<GachaType> NAME_MAP = NameMap.of(GachaTypes.EMPTY, GachaTypes.getAll())
             .id(v -> v.getId().toString())
             .nameKey(GachaType::getTranslationKey)
             .create();

@@ -20,13 +20,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xiaojin.gachaaddiction.api.GachaType;
-import xiaojin.gachaaddiction.api.GachaaData;
+import xiaojin.gachaaddiction.api.GachaData;
 import xiaojin.gachaaddiction.api.MenuProviderData;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.registry.GachaSources;
 import xiaojin.gachaaddiction.registry.GachaTypes;
-import xiaojin.gachaaddiction.util.GachaAnnouncements;
-import xiaojin.gachaaddiction.util.GachaPresentations;
+import xiaojin.gachaaddiction.announcement.GachaAnnouncements;
+import xiaojin.gachaaddiction.presentation.GachaPresentations;
 import xiaojin.gachaaddiction.util.LootDisplayCache;
 import xiaojin.gachaaddiction.util.ModUtil;
 
@@ -44,14 +44,14 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "lambda$openMenu$15", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/MenuProvider;writeClientSideData(Lnet/minecraft/world/inventory/AbstractContainerMenu;Lnet/minecraft/network/RegistryFriendlyByteBuf;)V"))
     private static void gachaaddiction$openMenu$writeClientSideData(MenuProvider menu, AbstractContainerMenu abstractcontainermenu, Consumer<RegistryFriendlyByteBuf> extraDataWriter, RegistryFriendlyByteBuf buffer, CallbackInfo ci) {
-        if (!MenuProviderData.isLootrContainer(menu) && GachaSources.find(menu) == null) {
+        if (!MenuProviderData.isLootContainer(menu) && GachaSources.find(menu) == null) {
             // TODO 自定义GachaType
-            GachaaData.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.of(new GachaaData(false, Optional.empty(), Optional.empty(), Optional.empty())));
+            GachaData.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.of(new GachaData(false, Optional.empty(), Optional.empty(), Optional.empty())));
             return;
         }
 
         IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(abstractcontainermenu);
-        GachaaData.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.ofNullable(iMenu.gachaaddiction$getGachaaData()));
+        GachaData.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.ofNullable(iMenu.gachaaddiction$getGachaaData()));
     }
 
     @Inject(method = "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
@@ -86,7 +86,7 @@ public abstract class ServerPlayerMixin extends Player {
             menu.removed(player);
             return null;
         }
-        if (!MenuProviderData.isLootrContainer(instance) && GachaSources.find(instance) == null) {
+        if (!MenuProviderData.isLootContainer(instance) && GachaSources.find(instance) == null) {
             return menu;
         }
         IAbstractContainerMenu iMenu = IAbstractContainerMenu.of(menu);
@@ -96,7 +96,7 @@ public abstract class ServerPlayerMixin extends Player {
         var source = GachaSources.find(instance);
         var animation = source == null ? Optional.<GachaType>empty()
                 : source.getSettings().gachaType().map(GachaTypes::getDefault);
-        iMenu.gachaaddiction$setGachaaData(new GachaaData(data.isOpenGachaaUi(), animation, Optional.of(ModUtil.of(lootTableKey)), Optional.of(LootDisplayCache.get(lootTableKey))));
+        iMenu.gachaaddiction$setGachaaData(new GachaData(data.isOpenGachaaUi(), animation, Optional.of(ModUtil.of(lootTableKey)), Optional.of(LootDisplayCache.get(lootTableKey))));
         if (data.isOpenGachaaUi()) {
             GachaPresentations.beginContainer(serverPlayer, instance, menu);
             GachaAnnouncements.openContainer((ServerPlayer) player, instance, menu);

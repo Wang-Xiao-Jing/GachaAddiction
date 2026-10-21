@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration name="Data (No Build)" type="Application" factoryName="Application">
+  <option name="MAIN_CLASS_NAME" value="net.neoforged.devlaunch.Main" />
+  <module name="gachaaddiction_1_21_1.main" />
+  <option name="PROGRAM_PARAMETERS" value="@E:\\xm\\mc\\mod\\gachaaddiction\\gachaaddiction_1.21.1\\build\\moddev\\dataRunProgramArgs.txt" />
+  <option name="VM_PARAMETERS" value="@E:\\xm\\mc\\mod\\gachaaddiction\\gachaaddiction_1.21.1\\build\\moddev\\dataRunVmArgs.txt -Dfml.modFolders=gachaaddiction%%E:\\xm\\mc\\mod\\gachaaddiction\\gachaaddiction_1.21.1\\out\\production\\classes;gachaaddiction%%E:\\xm\\mc\\mod\\gachaaddiction\\gachaaddiction_1.21.1\\out\\production\\resources" />
+  <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run" />
+  <method v="2">
+  <option name="Make" enabled="false" />
+  </method>
+  </configuration>
+</component>

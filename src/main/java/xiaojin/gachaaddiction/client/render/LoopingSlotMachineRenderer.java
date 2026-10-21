@@ -6,10 +6,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
+import xiaojin.gachaaddiction.GachaModPresence;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
-import xiaojin.gachaaddiction.client.compat.colortooltips.ColorTooltipsBorderRenderer;
+import xiaojin.gachaaddiction.registry.client.GachaClientIntegrations;
 import xiaojin.gachaaddiction.config.ClientConfig;
 
 import java.util.*;
@@ -126,9 +127,9 @@ public class LoopingSlotMachineRenderer {
                 spacing * config.itemVisibleCount.get() / 2.0F));
         ItemStack hovered = ItemStack.EMPTY;
         float flow = 0.0F;
-        if (GachaAddiction.COLORTOOLTIPS_LOADED && !colorTooltipsFailed) {
+        if (GachaModPresence.COLORTOOLTIPS_LOADED && !colorTooltipsFailed) {
             try {
-                flow = ColorTooltipsBorderRenderer.updateFlow(partialTick);
+                flow = GachaClientIntegrations.itemBorders().updateFlow(partialTick);
             } catch (RuntimeException | LinkageError failure) {
                 disableColorTooltips(failure);
             }
@@ -183,11 +184,11 @@ public class LoopingSlotMachineRenderer {
     }
 
     private boolean border(GuiGraphics graphics, ItemStack item, int x, int y, float flow) {
-        if (item.isEmpty() || !GachaAddiction.COLORTOOLTIPS_LOADED || colorTooltipsFailed) {
+        if (item.isEmpty() || !GachaModPresence.COLORTOOLTIPS_LOADED || colorTooltipsFailed) {
             return false;
         }
         try {
-            return ColorTooltipsBorderRenderer.render(graphics, item, x, y, BORDER_SIZE, flow);
+            return GachaClientIntegrations.itemBorders().render(graphics, item, x, y, BORDER_SIZE, flow);
         } catch (RuntimeException | LinkageError failure) {
             disableColorTooltips(failure);
             return false;
@@ -196,7 +197,7 @@ public class LoopingSlotMachineRenderer {
 
     private void disableColorTooltips(Throwable failure) {
         colorTooltipsFailed = true;
-        GachaAddiction.LOGGER.warn(BORDER_WARNING, failure);
+        GachaConstants.LOGGER.warn(BORDER_WARNING, failure);
     }
 
     private static class Reel {

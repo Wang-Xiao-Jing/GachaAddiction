@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
-public final class GachaParameterTypeRegistry implements GachaParameterTypeResolver {
+public final class GachaParameterTypeRegistry implements IGachaParameterTypeResolver {
     private final Map<ResourceLocation, GachaParameterType<?>> types = new LinkedHashMap<>();
     private boolean frozen;
 

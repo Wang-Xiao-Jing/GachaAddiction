@@ -17,7 +17,7 @@ import xiaojin.gachaaddiction.cardpool.transaction.GachaCommittedTransaction;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.data.GachaDefinitionRepository;
 import xiaojin.gachaaddiction.persistence.GachaParameterNbtDecoder;
-import xiaojin.gachaaddiction.reward.GachaLootTableResolver;
+import xiaojin.gachaaddiction.reward.IGachaLootTableResolver;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 
 import java.time.Instant;
@@ -185,7 +185,7 @@ public final class GachaPublicCardPoolEndpoint {
                                                           OptionalInt roundsOverride) {
         ServerLevel level = player.serverLevel();
         var lootTables = level.getServer().reloadableRegistries().get().registryOrThrow(Registries.LOOT_TABLE);
-        GachaLootTableResolver lootTableResolver = key -> resolve(lootTables.get(key));
+        IGachaLootTableResolver lootTableResolver = key -> resolve(lootTables.get(key));
         LootParams lootParams = new LootParams.Builder(level)
                 .withParameter(LootContextParams.THIS_ENTITY, player)
                 .withParameter(LootContextParams.ORIGIN, player.position())

@@ -5,7 +5,7 @@ import xiaojin.gachaaddiction.reward.parameter.GachaParameterType;
 
 import java.util.Objects;
 
-public record GachaConstantParameterValue<T>(GachaParameterType<T> type, T value) implements GachaParameterValue {
+public record GachaConstantParameterValue<T>(GachaParameterType<T> type, T value) implements IGachaParameterValue {
     public GachaConstantParameterValue {
         Objects.requireNonNull(type, "type");
         value = type.copy(Objects.requireNonNull(value, "value"));

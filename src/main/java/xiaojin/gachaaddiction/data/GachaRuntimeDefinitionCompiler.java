@@ -5,9 +5,10 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.cardpool.GachaCardPoolDefinition;
 import xiaojin.gachaaddiction.execution.*;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
+import xiaojin.gachaaddiction.registry.runtime.GachaRuntimeRegistries;
+import xiaojin.gachaaddiction.reward.IGachaRewardPool;
 import xiaojin.gachaaddiction.reward.custom.GachaCustomLootTable;
-import xiaojin.gachaaddiction.reward.custom.GachaCustomTableResolver;
+import xiaojin.gachaaddiction.reward.custom.IGachaCustomTableResolver;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterTypeRegistry;
 
 import java.util.LinkedHashMap;
@@ -31,30 +32,22 @@ public final class GachaRuntimeDefinitionCompiler {
         GachaCustomTableCompiler customTableCompiler = new GachaCustomTableCompiler(registries, sharedDefinitions);
         Map<ResourceLocation, GachaCustomLootTable> customTables = customTableCompiler.compile(
                 raw.definitions(GachaDefinitionKind.TABLE));
-        GachaCustomTableResolver customTableResolver = id -> Optional.ofNullable(customTables.get(id));
+        IGachaCustomTableResolver customTableResolver = id -> Optional.ofNullable(customTables.get(id));
         GachaParameterDefinitionJson parameters = new GachaParameterDefinitionJson(parameterTypes, registries);
         GachaRewardPoolCompiler rewardPoolCompiler = new GachaRewardPoolCompiler(parameters, customTableResolver,
                 new GachaBuiltinRuleDefinitionCompiler(registries, sharedDefinitions), sharedDefinitions);
-        Map<ResourceLocation, GachaRewardPool> rewardPools = rewardPoolCompiler.compile(
+        Map<ResourceLocation, IGachaRewardPool> rewardPools = rewardPoolCompiler.compile(
                 raw.definitions(GachaDefinitionKind.REWARD_POOL));
         Map<ResourceLocation, GachaExecutionPlanDefinition> declaredExecutionPlans = new GachaExecutionPlanCompiler(
                 parameters, GachaRuntimeRegistries.EXECUTION_STEP_TYPES).compile(
                 raw.definitions(GachaDefinitionKind.EXECUTION_PLAN));
-        GachaCardPoolCompilation cardPoolCompilation = new GachaCardPoolCompiler(registries).compile(
-                raw.definitions(GachaDefinitionKind.CARD_POOL), rewardPools, declaredExecutionPlans);
-        Map<ResourceLocation, GachaExecutionPlanDefinition> mutableExecutionPlans =
-                new LinkedHashMap<>(declaredExecutionPlans);
-        cardPoolCompilation.generatedPlans().forEach((id, plan) -> {
-            if (mutableExecutionPlans.putIfAbsent(id, plan) != null) {
-                throw new IllegalArgumentException("Generated execution plan conflicts with declared plan: " + id);
-            }
-        });
+        Map<ResourceLocation, GachaCardPoolDefinition> cardPools = new GachaCardPoolCompiler(registries).compile(
+                raw.definitions(GachaDefinitionKind.CARD_POOL), declaredExecutionPlans);
         Map<ResourceLocation, GachaExecutionPlanDefinition> executionPlans = hydrateExecutionPlans(
-                mutableExecutionPlans, sharedDefinitions);
+                declaredExecutionPlans, sharedDefinitions);
         GachaExecutionPlanValidator.validate(executionPlans, rewardPools, customTables,
                 raw.definitions(GachaDefinitionKind.RULE_GROUP).keySet(),
                 raw.definitions(GachaDefinitionKind.QUANTITY_RULE).keySet());
-        Map<ResourceLocation, GachaCardPoolDefinition> cardPools = cardPoolCompilation.cardPools();
         Map<ResourceLocation, GachaRewardPoolRequestPreset> requestPresets =
                 new GachaRequestPresetCompiler(registries).compile(
                         raw.definitions(GachaDefinitionKind.REQUEST_PRESET), rewardPools);
@@ -77,10 +70,10 @@ public final class GachaRuntimeDefinitionCompiler {
         return Map.copyOf(hydrated);
     }
 
-    private GachaExecutionStep hydrateStep(GachaExecutionPlanDefinition plan, GachaExecutionStep step,
-                                           GachaRuleActionJson actionJson,
-                                           GachaBuiltinRuleDefinitionCompiler ruleCompiler,
-                                           GachaSharedDefinitionExpander sharedDefinitions) {
+    private IGachaExecutionStep hydrateStep(GachaExecutionPlanDefinition plan, IGachaExecutionStep step,
+                                            GachaRuleActionJson actionJson,
+                                            GachaBuiltinRuleDefinitionCompiler ruleCompiler,
+                                            GachaSharedDefinitionExpander sharedDefinitions) {
         if (!(step instanceof GachaComponentReferenceStep(
                 ResourceLocation type, ResourceLocation target, GachaParameterMapping parameters,
                 java.util.Set<GachaExecutionChannel> reads, java.util.Set<GachaExecutionChannel> writes

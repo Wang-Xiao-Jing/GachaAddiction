@@ -12,11 +12,11 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModContainer;
 import org.jetbrains.annotations.NotNull;
-import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.client.AdminWorkbenchClient;
+import xiaojin.gachaaddiction.GachaConstants;
+import xiaojin.gachaaddiction.client.workspace.AdminWorkbenchClient;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.config.entry.BasicConfigEntry;
-import xiaojin.gachaaddiction.generator.lang.LangHandler;
+import xiaojin.gachaaddiction.registry.language.GachaTranslations;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -222,7 +222,7 @@ public class LDLib2ConfigScreen {
             return true;
         }
         for (int i = 1; i < entry.path().size(); i++) {
-            var translationKey = LangHandler.getConfigTranslation(GachaAddiction.MODID,
+            var translationKey = GachaTranslations.getConfigTranslation(GachaConstants.MODID,
                     entry.path().subList(0, i).toArray(String[]::new));
             if (contains(Component.translatable(translationKey).getString(), search)) {
                 return true;
@@ -254,7 +254,7 @@ public class LDLib2ConfigScreen {
             var directoryNode = typeNode;
             for (int i = 1; i < entry.path().size(); i++) {
                 var directory = entry.path().subList(0, i);
-                var translationKey = LangHandler.getConfigTranslation(GachaAddiction.MODID,
+                var translationKey = GachaTranslations.getConfigTranslation(GachaConstants.MODID,
                         directory.toArray(String[]::new));
                 directoryNode = directoryNode.getOrCreateChild(Component.translatable(translationKey));
             }

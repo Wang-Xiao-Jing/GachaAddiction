@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record GachaVanillaLootTableSource(ResourceLocation id, ResourceKey<LootTable> lootTable)
-        implements GachaRewardSource {
+        implements IGachaRewardSource {
     public GachaVanillaLootTableSource {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(lootTable, "lootTable");

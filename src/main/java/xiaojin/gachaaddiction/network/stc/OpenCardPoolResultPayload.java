@@ -1,7 +1,5 @@
 package xiaojin.gachaaddiction.network.stc;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -9,10 +7,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.cardpool.GachaCardPoolResultStyle;
-import xiaojin.gachaaddiction.client.GachaPresentationClient;
 import xiaojin.gachaaddiction.network.IToClientPayload;
 
 import java.util.List;
@@ -25,7 +21,7 @@ public record OpenCardPoolResultPayload(
         List<List<ItemStack>> rewardRounds
 ) implements IToClientPayload {
     public static final Type<OpenCardPoolResultPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "open_card_pool_result"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "open_card_pool_result"));
     private static final int MAXIMUM_REWARD_STACKS = 4096;
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenCardPoolResultPayload> STREAM_CODEC =
             StreamCodec.composite(UUIDUtil.STREAM_CODEC, OpenCardPoolResultPayload::transactionId,
@@ -77,11 +73,4 @@ public record OpenCardPoolResultPayload(
         return TYPE;
     }
 
-    @Override
-    public void work(IPayloadContext context, AbstractClientPlayer player) {
-        Minecraft.getInstance().setScreen(switch (resultStyle) {
-            case SUMMARY ->
-                    GachaPresentationClient.createCardPoolResult(transactionId, cardPoolId, packageId, rewards, rewardRounds);
-        });
-    }
 }

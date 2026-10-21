@@ -5,13 +5,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 
 import java.io.IOException;
 
 public class GachaReelFade implements AutoCloseable {
     private static final ResourceLocation EFFECT = ResourceLocation.fromNamespaceAndPath(
-            GachaAddiction.MODID, "shaders/post/reel_fade.json");
+            GachaConstants.MODID, "shaders/post/reel_fade.json");
     private static final String BACKGROUND_TARGET = "background";
     private static final String TOP_UNIFORM = "FadeTop";
     private static final String BOTTOM_UNIFORM = "FadeBottom";
@@ -53,7 +53,7 @@ public class GachaReelFade implements AutoCloseable {
                 active = true;
                 return true;
             } catch (IOException | RuntimeException failure) {
-                GachaAddiction.LOGGER.warn(WARNING, EFFECT, failure);
+                GachaConstants.LOGGER.warn(WARNING, EFFECT, failure);
                 release();
                 return false;
             } finally {
@@ -75,7 +75,7 @@ public class GachaReelFade implements AutoCloseable {
                 chain.setUniform(BOTTOM_UNIFORM, bottom / (float) graphics.guiHeight());
                 chain.process(0.0F);
             } catch (RuntimeException failure) {
-                GachaAddiction.LOGGER.warn(WARNING, EFFECT, failure);
+                GachaConstants.LOGGER.warn(WARNING, EFFECT, failure);
                 release();
             } finally {
                 Minecraft.getInstance().getMainRenderTarget().bindWrite(true);

@@ -1,8 +1,8 @@
 package xiaojin.gachaaddiction.registry.client;
 
 import xiaojin.gachaaddiction.api.GachaType;
-import xiaojin.gachaaddiction.api.client.GachaTypeClient;
-import xiaojin.gachaaddiction.client.GachaPresentationClient;
+import xiaojin.gachaaddiction.client.api.GachaTypeClient;
+import xiaojin.gachaaddiction.client.presentation.GachaPresentationClient;
 import xiaojin.gachaaddiction.client.gui.screen.GachaAnimationScreen;
 import xiaojin.gachaaddiction.client.gui.screen.ModernGachaScreen;
 import xiaojin.gachaaddiction.client.gui.screen.Modern2GachaScreen;
@@ -39,7 +39,7 @@ public class GachaTypeClients {
     public static final GachaTypeClient<GachaType, ?> MODERN_2 = register(GachaTypes.MODERN_2, gachaType ->
             new GachaTypeClient<>(gachaType, Modern2GachaScreen::new));
     public static final GachaTypeClient<GachaType, ?> LDLIB2 = register(GachaTypes.LDLIB2, gachaType ->
-            new GachaTypeClient<>(gachaType, GachaPresentationClient::createLegacy));
+            new GachaTypeClient<>(gachaType, GachaPresentationClient::createTemplate));
 
     public static <T extends GachaType, C extends GachaTypeClient<T, ?>> C register(T gachaType, Function<T, C> function) {
         C type = function.apply(gachaType);

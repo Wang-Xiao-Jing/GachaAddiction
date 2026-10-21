@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record GachaVanillaLootTableCustomEntry(ResourceLocation id, ResourceKey<LootTable> lootTable)
-        implements GachaCustomEntry {
+        implements IGachaCustomEntry {
     public GachaVanillaLootTableCustomEntry {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(lootTable, "lootTable");

@@ -16,23 +16,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public final class GachaCardPoolService {
-    private final GachaCardPoolDefinitionResolver cardPools;
-    private final GachaExecutionComponentResolver executionComponents;
-    private final GachaCardPoolSnapshotManager snapshots;
+    private final IGachaCardPoolDefinitionResolver cardPools;
+    private final IGachaExecutionComponentResolver executionComponents;
+    private final IGachaCardPoolSnapshotManager snapshots;
     private final GachaCardPoolParameterResolver parameterResolver;
-    private final GachaParameterStateRepository parameterState;
-    private final GachaParameterFingerprint parameterFingerprint;
+    private final IGachaParameterStateRepository parameterState;
+    private final IGachaParameterFingerprint parameterFingerprint;
     private final GachaTransactionCoordinator transactions;
-    private final GachaTransactionEffects effects;
+    private final IGachaTransactionEffects effects;
 
-    public GachaCardPoolService(GachaCardPoolDefinitionResolver cardPools,
-                                GachaExecutionComponentResolver executionComponents,
-                                GachaCardPoolSnapshotManager snapshots,
+    public GachaCardPoolService(IGachaCardPoolDefinitionResolver cardPools,
+                                IGachaExecutionComponentResolver executionComponents,
+                                IGachaCardPoolSnapshotManager snapshots,
                                 GachaCardPoolParameterResolver parameterResolver,
-                                GachaParameterStateRepository parameterState,
-                                GachaParameterFingerprint parameterFingerprint,
+                                IGachaParameterStateRepository parameterState,
+                                IGachaParameterFingerprint parameterFingerprint,
                                 GachaTransactionCoordinator transactions,
-                                GachaTransactionEffects effects) {
+                                IGachaTransactionEffects effects) {
         this.cardPools = Objects.requireNonNull(cardPools, "cardPools");
         this.executionComponents = Objects.requireNonNull(executionComponents, "executionComponents");
         this.snapshots = Objects.requireNonNull(snapshots, "snapshots");

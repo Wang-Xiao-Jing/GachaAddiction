@@ -10,7 +10,7 @@ import java.util.Set;
 public record GachaRuleGroupExecutionStep(ResourceLocation type, ResourceLocation target,
                                           List<GachaRuleDefinition> rules,
                                           Set<GachaExecutionChannel> reads,
-                                          Set<GachaExecutionChannel> writes) implements GachaExecutionStep {
+                                          Set<GachaExecutionChannel> writes) implements IGachaExecutionStep {
     public GachaRuleGroupExecutionStep {
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(target, "target");

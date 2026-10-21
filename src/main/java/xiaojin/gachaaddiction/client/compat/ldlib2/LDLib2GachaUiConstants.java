@@ -1,14 +1,6 @@
 package xiaojin.gachaaddiction.client.compat.ldlib2;
 
-import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.GachaAddiction;
-
 public class LDLib2GachaUiConstants {
-    public static final String GACHA_TYPE_PATH = "ldlib2";
-    public static final ResourceLocation DEFAULT_TEMPLATE_ID = ResourceLocation.fromNamespaceAndPath(
-            GachaAddiction.MODID, "ui/gacha_screen.ui.nbt");
-    public static final ResourceLocation DEFAULT_STYLESHEET_ID = ResourceLocation.fromNamespaceAndPath(
-            GachaAddiction.MODID, "lss/gacha_screen.lss");
     public static final String TITLE_ID = "gacha_title";
     public static final String CONTEXT_ID = "gacha_context";
     public static final String REWARDS_ID = "gacha_rewards";

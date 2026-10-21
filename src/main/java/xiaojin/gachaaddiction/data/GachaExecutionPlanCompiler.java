@@ -6,8 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.execution.GachaExecutionPlanDefinition;
-import xiaojin.gachaaddiction.execution.GachaExecutionStep;
-import xiaojin.gachaaddiction.execution.GachaExecutionStepType;
+import xiaojin.gachaaddiction.execution.IGachaExecutionStep;
+import xiaojin.gachaaddiction.execution.IGachaExecutionStepType;
 import xiaojin.gachaaddiction.execution.GachaExecutionStepTypeRegistry;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterDefinition;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSchema;
@@ -41,7 +41,7 @@ public final class GachaExecutionPlanCompiler {
         String location = "execution plan " + id;
         GachaJson.requireOnly(json, ROOT_FIELDS, location);
         GachaParameterSchema schema = parameterSchema(id, GachaJson.array(json, "parameters", location), location);
-        List<GachaExecutionStep> steps = steps(id, GachaJson.array(json, "steps", location), location);
+        List<IGachaExecutionStep> steps = steps(id, GachaJson.array(json, "steps", location), location);
         Optional<GachaExecutionLimits> limits = json.has("limits")
                 ? Optional.of(GachaExecutionLimitsJson.decode(GachaJson.object(json, "limits", location),
                 location + ".limits")) : Optional.empty();
@@ -62,14 +62,14 @@ public final class GachaExecutionPlanCompiler {
         return new GachaParameterSchema(definitions);
     }
 
-    private List<GachaExecutionStep> steps(ResourceLocation id, JsonArray encoded, String location) {
+    private List<IGachaExecutionStep> steps(ResourceLocation id, JsonArray encoded, String location) {
         if (encoded.isEmpty()) {
             throw new JsonParseException("Execution plan must contain at least one step: " + id);
         }
         if (encoded.size() > MAXIMUM_STEPS) {
             throw new JsonParseException("Execution plan contains too many steps: " + id);
         }
-        List<GachaExecutionStep> steps = new ArrayList<>();
+        List<IGachaExecutionStep> steps = new ArrayList<>();
         for (int index = 0; index < encoded.size(); index++) {
             JsonElement value = encoded.get(index);
             String stepLocation = location + ".steps[" + index + "]";
@@ -79,7 +79,7 @@ public final class GachaExecutionPlanCompiler {
             JsonObject step = value.getAsJsonObject();
             GachaJson.requireOnly(step, STEP_FIELDS, stepLocation);
             ResourceLocation typeId = ResourceLocation.parse(GachaJson.string(step, "type", stepLocation));
-            GachaExecutionStepType type = stepTypes.resolve(typeId).orElseThrow(() ->
+            IGachaExecutionStepType type = stepTypes.resolve(typeId).orElseThrow(() ->
                     new JsonParseException("Unknown execution step type '" + typeId + "' at " + stepLocation));
             steps.add(type.decode(id, index, GachaJson.object(step, "data", stepLocation),
                     this::parameterMappings));

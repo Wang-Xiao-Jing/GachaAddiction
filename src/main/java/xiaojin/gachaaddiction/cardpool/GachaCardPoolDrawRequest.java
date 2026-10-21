@@ -5,7 +5,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.storage.loot.LootParams;
 import xiaojin.gachaaddiction.cardpool.parameter.GachaRequestAuthority;
 import xiaojin.gachaaddiction.cardpool.transaction.GachaDurability;
-import xiaojin.gachaaddiction.reward.GachaLootTableResolver;
+import xiaojin.gachaaddiction.reward.IGachaLootTableResolver;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 
 import java.util.Objects;
@@ -15,12 +15,12 @@ import java.util.UUID;
 public record GachaCardPoolDrawRequest(UUID playerId, ResourceLocation cardPoolId,
                                        ResourceLocation packageId, GachaParameterSet requestParameters,
                                        GachaRequestAuthority authority, GachaDurability durability,
-                                       LootParams lootParams, GachaLootTableResolver lootTableResolver,
+                                       LootParams lootParams, IGachaLootTableResolver lootTableResolver,
                                        RandomSource random, OptionalInt roundsOverride) {
     public GachaCardPoolDrawRequest(UUID playerId, ResourceLocation cardPoolId,
                                     ResourceLocation packageId, GachaParameterSet requestParameters,
                                     GachaRequestAuthority authority, GachaDurability durability,
-                                    LootParams lootParams, GachaLootTableResolver lootTableResolver,
+                                    LootParams lootParams, IGachaLootTableResolver lootTableResolver,
                                     RandomSource random) {
         this(playerId, cardPoolId, packageId, requestParameters, authority, durability, lootParams,
                 lootTableResolver, random, OptionalInt.empty());
@@ -29,7 +29,7 @@ public record GachaCardPoolDrawRequest(UUID playerId, ResourceLocation cardPoolI
     public GachaCardPoolDrawRequest(UUID playerId, ResourceLocation cardPoolId,
                                     ResourceLocation packageId, GachaParameterSet requestParameters,
                                     GachaRequestAuthority authority, GachaDurability durability,
-                                    LootParams lootParams, GachaLootTableResolver lootTableResolver,
+                                    LootParams lootParams, IGachaLootTableResolver lootTableResolver,
                                     RandomSource random, int rounds) {
         this(playerId, cardPoolId, packageId, requestParameters, authority, durability, lootParams,
                 lootTableResolver, random, OptionalInt.of(rounds));

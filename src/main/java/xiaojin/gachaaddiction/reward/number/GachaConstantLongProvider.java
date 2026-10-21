@@ -1,13 +1,13 @@
 package xiaojin.gachaaddiction.reward.number;
 
-public record GachaConstantLongProvider(long value) implements GachaLongProvider {
+public record GachaConstantLongProvider(long value) implements IGachaLongProvider {
     @Override
     public long get(GachaNumberContext context) {
         return value;
     }
 
     @Override
-    public GachaNumberExpression expression() {
-        return new GachaNumberExpression.LongConstant(value);
+    public IGachaNumberExpression expression() {
+        return new IGachaNumberExpression.LongConstant(value);
     }
 }

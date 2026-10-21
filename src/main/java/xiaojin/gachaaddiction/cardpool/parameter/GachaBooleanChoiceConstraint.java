@@ -1,6 +1,6 @@
 package xiaojin.gachaaddiction.cardpool.parameter;
 
-public final class GachaBooleanChoiceConstraint implements GachaPlayerChoiceConstraint<Boolean> {
+public final class GachaBooleanChoiceConstraint implements IGachaPlayerChoiceConstraint<Boolean> {
     public static final GachaBooleanChoiceConstraint INSTANCE = new GachaBooleanChoiceConstraint();
 
     private GachaBooleanChoiceConstraint() {

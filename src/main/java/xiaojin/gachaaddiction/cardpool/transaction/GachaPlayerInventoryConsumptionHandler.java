@@ -11,9 +11,9 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.cardpool.GachaServerRuntimeManager;
-import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInbox;
+import xiaojin.gachaaddiction.cardpool.delivery.IGachaRewardInbox;
 import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInboxEntry;
 import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInboxEntryKind;
 
@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public final class GachaPlayerInventoryConsumptionHandler implements GachaConsumptionHandler {
+public final class GachaPlayerInventoryConsumptionHandler implements IGachaConsumptionHandler {
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(
-            GachaAddiction.MODID, "player_inventory");
+            GachaConstants.MODID, "player_inventory");
 
     private static final String REQUIREMENTS_KEY = "requirements";
     private static final String SELECTOR_KEY = "selector";
@@ -201,7 +201,7 @@ public final class GachaPlayerInventoryConsumptionHandler implements GachaConsum
         return server.registryAccess();
     }
 
-    private static GachaRewardInbox requireInbox() {
+    private static IGachaRewardInbox requireInbox() {
         return GachaServerRuntimeManager.current().orElseThrow(() ->
                 new IllegalStateException("Gacha server runtime is unavailable")).rewardInbox();
     }
@@ -232,7 +232,7 @@ public final class GachaPlayerInventoryConsumptionHandler implements GachaConsum
         List<Removal> removals = plan(player.getInventory(),
                 decodeRequirements(consumption.data(), player.registryAccess()));
         List<ItemStack> expected = removals.stream().map(Removal::stack).toList();
-        GachaRewardInbox inbox = requireInbox();
+        IGachaRewardInbox inbox = requireInbox();
         inbox.restore(new GachaRewardInboxEntry(context.transactionId(), context.playerId(),
                 GachaRewardInboxEntryKind.RETURN, expected));
         List<ItemStack> removed = new ArrayList<>();

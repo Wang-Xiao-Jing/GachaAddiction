@@ -16,10 +16,10 @@ import java.util.Set;
 public final class GachaParameterDefinitionJson {
     private static final Set<String> FIELDS = Set.of("name", "type", "direction", "required", "default");
 
-    private final GachaParameterTypeResolver parameterTypes;
+    private final IGachaParameterTypeResolver parameterTypes;
     private final RegistryOps<JsonElement> ops;
 
-    public GachaParameterDefinitionJson(GachaParameterTypeResolver parameterTypes,
+    public GachaParameterDefinitionJson(IGachaParameterTypeResolver parameterTypes,
                                         HolderLookup.Provider registries) {
         this.parameterTypes = Objects.requireNonNull(parameterTypes, "parameterTypes");
         this.ops = RegistryOps.create(JsonOps.INSTANCE, Objects.requireNonNull(registries, "registries"));

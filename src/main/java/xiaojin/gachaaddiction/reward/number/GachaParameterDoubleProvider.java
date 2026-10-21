@@ -7,7 +7,7 @@ import xiaojin.gachaaddiction.reward.parameter.GachaParameterView;
 import java.util.Objects;
 
 public record GachaParameterDoubleProvider(GachaParameterDefinition<? extends Number> parameter,
-                                           GachaParameterView view) implements GachaDoubleProvider {
+                                           GachaParameterView view) implements IGachaDoubleProvider {
     public GachaParameterDoubleProvider {
         Objects.requireNonNull(parameter, "parameter");
         Objects.requireNonNull(view, "view");
@@ -28,8 +28,8 @@ public record GachaParameterDoubleProvider(GachaParameterDefinition<? extends Nu
     }
 
     @Override
-    public GachaNumberExpression expression() {
-        return new GachaNumberExpression.Parameter(parameter.key(), view,
+    public IGachaNumberExpression expression() {
+        return new IGachaNumberExpression.Parameter(parameter.key(), view,
                 parameter.defaultValue().map(Number.class::cast));
     }
 }

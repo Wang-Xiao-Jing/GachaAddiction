@@ -7,7 +7,7 @@ import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 import java.util.List;
 import java.util.Objects;
 
-public record GachaVanillaLootCondition(LootItemCondition condition) implements GachaRuleCondition {
+public record GachaVanillaLootCondition(LootItemCondition condition) implements IGachaRuleCondition {
     public GachaVanillaLootCondition {
         Objects.requireNonNull(condition, "condition");
     }

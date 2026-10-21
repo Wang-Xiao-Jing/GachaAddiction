@@ -7,6 +7,7 @@ import xiaojin.gachaaddiction.cardpool.transaction.GachaTransactionId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public record GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, UUID playerId,
@@ -14,7 +15,19 @@ public record GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, U
                                              GachaRewardDeliveryLedgerStage stage,
                                              List<ItemStack> rewards, List<Integer> remainderCounts,
                                              boolean deliveryProgressRecorded,
-                                             List<ItemStack> returnRewards, boolean returnRewardsRecorded) {
+                                             List<ItemStack> returnRewards, boolean returnRewardsRecorded,
+                                             Optional<GachaRewardDeliveryAttempt> attempt,
+                                             Optional<GachaTransactionId> inboxEntryId) {
+    public GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, UUID playerId,
+                                          GachaRewardDeliveryMode mode,
+                                          GachaRewardDeliveryLedgerStage stage,
+                                          List<ItemStack> rewards, List<Integer> remainderCounts,
+                                          boolean deliveryProgressRecorded,
+                                          List<ItemStack> returnRewards, boolean returnRewardsRecorded) {
+        this(transactionId, playerId, mode, stage, rewards, remainderCounts, deliveryProgressRecorded,
+                returnRewards, returnRewardsRecorded, Optional.empty(), Optional.empty());
+    }
+
     public GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, UUID playerId,
                                           GachaRewardDeliveryMode mode,
                                           GachaRewardDeliveryLedgerStage stage,
@@ -46,6 +59,29 @@ public record GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, U
         Objects.requireNonNull(playerId, "playerId");
         Objects.requireNonNull(mode, "mode");
         Objects.requireNonNull(stage, "stage");
+        Objects.requireNonNull(attempt, "attempt");
+        Objects.requireNonNull(inboxEntryId, "inboxEntryId");
+        if (inboxEntryId.isPresent() && mode != GachaRewardDeliveryMode.INVENTORY) {
+            throw new IllegalArgumentException("Inbox claims must use inventory delivery");
+        }
+
+        if (attempt.isPresent()) {
+            GachaRewardDeliveryReceipt receipt = attempt.get().receipt();
+            if (!receipt.playerId().equals(playerId) || !receipt.transactionId().equals(transactionId)) {
+                throw new IllegalArgumentException("Delivery receipt identity does not match its ledger entry");
+            }
+
+            if (stage != GachaRewardDeliveryLedgerStage.APPLYING
+                    && stage != GachaRewardDeliveryLedgerStage.ONLINE_APPLIED
+                    && stage != GachaRewardDeliveryLedgerStage.DELIVERED) {
+                throw new IllegalArgumentException("Delivery attempts are only valid after applying starts");
+            }
+
+            if (stage != GachaRewardDeliveryLedgerStage.DELIVERED && !deliveryProgressRecorded) {
+                throw new IllegalArgumentException("Delivery attempts require recorded planned progress");
+            }
+        }
+
         rewards = Objects.requireNonNull(rewards, "rewards").stream().map(ItemStack::copy).toList();
         remainderCounts = List.copyOf(Objects.requireNonNull(remainderCounts, "remainderCounts"));
         returnRewards = Objects.requireNonNull(returnRewards, "returnRewards").stream()
@@ -104,21 +140,44 @@ public record GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, U
         List<Integer> initialRemainders = rewards.stream().map(ItemStack::getCount).toList();
         return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode,
                 GachaRewardDeliveryLedgerStage.APPLYING, rewards, initialRemainders, true,
-                List.of(), false);
+                List.of(), false, attempt, inboxEntryId);
+    }
+
+    public GachaRewardDeliveryLedgerEntry forInboxClaim(GachaTransactionId sourceEntryId) {
+        requireStage(GachaRewardDeliveryLedgerStage.PREPARED);
+        return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode, stage, rewards,
+                remainderCounts, deliveryProgressRecorded, returnRewards, returnRewardsRecorded,
+                attempt, Optional.of(Objects.requireNonNull(sourceEntryId, "sourceEntryId")));
+    }
+
+    public GachaRewardDeliveryLedgerEntry applying(GachaRewardDeliveryAttempt deliveryAttempt,
+                                                   List<Integer> remainders) {
+        requireStage(GachaRewardDeliveryLedgerStage.PREPARED);
+        return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode,
+                GachaRewardDeliveryLedgerStage.APPLYING, rewards, remainders, true, List.of(), false,
+                Optional.of(Objects.requireNonNull(deliveryAttempt, "deliveryAttempt")), inboxEntryId);
     }
 
     public GachaRewardDeliveryLedgerEntry applyingProgress(List<Integer> remainders) {
         requireStage(GachaRewardDeliveryLedgerStage.APPLYING);
+        if (attempt.isPresent()) {
+            throw new IllegalStateException("Planned delivery progress cannot be changed per stack");
+        }
+
         return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode,
                 GachaRewardDeliveryLedgerStage.APPLYING, rewards, remainders, true,
-                List.of(), false);
+                List.of(), false, attempt, inboxEntryId);
     }
 
     public GachaRewardDeliveryLedgerEntry onlineApplied(List<Integer> remainders) {
         requireStage(GachaRewardDeliveryLedgerStage.APPLYING);
+        if (attempt.isPresent() && !remainderCounts.equals(remainders)) {
+            throw new IllegalStateException("Applied delivery progress must match the recorded plan");
+        }
+
         return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode,
                 GachaRewardDeliveryLedgerStage.ONLINE_APPLIED, rewards, remainders, true,
-                List.of(), false);
+                List.of(), false, attempt, inboxEntryId);
     }
 
     public GachaRewardDeliveryLedgerEntry returnPending() {
@@ -126,6 +185,10 @@ public record GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, U
     }
 
     public GachaRewardDeliveryLedgerEntry returnPending(List<ItemStack> pendingRewards) {
+        if (attempt.isPresent()) {
+            throw new IllegalStateException("Delivery attempt must be reconciled before returning rewards");
+        }
+
         if (stage != GachaRewardDeliveryLedgerStage.PREPARED
                 && stage != GachaRewardDeliveryLedgerStage.APPLYING
                 && stage != GachaRewardDeliveryLedgerStage.ONLINE_APPLIED
@@ -134,13 +197,13 @@ public record GachaRewardDeliveryLedgerEntry(GachaTransactionId transactionId, U
         }
         return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode,
                 GachaRewardDeliveryLedgerStage.RETURN_PENDING, rewards,
-                Collections.nCopies(rewards.size(), 0), false, pendingRewards, true);
+                Collections.nCopies(rewards.size(), 0), false, pendingRewards, true, attempt, inboxEntryId);
     }
 
     public GachaRewardDeliveryLedgerEntry delivered() {
         return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode,
                 GachaRewardDeliveryLedgerStage.DELIVERED, rewards,
-                Collections.nCopies(rewards.size(), 0));
+                Collections.nCopies(rewards.size(), 0), false, List.of(), false, attempt, inboxEntryId);
     }
 
     @Override

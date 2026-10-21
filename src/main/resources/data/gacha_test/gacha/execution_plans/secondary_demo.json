@@ -1,0 +1,26 @@
+{
+    "format_version": 1,
+    "parameters": [
+        {
+            "name": "rounds",
+            "type": "gachaaddiction:long",
+            "direction": "INPUT",
+            "required": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "gachaaddiction:reward_pool",
+            "data": {
+                "target": "gacha_test:secondary_demo",
+                "rounds": {
+                    "type": "parameter",
+                    "owner": "gacha_test:secondary_demo",
+                    "name": "rounds",
+                    "view": "CURRENT"
+                },
+                "parameters": []
+            }
+        }
+    ]
+}

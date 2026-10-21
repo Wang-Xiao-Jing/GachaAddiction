@@ -1,10 +1,10 @@
 # 多选一与多连抽测试数据包
 
-适用于当前Minecraft 1.21.1工程。本包的卡池与奖励池已原样加入模组内置数据资源；命名空间、卡池与套餐ID保持不变。
+适用于当前Minecraft 1.21.1工程。本包的卡池、执行计划与奖励池均加入模组内置数据资源；命名空间、卡池与套餐ID保持不变。
 
-使用包含本次资源修改的模组时，无需额外安装数据包；世界加载时按正常数据资源流程读取。用 `/gacha admin list card_pools` 确认出现 `gacha_test:secondary_demo` 后执行下列命令。同级 `secondary-interactions.zip` 保留为独立分发包；旧版模组仍需手动部署该包。
+使用包含本次资源修改的模组时，无需额外安装数据包；世界加载时按正常数据资源流程读取。用 `/gacha admin list card_pools` 确认出现 `gacha_test:secondary_demo` 后执行下列命令。同级 `secondary-interactions.zip` 保留为独立分发包；独立部署时需使用支持显式执行计划的模组版本。
 
-内置文件为 `src/main/resources/data/gacha_test/gacha/card_pools/secondary_demo.json` 和 `src/main/resources/data/gacha_test/gacha/reward_pools/secondary_demo.json`。本次只添加JSON及更新说明，IDEA诊断与游戏内加载验收分开记录；未运行构建、Data、游戏或重载。
+内置文件位于 `src/main/resources/data/gacha_test/gacha/` 下的 `card_pools/secondary_demo.json`、`execution_plans/secondary_demo.json` 和 `reward_pools/secondary_demo.json`。执行计划读取套餐的轮次参数，不再由卡池编译器生成隐式计划。IDEA诊断与执行验收分开记录；本次迁移未运行编译、Data、游戏或重载。
 
 测试池使用原版末地城战利品，单抽为1轮、连抽为3轮；不收取套餐费用，道具仍沿用原有消耗规则，生存模式消耗一个启动道具。卡池仅权限等级2及以上可用。
 

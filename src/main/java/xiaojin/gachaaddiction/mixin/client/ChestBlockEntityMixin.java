@@ -5,16 +5,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xiaojin.gachaaddiction.client.render.GachaSceneRenderer;
+import xiaojin.gachaaddiction.client.render.GachaChestRenderOverride;
 
 @Mixin(ChestBlockEntity.class)
 public class ChestBlockEntityMixin {
     @Inject(method = "getOpenNess(F)F", at = @At("HEAD"), cancellable = true)
     private void gachaaddiction$previewOpenNess(float partialTick, CallbackInfoReturnable<Float> callback) {
-        float opening = GachaSceneRenderer.overrideOpenNess((ChestBlockEntity) (Object) this);
+        float opening = GachaChestRenderOverride.overrideOpenNess((ChestBlockEntity) (Object) this);
         if (opening >= 0.0F) {
             callback.setReturnValue(opening);
         }
     }
 }
-

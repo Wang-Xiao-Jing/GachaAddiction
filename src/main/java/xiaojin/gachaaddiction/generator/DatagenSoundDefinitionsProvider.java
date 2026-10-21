@@ -6,12 +6,12 @@ import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.SoundDefinition;
 import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.registry.sound.ModSoundEvents;
 
 public class DatagenSoundDefinitionsProvider extends SoundDefinitionsProvider {
     protected DatagenSoundDefinitionsProvider(PackOutput output, ExistingFileHelper helper) {
-        super(output, GachaAddiction.MODID, helper);
+        super(output, GachaConstants.MODID, helper);
     }
 
     public static String getSubtitle(SoundEvent soundEvent) {

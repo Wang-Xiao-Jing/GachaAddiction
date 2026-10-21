@@ -7,11 +7,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.network.IToServerPayload;
-import xiaojin.gachaaddiction.util.GachaPresentations;
+import xiaojin.gachaaddiction.presentation.GachaPresentations;
 
 public record GachaPresentationPreferencesPayload(
         boolean protectLoot,
@@ -20,7 +20,7 @@ public record GachaPresentationPreferencesPayload(
         int choiceCount
 ) implements IToServerPayload {
     public static final Type<GachaPresentationPreferencesPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "presentation_preferences"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "presentation_preferences"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GachaPresentationPreferencesPayload> STREAM_CODEC =
             StreamCodec.composite(ByteBufCodecs.BOOL, GachaPresentationPreferencesPayload::protectLoot,
                     GachaType.STREAM_CODEC, GachaPresentationPreferencesPayload::animation,

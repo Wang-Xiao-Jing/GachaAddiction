@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.cardpool.GachaServerRuntimeManager;
 import xiaojin.gachaaddiction.network.IToServerPayload;
 import xiaojin.gachaaddiction.network.stc.OpenRewardInboxPayload;
@@ -17,7 +17,7 @@ import xiaojin.gachaaddiction.util.TranslationKeys;
 public record RequestRewardInboxPayload() implements IToServerPayload {
     public static final RequestRewardInboxPayload INSTANCE = new RequestRewardInboxPayload();
     public static final Type<RequestRewardInboxPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "request_reward_inbox"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "request_reward_inbox"));
     public static final StreamCodec<RegistryFriendlyByteBuf, RequestRewardInboxPayload> STREAM_CODEC =
             StreamCodec.unit(INSTANCE);
 

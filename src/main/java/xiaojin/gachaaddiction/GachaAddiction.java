@@ -1,29 +1,20 @@
 package xiaojin.gachaaddiction;
 
-import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
-import org.slf4j.Logger;
+import xiaojin.gachaaddiction.compat.GachaCompatibility;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.registry.GachaSources;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 import xiaojin.gachaaddiction.registry.item.GachaDrawItems;
 import xiaojin.gachaaddiction.registry.sound.ModSoundEvents;
 
-@Mod(GachaAddiction.MODID)
+@Mod(GachaConstants.MODID)
 public class GachaAddiction {
-    public static final String MODID = "gachaaddiction";
-    public static final Logger LOGGER = LogUtils.getLogger();
-
-    public static final boolean LOOTR_LOADED = ModList.get().isLoaded("lootr");
-    public static final boolean RARITYCORE_LOADED = ModList.get().isLoaded("raritycore");
-    public static final boolean CONFLUENCE_MAGIC_LIB_LOADED = ModList.get().isLoaded("confluence_magic_lib");
-    public static final boolean LDLIB2_LOADED = ModList.get().isLoaded("ldlib2");
-    public static final boolean COLORTOOLTIPS_LOADED = ModList.get().isLoaded("colortooltips");
 
     public GachaAddiction(IEventBus modEventBus, ModContainer modContainer) {
+        GachaCompatibility.initialize();
         GachaTypes.init();
         GachaAddictionConfig.register(modContainer);
         ModSoundEvents.REGISTRY.register(modEventBus);

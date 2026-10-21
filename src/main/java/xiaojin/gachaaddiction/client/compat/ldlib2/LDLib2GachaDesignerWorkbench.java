@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.io.File;
@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public final class LDLib2GachaDesignerWorkbench extends UIEditor {
-    public static final ResourceLocation WINDOW_ID = ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "gacha_designer");
+    public static final ResourceLocation WINDOW_ID = ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "gacha_designer");
     private static final String SETTINGS_FILE = "gacha-designer.json";
     private static final int GAP = 4;
     private static final int FIELD_HEIGHT = 18;
@@ -110,7 +110,7 @@ public final class LDLib2GachaDesignerWorkbench extends UIEditor {
     @Override
     protected @NotNull EditorSettings createSettings() {
         return new EditorSettings(this).setSettingsFile(Platform.getGamePath().resolve("config")
-                .resolve(GachaAddiction.MODID).resolve(SETTINGS_FILE).toFile());
+                .resolve(GachaConstants.MODID).resolve(SETTINGS_FILE).toFile());
     }
 
     @Override

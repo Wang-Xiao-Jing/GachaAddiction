@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Objects;
 
 public final class GachaStandaloneRewardExecutor {
-    private final GachaExecutionComponentResolver components;
+    private final IGachaExecutionComponentResolver components;
 
-    public GachaStandaloneRewardExecutor(GachaExecutionComponentResolver components) {
+    public GachaStandaloneRewardExecutor(IGachaExecutionComponentResolver components) {
         this.components = Objects.requireNonNull(components, "components");
     }
 
@@ -39,19 +39,19 @@ public final class GachaStandaloneRewardExecutor {
         return draw(new GachaVanillaLootTableSource(lootTable.location(), lootTable), request, limits);
     }
 
-    public GachaRewardPoolResult draw(GachaRewardSource source, GachaRewardPoolRequest request,
+    public GachaRewardPoolResult draw(IGachaRewardSource source, GachaRewardPoolRequest request,
                                       GachaExecutionLimits limits) {
         GachaLogicalRewardPoolResult result = drawLogical(source, request, limits);
         return new GachaRewardPoolResult(GachaRewardFinalizer.finalizeRewards(result.rewards(), limits),
                 result.parameterChanges(), result.problems());
     }
 
-    public GachaLogicalRewardPoolResult drawLogical(GachaRewardSource source, GachaRewardPoolRequest request,
+    public GachaLogicalRewardPoolResult drawLogical(IGachaRewardSource source, GachaRewardPoolRequest request,
                                                     GachaExecutionLimits limits) {
         return drawLogical(source, request, request.parameters(), limits);
     }
 
-    GachaLogicalRewardPoolResult drawLogical(GachaRewardSource source, GachaRewardPoolRequest request,
+    GachaLogicalRewardPoolResult drawLogical(IGachaRewardSource source, GachaRewardPoolRequest request,
                                              GachaParameterSet currentParameters, GachaExecutionLimits limits) {
         Objects.requireNonNull(source, "source");
         Objects.requireNonNull(request, "request");

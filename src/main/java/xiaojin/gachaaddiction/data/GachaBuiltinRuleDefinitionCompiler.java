@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public final class GachaBuiltinRuleDefinitionCompiler implements GachaRuleDefinitionCompiler {
+public final class GachaBuiltinRuleDefinitionCompiler implements IGachaRuleDefinitionCompiler {
     private static final Set<String> FIELDS = Set.of("id", "phase", "scope", "conditions", "actions",
             "failure_policy", "fallback_actions");
 
@@ -40,12 +40,12 @@ public final class GachaBuiltinRuleDefinitionCompiler implements GachaRuleDefini
             GachaJson.requireOnly(rule, FIELDS, location);
             GachaRuleFailurePolicy failurePolicy = GachaRuleFailurePolicy.valueOf(
                     GachaJson.string(rule, "failure_policy", location));
-            List<GachaRuleCondition> compiledConditions = rule.has("conditions")
+            List<IGachaRuleCondition> compiledConditions = rule.has("conditions")
                     ? conditions.array(GachaJson.array(rule, "conditions", location), location + ".conditions")
                     : List.of();
-            List<GachaRuleAction> compiledActions = actions.array(rewardPoolId,
+            List<IGachaRuleAction> compiledActions = actions.array(rewardPoolId,
                     GachaJson.array(rule, "actions", location), parameterSchema, location + ".actions");
-            List<GachaRuleAction> fallbackActions = rule.has("fallback_actions")
+            List<IGachaRuleAction> fallbackActions = rule.has("fallback_actions")
                     ? actions.array(rewardPoolId, GachaJson.array(rule, "fallback_actions", location),
                     parameterSchema, location + ".fallback_actions") : List.of();
             compiled.add(new GachaRuleDefinition(

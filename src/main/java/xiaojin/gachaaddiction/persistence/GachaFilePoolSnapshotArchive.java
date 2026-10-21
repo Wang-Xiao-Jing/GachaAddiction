@@ -14,7 +14,7 @@ import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Optional;
 
-public final class GachaFilePoolSnapshotArchive implements GachaPoolSnapshotArchive {
+public final class GachaFilePoolSnapshotArchive implements IGachaPoolSnapshotArchive {
     private static final String HASH_ALGORITHM = "SHA-256";
     private static final String FILE_EXTENSION = ".nbt";
     private static final String TEMP_FILE_PREFIX = "snapshot-";

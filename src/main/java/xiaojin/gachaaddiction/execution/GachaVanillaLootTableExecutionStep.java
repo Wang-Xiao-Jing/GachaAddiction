@@ -3,16 +3,16 @@ package xiaojin.gachaaddiction.execution;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootTable;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.quantity.GachaExecutionLimits;
 
 import java.util.Objects;
 import java.util.Set;
 
 public record GachaVanillaLootTableExecutionStep(ResourceLocation type, ResourceKey<LootTable> lootTable,
-                                                 GachaLongProvider rounds, GachaExecutionLimits limits,
+                                                 IGachaLongProvider rounds, GachaExecutionLimits limits,
                                                  Set<GachaExecutionChannel> reads,
-                                                 Set<GachaExecutionChannel> writes) implements GachaExecutionStep {
+                                                 Set<GachaExecutionChannel> writes) implements IGachaExecutionStep {
     public GachaVanillaLootTableExecutionStep {
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(lootTable, "lootTable");

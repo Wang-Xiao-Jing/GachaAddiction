@@ -1,17 +1,17 @@
 package xiaojin.gachaaddiction.cardpool.transaction;
 
 import xiaojin.gachaaddiction.cardpool.GachaCardPoolDefinition;
-import xiaojin.gachaaddiction.cardpool.GachaCardPoolSnapshotResolver;
-import xiaojin.gachaaddiction.cardpool.parameter.GachaParameterStateRepository;
+import xiaojin.gachaaddiction.cardpool.IGachaCardPoolSnapshotResolver;
+import xiaojin.gachaaddiction.cardpool.parameter.IGachaParameterStateRepository;
 
 import java.util.Objects;
 
-public final class GachaParameterStateTransactionParticipant implements GachaTransactionParticipant {
-    private final GachaCardPoolSnapshotResolver snapshots;
-    private final GachaParameterStateRepository stateRepository;
+public final class GachaParameterStateTransactionParticipant implements IGachaTransactionParticipant {
+    private final IGachaCardPoolSnapshotResolver snapshots;
+    private final IGachaParameterStateRepository stateRepository;
 
-    public GachaParameterStateTransactionParticipant(GachaCardPoolSnapshotResolver snapshots,
-                                                     GachaParameterStateRepository stateRepository) {
+    public GachaParameterStateTransactionParticipant(IGachaCardPoolSnapshotResolver snapshots,
+                                                     IGachaParameterStateRepository stateRepository) {
         this.snapshots = Objects.requireNonNull(snapshots, "snapshots");
         this.stateRepository = Objects.requireNonNull(stateRepository, "stateRepository");
     }

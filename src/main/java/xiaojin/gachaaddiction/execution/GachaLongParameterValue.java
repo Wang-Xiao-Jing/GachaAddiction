@@ -1,11 +1,11 @@
 package xiaojin.gachaaddiction.execution;
 
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 
 import java.util.Objects;
 
-public record GachaLongParameterValue(GachaLongProvider provider) implements GachaParameterValue {
+public record GachaLongParameterValue(IGachaLongProvider provider) implements IGachaParameterValue {
     public GachaLongParameterValue {
         Objects.requireNonNull(provider, "provider");
     }

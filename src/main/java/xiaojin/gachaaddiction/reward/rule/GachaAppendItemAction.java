@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
 import xiaojin.gachaaddiction.reward.model.GachaResultEditor;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
 import xiaojin.gachaaddiction.reward.provenance.GachaRewardOrigin;
@@ -14,12 +14,12 @@ import xiaojin.gachaaddiction.reward.provenance.GachaRewardProvenance;
 import java.util.Map;
 import java.util.Objects;
 
-public final class GachaAppendItemAction implements GachaRuleAction {
+public final class GachaAppendItemAction implements IGachaRuleAction {
     private final ResourceLocation id;
     private final ItemStack template;
-    private final GachaLongProvider quantity;
+    private final IGachaLongProvider quantity;
 
-    public GachaAppendItemAction(ResourceLocation id, ItemStack template, GachaLongProvider quantity) {
+    public GachaAppendItemAction(ResourceLocation id, ItemStack template, IGachaLongProvider quantity) {
         this.id = Objects.requireNonNull(id, "id");
         Objects.requireNonNull(template, "template");
         if (template.isEmpty()) {

@@ -26,11 +26,10 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.neoforged.neoforge.network.PacketDistributor;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.admin.GachaAdminCapability;
 import xiaojin.gachaaddiction.cardpool.GachaPublicCardPoolCatalog;
 import xiaojin.gachaaddiction.cardpool.GachaServerRuntimeManager;
-import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInboxClaim;
 import xiaojin.gachaaddiction.cardpool.transaction.GachaTransactionId;
 import xiaojin.gachaaddiction.data.GachaDefinitionRepository;
 import xiaojin.gachaaddiction.data.GachaRequestPresetCompiler;
@@ -45,10 +44,10 @@ import xiaojin.gachaaddiction.network.stc.OpenRewardInboxPayload;
 import xiaojin.gachaaddiction.persistence.GachaSha256ParameterFingerprint;
 import xiaojin.gachaaddiction.resourcepack.GachaResourcePackDescriptor;
 import xiaojin.gachaaddiction.resourcepack.GachaVanillaResourcePackDispatcher;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
+import xiaojin.gachaaddiction.reward.IGachaRewardPool;
 import xiaojin.gachaaddiction.reward.GachaRewardPoolRequest;
 import xiaojin.gachaaddiction.reward.GachaRewardPoolResult;
-import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescribable;
+import xiaojin.gachaaddiction.reward.probability.IGachaProbabilityDescribable;
 import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescription;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
@@ -226,7 +225,7 @@ public final class GachaCommand {
         try {
             GachaResourcePackDescriptor descriptor = GachaResourcePackDescriptor.external(url, sha1, required);
             UUID requestId = RESOURCE_PACK_DISPATCHER.push(targets, descriptor);
-            GachaAddiction.LOGGER.info(RESOURCE_PACK_SENT_LOG, source.getTextName(), requestId, targets.size());
+            GachaConstants.LOGGER.info(RESOURCE_PACK_SENT_LOG, source.getTextName(), requestId, targets.size());
             source.sendSuccess(() -> Component.translatable(TranslationKeys.COMMANDS_GACHA_RESOURCE_PACK_SENT,
                     requestId.toString(), targets.size()), true);
             return targets.size();
@@ -259,10 +258,19 @@ public final class GachaCommand {
         }
         try {
             GachaTransactionId transactionId = new GachaTransactionId(UUID.fromString(encodedTransaction));
-            int stackCount = GachaRewardInboxClaim.claim(player, runtime.rewardInbox(), transactionId);
-            source.sendSuccess(() -> Component.translatable(TranslationKeys.COMMANDS_GACHA_INBOX_CLAIMED,
-                    stackCount, transactionId.value().toString()), false);
-            return stackCount;
+            runtime.claimRewards(player, transactionId).whenCompleteAsync((stackCount, failure) -> {
+                if (player.hasDisconnected()) {
+                    return;
+                }
+                if (failure == null) {
+                    source.sendSuccess(() -> Component.translatable(TranslationKeys.COMMANDS_GACHA_INBOX_CLAIMED,
+                            stackCount, transactionId.value().toString()), false);
+                } else {
+                    source.sendFailure(Component.translatable(
+                            TranslationKeys.COMMANDS_GACHA_INBOX_CLAIM_FAILED, failure.getMessage()));
+                }
+            }, source.getServer());
+            return 1;
         } catch (RuntimeException failure) {
             source.sendFailure(Component.translatable(TranslationKeys.COMMANDS_GACHA_INBOX_CLAIM_FAILED,
                     failure.getMessage()));
@@ -304,9 +312,9 @@ public final class GachaCommand {
         }
         Optional<GachaProbabilityDescription> description = switch (kind) {
             case "reward_pool" -> GachaDefinitionRepository.INSTANCE.resolveRewardPool(id)
-                    .filter(GachaProbabilityDescribable.class::isInstance)
-                    .map(GachaProbabilityDescribable.class::cast)
-                    .map(GachaProbabilityDescribable::describeProbability);
+                    .filter(IGachaProbabilityDescribable.class::isInstance)
+                    .map(IGachaProbabilityDescribable.class::cast)
+                    .map(IGachaProbabilityDescribable::describeProbability);
             case "table" -> GachaDefinitionRepository.INSTANCE.resolveTable(id)
                     .map(table -> table.describeProbability());
             default -> Optional.empty();
@@ -334,7 +342,7 @@ public final class GachaCommand {
                     presetId.toString()));
             return 0;
         }
-        GachaRewardPool rewardPool = GachaDefinitionRepository.INSTANCE
+        IGachaRewardPool rewardPool = GachaDefinitionRepository.INSTANCE
                 .resolveRewardPool(preset.rewardPool()).orElse(null);
         if (rewardPool == null) {
             source.sendFailure(Component.translatable(TranslationKeys.COMMANDS_GACHA_INVALID_REWARD_POOL,
@@ -371,7 +379,7 @@ public final class GachaCommand {
                                                    Collection<ServerPlayer> targets,
                                                    ResourceLocation rewardPoolId,
                                                    int rounds, String encodedParameters) {
-        GachaRewardPool rewardPool = GachaDefinitionRepository.INSTANCE
+        IGachaRewardPool rewardPool = GachaDefinitionRepository.INSTANCE
                 .resolveRewardPool(rewardPoolId).orElse(null);
         if (rewardPool == null) {
             source.sendFailure(Component.translatable(TranslationKeys.COMMANDS_GACHA_INVALID_REWARD_POOL,

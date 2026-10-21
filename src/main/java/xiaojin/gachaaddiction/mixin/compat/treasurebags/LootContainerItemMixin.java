@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xiaojin.gachaaddiction.network.stc.OpenGachaScreenPayload;
-import xiaojin.gachaaddiction.util.GachaAnnouncements;
+import xiaojin.gachaaddiction.announcement.GachaAnnouncements;
 import xiaojin.gachaaddiction.util.LootDisplayCache;
 
 import java.util.ArrayList;

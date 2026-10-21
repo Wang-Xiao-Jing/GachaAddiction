@@ -15,19 +15,19 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.gachaaddiction.api.RewardData;
-import xiaojin.gachaaddiction.api.client.ReelHost;
+import xiaojin.gachaaddiction.client.api.IReelHost;
 import xiaojin.gachaaddiction.client.render.GachaRenderState;
 import xiaojin.gachaaddiction.client.render.GuiItemRenderer;
 import xiaojin.gachaaddiction.config.ClientConfig;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
-import xiaojin.gachaaddiction.registry.GachaaAdictionConfigData;
+import xiaojin.gachaaddiction.client.resource.GachaRewardSoundResources;
 
 import java.util.List;
 
 public class VerticalReelWidget extends AbstractWidget {
     private final ClientConfig clientConfig = GachaAddictionConfig.CLIENT;
     private final ClientConfig.SlotMachineConfig slotMachineConfig = clientConfig.slotMachineConfig;
-    private final ReelHost host;
+    private final IReelHost host;
     private final RewardData result;
     private final int resultColor;
     private final int resultLevel;
@@ -44,7 +44,7 @@ public class VerticalReelWidget extends AbstractWidget {
     private float exitProgress;
     private final float minSpeed;
 
-    public VerticalReelWidget(ReelHost host, RewardData result, List<ItemStack> decoys, int resultIndex) {
+    public VerticalReelWidget(IReelHost host, RewardData result, List<ItemStack> decoys, int resultIndex) {
         super(0, 0, 32, 32, Component.empty());
         this.host = host;
         this.result = result;
@@ -160,7 +160,7 @@ public class VerticalReelWidget extends AbstractWidget {
         if (!host.tryClaimCompleteSound()) {
             return;
         }
-        getSoundManager().play(GachaaAdictionConfigData.getSoundEventsFunction().apply(result));
+        getSoundManager().play(GachaRewardSoundResources.getSoundEventsFunction().apply(result));
     }
 
     private void renderItems(GuiGraphics guiGraphics, PoseStack poseStack) {

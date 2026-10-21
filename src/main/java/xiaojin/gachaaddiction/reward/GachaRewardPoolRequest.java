@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public record GachaRewardPoolRequest(int rounds, LootParams lootParams, GachaParameterSet parameters,
-                                     String inputFingerprint, GachaLootTableResolver lootTableResolver,
+                                     String inputFingerprint, IGachaLootTableResolver lootTableResolver,
                                      RandomSource random) {
     public GachaRewardPoolRequest {
         if (rounds <= 0) {

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record GachaRewardProvenanceCondition(GachaProvenanceSelector selector,
-                                             GachaRewardOrigin origin) implements GachaRuleCondition {
+                                             GachaRewardOrigin origin) implements IGachaRuleCondition {
     public GachaRewardProvenanceCondition {
         Objects.requireNonNull(selector, "selector");
         Objects.requireNonNull(origin, "origin");

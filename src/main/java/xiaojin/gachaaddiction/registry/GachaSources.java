@@ -24,22 +24,22 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
 import xiaojin.gachaaddiction.api.GachaSourceSettings;
 import xiaojin.gachaaddiction.api.IGachaSource;
 import xiaojin.gachaaddiction.mixed.IMenuProviderLootExtension;
-import xiaojin.gachaaddiction.item.GachaDrawItemDefinitions;
+import xiaojin.gachaaddiction.world.item.GachaDrawItemFactory;
 
 import java.util.Optional;
 
 public class GachaSources {
-    private static final ResourceLocation SOURCE_ID = ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "gacha_source");
+    private static final ResourceLocation SOURCE_ID = ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "gacha_source");
     public static final BlockCapability<IGachaSource, Void> BLOCK = BlockCapability.createVoid(SOURCE_ID, IGachaSource.class);
     public static final EntityCapability<IGachaSource, Void> ENTITY = EntityCapability.createVoid(SOURCE_ID, IGachaSource.class);
     public static final ItemCapability<IGachaSource, Void> ITEM = ItemCapability.createVoid(SOURCE_ID, IGachaSource.class);
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(
-            NeoForgeRegistries.ATTACHMENT_TYPES, GachaAddiction.MODID);
+            NeoForgeRegistries.ATTACHMENT_TYPES, GachaConstants.MODID);
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<GachaSourceSettings>> SETTINGS =
             ATTACHMENTS.register("gacha_source", () -> AttachmentType.builder(() -> GachaSourceSettings.DEFAULT)
                     .serialize(GachaSourceSettings.CODEC, value -> !value.equals(GachaSourceSettings.DEFAULT)).build());
@@ -111,12 +111,12 @@ public class GachaSources {
     private record ItemSource(ItemStack stack) implements IGachaSource {
         @Override
         public GachaSourceSettings getSettings() {
-            var definition = GachaDrawItemDefinitions.find(stack);
+            var definition = GachaDrawItemFactory.find(stack);
             if (definition.isPresent()) {
                 return definition.get().source();
             }
             CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
-                    .getCompound(GachaAddiction.MODID);
+                    .getCompound(GachaConstants.MODID);
             return new GachaSourceSettings(Optional.ofNullable(ResourceLocation.tryParse(
                     data.getString(GachaSourceSettings.TYPE_KEY))), data.getBoolean(GachaSourceSettings.FORCE_WATCH_KEY),
                     data.contains(GachaSourceSettings.SECONDARY_TYPE_KEY)
@@ -129,14 +129,14 @@ public class GachaSources {
         @Override
         public void setSettings(GachaSourceSettings settings) {
             CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
-                CompoundTag data = root.getCompound(GachaAddiction.MODID);
+                CompoundTag data = root.getCompound(GachaConstants.MODID);
                 settings.gachaType().ifPresentOrElse(id -> data.putString(GachaSourceSettings.TYPE_KEY, id.toString()),
                         () -> data.remove(GachaSourceSettings.TYPE_KEY));
                 data.putBoolean(GachaSourceSettings.FORCE_WATCH_KEY, settings.forceWatch());
                 settings.secondaryType().ifPresentOrElse(type -> data.putString(GachaSourceSettings.SECONDARY_TYPE_KEY,
                         type.getSerializedName()), () -> data.remove(GachaSourceSettings.SECONDARY_TYPE_KEY));
                 data.putInt(GachaSourceSettings.CHOICE_COUNT_KEY, settings.choiceCount());
-                root.put(GachaAddiction.MODID, data);
+                root.put(GachaConstants.MODID, data);
             });
         }
 

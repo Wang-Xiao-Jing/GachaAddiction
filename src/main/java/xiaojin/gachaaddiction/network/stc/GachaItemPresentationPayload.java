@@ -1,16 +1,13 @@
 package xiaojin.gachaaddiction.network.stc;
 
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.api.GachaType;
-import xiaojin.gachaaddiction.client.GachaItemPresentationClient;
 import xiaojin.gachaaddiction.network.IToClientPayload;
 
 import java.util.List;
@@ -26,7 +23,7 @@ public record GachaItemPresentationPayload(
         List<List<ItemStack>> rewardRounds
 ) implements IToClientPayload {
     public static final Type<GachaItemPresentationPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "item_draw_presentation"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "item_draw_presentation"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GachaItemPresentationPayload> STREAM_CODEC =
             new StreamCodec<>() {
                 @Override
@@ -80,8 +77,4 @@ public record GachaItemPresentationPayload(
         return TYPE;
     }
 
-    @Override
-    public void work(IPayloadContext context, AbstractClientPlayer player) {
-        GachaItemPresentationClient.receive(this);
-    }
 }

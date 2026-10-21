@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import xiaojin.gachaaddiction.client.GachaPresentationClient;
+import xiaojin.gachaaddiction.client.presentation.GachaPresentationClient;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.util.List;

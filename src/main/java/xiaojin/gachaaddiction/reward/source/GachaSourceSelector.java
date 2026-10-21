@@ -10,9 +10,9 @@ public final class GachaSourceSelector {
     private GachaSourceSelector() {
     }
 
-    public static List<GachaRewardSource> select(List<GachaWeightedSource> sources,
-                                                 GachaSourceSelectionStrategy strategy, int selectionCount,
-                                                 GachaNumberContext context) {
+    public static List<IGachaRewardSource> select(List<GachaWeightedSource> sources,
+                                                  GachaSourceSelectionStrategy strategy, int selectionCount,
+                                                  GachaNumberContext context) {
         Objects.requireNonNull(sources, "sources");
         Objects.requireNonNull(strategy, "strategy");
         Objects.requireNonNull(context, "context");
@@ -44,7 +44,7 @@ public final class GachaSourceSelector {
         return eligible;
     }
 
-    private static GachaRewardSource selectOne(List<EvaluatedSource> sources, GachaNumberContext context) {
+    private static IGachaRewardSource selectOne(List<EvaluatedSource> sources, GachaNumberContext context) {
         if (sources.isEmpty()) {
             throw new IllegalArgumentException("No eligible reward source");
         }
@@ -62,13 +62,13 @@ public final class GachaSourceSelector {
         return sources.getLast().source();
     }
 
-    private static List<GachaRewardSource> selectMultiple(List<EvaluatedSource> sources, int selectionCount,
-                                                          GachaNumberContext context) {
+    private static List<IGachaRewardSource> selectMultiple(List<EvaluatedSource> sources, int selectionCount,
+                                                           GachaNumberContext context) {
         List<EvaluatedSource> remaining = new ArrayList<>(sources);
-        List<GachaRewardSource> selected = new ArrayList<>();
+        List<IGachaRewardSource> selected = new ArrayList<>();
         int count = Math.min(selectionCount, remaining.size());
         for (int index = 0; index < count; index++) {
-            GachaRewardSource source = selectOne(remaining, context);
+            IGachaRewardSource source = selectOne(remaining, context);
             selected.add(source);
             for (int candidateIndex = 0; candidateIndex < remaining.size(); candidateIndex++) {
                 if (remaining.get(candidateIndex).source() == source) {
@@ -80,6 +80,6 @@ public final class GachaSourceSelector {
         return List.copyOf(selected);
     }
 
-    private record EvaluatedSource(GachaRewardSource source, double weight) {
+    private record EvaluatedSource(IGachaRewardSource source, double weight) {
     }
 }

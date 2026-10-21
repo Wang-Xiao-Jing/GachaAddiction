@@ -4,21 +4,15 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.registry.GachaRarityProviders;
 
 import java.util.Locale;
 
 public class RarityUtil {
     public static Component getRarityName(ItemStack itemStack) {
-        if (GachaAddiction.CONFLUENCE_MAGIC_LIB_LOADED) {
-            var rarity = ConfluenceMagicLibUtil.getRarity(itemStack);
-            if (rarity != null) {
-                return Component.translatableWithFallback(TranslationKeys.RARITY_NAME_PREFIX + rarity.name(), rarity.name())
-                        .withColor(getRarityColor(itemStack));
-            }
-        }
-        if (GachaAddiction.RARITYCORE_LOADED) {
-            return RarityCoreUtil.getName(itemStack).copy().withColor(getRarityColor(itemStack));
+        var rarity = GachaRarityProviders.resolve(itemStack);
+        if (rarity != null) {
+            return rarity.name(itemStack).copy().withColor(rarity.color(itemStack));
         }
         String name = itemStack.getRarity().name().toLowerCase(Locale.ROOT);
         return Component.translatableWithFallback(TranslationKeys.RARITY_NAME_PREFIX + name, name)
@@ -26,15 +20,9 @@ public class RarityUtil {
     }
 
     public static int getRarityColor(ItemStack itemStack) {
-        if (GachaAddiction.CONFLUENCE_MAGIC_LIB_LOADED) {
-            var rarity = ConfluenceMagicLibUtil.getRarity(itemStack);
-            if (rarity != null) {
-                return rarity.color();
-            }
-        }
-
-        if (GachaAddiction.RARITYCORE_LOADED) {
-            return RarityCoreUtil.getColor(itemStack);
+        var extension = GachaRarityProviders.resolve(itemStack);
+        if (extension != null) {
+            return extension.color(itemStack);
         }
 
         Rarity rarity = itemStack.getRarity();
@@ -50,15 +38,9 @@ public class RarityUtil {
     }
 
     public static int getRarityLevel(ItemStack itemStack) {
-        if (GachaAddiction.CONFLUENCE_MAGIC_LIB_LOADED) {
-            var rarity = ConfluenceMagicLibUtil.getRarity(itemStack);
-            if (rarity != null) {
-                return ConfluenceMagicLibUtil.getRarityLevel(rarity);
-            }
-        }
-
-        if (GachaAddiction.RARITYCORE_LOADED) {
-            return RarityCoreUtil.getRarity(itemStack);
+        var rarity = GachaRarityProviders.resolve(itemStack);
+        if (rarity != null) {
+            return rarity.level(itemStack);
         }
 
         return itemStack.getRarity().ordinal();

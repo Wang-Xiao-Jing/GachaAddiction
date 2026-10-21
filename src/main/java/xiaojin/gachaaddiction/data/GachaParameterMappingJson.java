@@ -41,8 +41,8 @@ public final class GachaParameterMappingJson {
         return mappings.isEmpty() ? GachaParameterMapping.EMPTY : new GachaParameterMapping(mappings);
     }
 
-    private static GachaParameterValue value(GachaParameterDefinitionJson parameters,
-                                             ResourceLocation sourceOwner, JsonObject entry, String location) {
+    private static IGachaParameterValue value(GachaParameterDefinitionJson parameters,
+                                              ResourceLocation sourceOwner, JsonObject entry, String location) {
         int valueKinds = (entry.has("source") ? 1 : 0) + (entry.has("constant") ? 1 : 0)
                 + (entry.has("number") ? 1 : 0);
         if (valueKinds != 1) {

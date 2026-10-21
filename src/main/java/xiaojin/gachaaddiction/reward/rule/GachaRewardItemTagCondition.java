@@ -8,7 +8,7 @@ import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 import java.util.List;
 import java.util.Objects;
 
-public record GachaRewardItemTagCondition(TagKey<Item> tag) implements GachaRuleCondition {
+public record GachaRewardItemTagCondition(TagKey<Item> tag) implements IGachaRuleCondition {
     public GachaRewardItemTagCondition {
         Objects.requireNonNull(tag, "tag");
     }

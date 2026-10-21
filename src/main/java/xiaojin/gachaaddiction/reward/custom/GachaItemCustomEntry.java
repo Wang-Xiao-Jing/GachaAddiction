@@ -3,18 +3,18 @@ package xiaojin.gachaaddiction.reward.custom;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public final class GachaItemCustomEntry implements GachaCustomEntry {
+public final class GachaItemCustomEntry implements IGachaCustomEntry {
     private final ResourceLocation id;
     private final ItemStack template;
-    private final GachaLongProvider quantity;
+    private final IGachaLongProvider quantity;
 
-    public GachaItemCustomEntry(ResourceLocation id, ItemStack template, GachaLongProvider quantity) {
+    public GachaItemCustomEntry(ResourceLocation id, ItemStack template, IGachaLongProvider quantity) {
         this.id = Objects.requireNonNull(id, "id");
         Objects.requireNonNull(template, "template");
         if (template.isEmpty()) {

@@ -2,7 +2,7 @@ package xiaojin.gachaaddiction.execution;
 
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.storage.loot.LootParams;
-import xiaojin.gachaaddiction.reward.GachaLootTableResolver;
+import xiaojin.gachaaddiction.reward.IGachaLootTableResolver;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 
 import java.util.Objects;
@@ -10,11 +10,11 @@ import java.util.OptionalInt;
 
 public record GachaExecutionRequest(GachaExecutionSource source, GachaExecutionMode mode,
                                     GachaParameterSet parameters, String inputFingerprint,
-                                    LootParams lootParams, GachaLootTableResolver lootTableResolver,
+                                    LootParams lootParams, IGachaLootTableResolver lootTableResolver,
                                     RandomSource random, OptionalInt roundsOverride) {
     public GachaExecutionRequest(GachaExecutionSource source, GachaExecutionMode mode,
                                  GachaParameterSet parameters, String inputFingerprint,
-                                 LootParams lootParams, GachaLootTableResolver lootTableResolver,
+                                 LootParams lootParams, IGachaLootTableResolver lootTableResolver,
                                  RandomSource random) {
         this(source, mode, parameters, inputFingerprint, lootParams, lootTableResolver, random,
                 OptionalInt.empty());
@@ -22,7 +22,7 @@ public record GachaExecutionRequest(GachaExecutionSource source, GachaExecutionM
 
     public GachaExecutionRequest(GachaExecutionSource source, GachaExecutionMode mode,
                                  GachaParameterSet parameters, String inputFingerprint,
-                                 LootParams lootParams, GachaLootTableResolver lootTableResolver,
+                                 LootParams lootParams, IGachaLootTableResolver lootTableResolver,
                                  RandomSource random, int rounds) {
         this(source, mode, parameters, inputFingerprint, lootParams, lootTableResolver, random,
                 OptionalInt.of(rounds));

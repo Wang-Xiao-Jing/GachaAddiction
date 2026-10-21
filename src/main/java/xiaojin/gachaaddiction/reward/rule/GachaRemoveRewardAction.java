@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.reward.rule;
 import xiaojin.gachaaddiction.reward.model.GachaResultEditor;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
 
-public final class GachaRemoveRewardAction implements GachaRuleAction {
+public final class GachaRemoveRewardAction implements IGachaRuleAction {
     @Override
     public void apply(GachaRuleContext context, GachaResultEditor results, GachaParameterEditor parameters) {
         int rewardIndex = context.rewardIndex().orElseThrow(() ->

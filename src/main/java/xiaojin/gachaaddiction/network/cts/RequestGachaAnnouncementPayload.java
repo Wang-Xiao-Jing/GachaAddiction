@@ -9,11 +9,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.api.GachaAnnouncement;
 import xiaojin.gachaaddiction.api.IGachaAnnouncementApi.Trigger;
 import xiaojin.gachaaddiction.network.IToServerPayload;
-import xiaojin.gachaaddiction.util.GachaAnnouncements;
+import xiaojin.gachaaddiction.announcement.GachaAnnouncements;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +21,7 @@ import java.util.UUID;
 public record RequestGachaAnnouncementPayload(UUID token, boolean manual, List<ItemStack> items)
         implements IToServerPayload {
     public static final Type<RequestGachaAnnouncementPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "request_announcement"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "request_announcement"));
     public static final StreamCodec<RegistryFriendlyByteBuf, RequestGachaAnnouncementPayload> STREAM_CODEC =
             StreamCodec.composite(UUIDUtil.STREAM_CODEC, RequestGachaAnnouncementPayload::token,
                     ByteBufCodecs.BOOL, RequestGachaAnnouncementPayload::manual,

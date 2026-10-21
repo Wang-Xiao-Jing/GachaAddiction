@@ -5,14 +5,14 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
 
-public final class GachaRewardDeliveryHandlerRegistry implements GachaRewardDeliveryHandlerResolver {
+public final class GachaRewardDeliveryHandlerRegistry implements IGachaRewardDeliveryHandlerResolver {
     private static final Set<GachaRewardDeliveryCapability> REQUIRED_CAPABILITIES = Set.of(
             GachaRewardDeliveryCapability.IDEMPOTENT_BY_TRANSACTION,
             GachaRewardDeliveryCapability.DURABLE_BEFORE_ACKNOWLEDGEMENT);
-    private final Map<ResourceLocation, GachaRewardDeliveryHandler> handlers = new LinkedHashMap<>();
+    private final Map<ResourceLocation, IGachaRewardDeliveryHandler> handlers = new LinkedHashMap<>();
     private boolean frozen;
 
-    public synchronized void register(GachaRewardDeliveryHandler handler) {
+    public synchronized void register(IGachaRewardDeliveryHandler handler) {
         Objects.requireNonNull(handler, "handler");
         if (frozen) {
             throw new IllegalStateException("Reward delivery handler registry is frozen");
@@ -37,13 +37,13 @@ public final class GachaRewardDeliveryHandlerRegistry implements GachaRewardDeli
     }
 
     @Override
-    public synchronized Optional<GachaRewardDeliveryHandler> resolve(ResourceLocation type) {
+    public synchronized Optional<IGachaRewardDeliveryHandler> resolve(ResourceLocation type) {
         return Optional.ofNullable(handlers.get(Objects.requireNonNull(type, "type")));
     }
 
-    private record RegisteredHandler(ResourceLocation type, GachaRewardDeliveryHandler delegate,
+    private record RegisteredHandler(ResourceLocation type, IGachaRewardDeliveryHandler delegate,
                                      Set<GachaRewardDeliveryCapability> capabilities)
-            implements GachaRewardDeliveryHandler {
+            implements IGachaRewardDeliveryHandler {
         @Override
         public void validate(GachaTransactionContext context, GachaRewardDeliveryServices services) {
             delegate.validate(context, services);

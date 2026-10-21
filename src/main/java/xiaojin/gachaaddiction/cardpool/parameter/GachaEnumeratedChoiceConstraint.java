@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public final class GachaEnumeratedChoiceConstraint<T> implements GachaPlayerChoiceConstraint<T> {
+public final class GachaEnumeratedChoiceConstraint<T> implements IGachaPlayerChoiceConstraint<T> {
     private final List<T> values;
     private final Set<T> lookup;
 

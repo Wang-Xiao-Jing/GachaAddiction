@@ -2,8 +2,8 @@ package xiaojin.gachaaddiction.reward.custom;
 
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
-import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescribable;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
+import xiaojin.gachaaddiction.reward.probability.IGachaProbabilityDescribable;
 import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescription;
 import xiaojin.gachaaddiction.reward.probability.GachaProbabilitySelectionMode;
 import xiaojin.gachaaddiction.reward.source.GachaTableSelectionStrategy;
@@ -12,14 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public final class GachaCustomLootTable implements GachaProbabilityDescribable {
+public final class GachaCustomLootTable implements IGachaProbabilityDescribable {
     private final ResourceLocation id;
     private final GachaTableSelectionStrategy selectionStrategy;
-    private final GachaLongProvider selectionCount;
+    private final IGachaLongProvider selectionCount;
     private final List<GachaWeightedCustomEntry> entries;
 
     public GachaCustomLootTable(ResourceLocation id, GachaTableSelectionStrategy selectionStrategy,
-                                GachaLongProvider selectionCount, List<GachaWeightedCustomEntry> entries) {
+                                IGachaLongProvider selectionCount, List<GachaWeightedCustomEntry> entries) {
         this.id = Objects.requireNonNull(id, "id");
         this.selectionStrategy = Objects.requireNonNull(selectionStrategy, "selectionStrategy");
         this.selectionCount = Objects.requireNonNull(selectionCount, "selectionCount");
@@ -145,6 +145,6 @@ public final class GachaCustomLootTable implements GachaProbabilityDescribable {
         };
     }
 
-    private record EvaluatedEntry(GachaCustomEntry entry, double weight, GachaCustomEntryContext context) {
+    private record EvaluatedEntry(IGachaCustomEntry entry, double weight, GachaCustomEntryContext context) {
     }
 }

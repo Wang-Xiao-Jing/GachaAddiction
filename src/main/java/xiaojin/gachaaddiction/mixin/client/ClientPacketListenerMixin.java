@@ -12,9 +12,9 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import xiaojin.gachaaddiction.client.GachaAnnouncementClient;
+import xiaojin.gachaaddiction.client.announcement.GachaAnnouncementClient;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
-import xiaojin.gachaaddiction.client.gui.screen.ModernGachaScreen;
+import xiaojin.gachaaddiction.client.gui.screen.GachaSummaryScreen;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 
 import java.util.List;
@@ -45,7 +45,7 @@ public abstract class ClientPacketListenerMixin {
             return;
         }
 
-        if (slotMachineScreen instanceof ModernGachaScreen modern && modern.hasReceivedResults()) {
+        if (slotMachineScreen instanceof GachaSummaryScreen summary && summary.hasReceivedResults()) {
             return;
         }
 

@@ -7,7 +7,7 @@ import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -43,7 +43,7 @@ public class LDLib2ConfigPackProvider<T> extends ResourceProvider<T> {
     private static <T> void register(Resource<T> resource, Set<String> fileNames) {
         var resources = resource.getResourceInstance();
         var local = new FileResourceProvider<>(resources, Platform.getGamePath().resolve(LOCAL_ROOT).toFile());
-        local.setName(GachaAddiction.MODID);
+        local.setName(GachaConstants.MODID);
         resources.addBuiltinProvider(local);
         resources.addBuiltinProvider(new LDLib2ConfigPackProvider<>(resources, fileNames));
     }
@@ -64,13 +64,13 @@ public class LDLib2ConfigPackProvider<T> extends ResourceProvider<T> {
 
     private static ResourceLocation packLocation(FilePath path) {
         String resourcePath = Objects.requireNonNull(path.location).getPath();
-        return ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID,
+        return ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID,
                 resourcePath.startsWith(PACK_ROOT) ? resourcePath : PACK_ROOT + resourcePath);
     }
 
     @Override
     public String getName() {
-        return GachaAddiction.MODID;
+        return GachaConstants.MODID;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class LDLib2ConfigPackProvider<T> extends ResourceProvider<T> {
     @Override
     public boolean supportResourcePath(IResourcePath path) {
         if (!(path instanceof FilePath filePath) || filePath.location == null
-                || !GachaAddiction.MODID.equals(filePath.location.getNamespace())) {
+                || !GachaConstants.MODID.equals(filePath.location.getNamespace())) {
             return false;
         }
         String resourcePath = filePath.location.getPath();
@@ -91,7 +91,7 @@ public class LDLib2ConfigPackProvider<T> extends ResourceProvider<T> {
 
     @Override
     public IResourcePath createSubPath(String name) {
-        return new FilePath(ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID,
+        return new FilePath(ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID,
                 PACK_ROOT + name + resourceInstance.resource.getFileExtension()));
     }
 
@@ -126,7 +126,7 @@ public class LDLib2ConfigPackProvider<T> extends ResourceProvider<T> {
                 return resourceInstance.resource.deserializeResource(wrapper.get(DATA_KEY), Platform.getFrozenRegistry());
             }
         } catch (IOException | RuntimeException failure) {
-            GachaAddiction.LOGGER.warn(READ_FAILURE_LOG, location, failure);
+            GachaConstants.LOGGER.warn(READ_FAILURE_LOG, location, failure);
             return null;
         }
     }

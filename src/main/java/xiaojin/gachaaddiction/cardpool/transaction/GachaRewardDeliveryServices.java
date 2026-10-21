@@ -2,15 +2,15 @@ package xiaojin.gachaaddiction.cardpool.transaction;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardDeliveryLedger;
-import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardInbox;
+import xiaojin.gachaaddiction.cardpool.delivery.IGachaRewardDeliveryLedger;
+import xiaojin.gachaaddiction.cardpool.delivery.IGachaRewardInbox;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public record GachaRewardDeliveryServices(MinecraftServer server, GachaRewardInbox rewardInbox,
-                                          GachaRewardDeliveryLedger deliveryLedger) {
+public record GachaRewardDeliveryServices(MinecraftServer server, IGachaRewardInbox rewardInbox,
+                                          IGachaRewardDeliveryLedger deliveryLedger) {
     public GachaRewardDeliveryServices {
         Objects.requireNonNull(server, "server");
         Objects.requireNonNull(rewardInbox, "rewardInbox");
@@ -25,7 +25,4 @@ public record GachaRewardDeliveryServices(MinecraftServer server, GachaRewardInb
         GachaPlayerRewardDeliveryHandler.reconcilePlayer(player, this);
     }
 
-    public void acknowledgePlayerSave(ServerPlayer player) {
-        GachaPlayerRewardDeliveryHandler.acknowledgePlayerSave(player, this);
-    }
 }

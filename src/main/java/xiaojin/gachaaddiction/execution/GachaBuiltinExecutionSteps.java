@@ -11,7 +11,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.cardpool.transaction.GachaConsumptionSpec;
 import xiaojin.gachaaddiction.data.GachaJson;
 import xiaojin.gachaaddiction.data.GachaNumberProviderJson;
@@ -73,8 +73,8 @@ public final class GachaBuiltinExecutionSteps {
                         Set.of(GachaExecutionChannel.CONSUMPTION, GachaExecutionChannel.DIAGNOSTICS)));
     }
 
-    private static GachaExecutionStep customTable(ResourceLocation planId, int stepIndex, JsonObject data,
-                                                  GachaParameterMappingDecoder parameterMappings) {
+    private static IGachaExecutionStep customTable(ResourceLocation planId, int stepIndex, JsonObject data,
+                                                   IGachaParameterMappingDecoder parameterMappings) {
         String location = planId + ".steps[" + stepIndex + "].data";
         ResourceLocation target = target(data, planId, stepIndex, Set.of("target", "rounds", "limits"));
         return new GachaCustomTableExecutionStep(CUSTOM_TABLE, target,
@@ -82,8 +82,8 @@ public final class GachaBuiltinExecutionSteps {
                 limits(data, location), COMPUTE_READS, COMPUTE_WRITES);
     }
 
-    private static GachaExecutionStep vanillaLootTable(ResourceLocation planId, int stepIndex, JsonObject data,
-                                                       GachaParameterMappingDecoder parameterMappings) {
+    private static IGachaExecutionStep vanillaLootTable(ResourceLocation planId, int stepIndex, JsonObject data,
+                                                        IGachaParameterMappingDecoder parameterMappings) {
         String location = planId + ".steps[" + stepIndex + "].data";
         ResourceLocation target = target(data, planId, stepIndex, Set.of("target", "rounds", "limits"));
         return new GachaVanillaLootTableExecutionStep(VANILLA_LOOT_TABLE,
@@ -92,8 +92,8 @@ public final class GachaBuiltinExecutionSteps {
                 limits(data, location), COMPUTE_READS, COMPUTE_WRITES);
     }
 
-    private static GachaExecutionStepType reference(ResourceLocation type, Set<GachaExecutionChannel> reads,
-                                                    Set<GachaExecutionChannel> writes) {
+    private static IGachaExecutionStepType reference(ResourceLocation type, Set<GachaExecutionChannel> reads,
+                                                     Set<GachaExecutionChannel> writes) {
         return (planId, stepIndex, data, parameterMappings) -> {
             ResourceLocation target = target(data, planId, stepIndex, Set.of("target", "parameters"));
             GachaParameterMapping parameters = parameters(data, parameterMappings, planId, stepIndex, target);
@@ -139,7 +139,7 @@ public final class GachaBuiltinExecutionSteps {
     }
 
     private static GachaParameterMapping parameters(JsonObject data,
-                                                    GachaParameterMappingDecoder parameterMappings,
+                                                    IGachaParameterMappingDecoder parameterMappings,
                                                     ResourceLocation planId, int stepIndex,
                                                     ResourceLocation target) {
         String location = planId + ".steps[" + stepIndex + "].data.parameters";
@@ -149,7 +149,7 @@ public final class GachaBuiltinExecutionSteps {
     }
 
     private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, path);
     }
 
     private static List<GachaConsumptionSpec> consumption(JsonObject data, ResourceLocation planId,

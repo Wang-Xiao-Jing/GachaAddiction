@@ -5,15 +5,15 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public record GachaItemTagCustomEntry(ResourceLocation id, TagKey<Item> tag,
-                                      GachaLongProvider quantity, GachaItemTagResolver resolver)
-        implements GachaCustomEntry {
+                                      IGachaLongProvider quantity, IGachaItemTagResolver resolver)
+        implements IGachaCustomEntry {
     public GachaItemTagCustomEntry {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(tag, "tag");

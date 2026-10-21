@@ -3,20 +3,23 @@ package xiaojin.gachaaddiction.client.compat.colortooltips;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
+import xiaojin.gachaaddiction.client.api.IGachaItemBorderRenderer;
 import org.yanbwe.colortooltips.config.ConfigManager;
 import org.yanbwe.colortooltips.config.DynamicColorResolver;
 import org.yanbwe.colortooltips.util.TooltipRenderer;
 
-public class ColorTooltipsBorderRenderer {
+public class ColorTooltipsBorderRenderer implements IGachaItemBorderRenderer {
     private static final String DEFAULT_COLOR_TOKEN = "@rarityCore";
 
-    public static float updateFlow(float partialTick) {
+    @Override
+    public float updateFlow(float partialTick) {
         var animator = ConfigManager.getInstance().getColorFlowAnimator();
         animator.update();
         return animator.getInterpolatedFlowFraction(partialTick);
     }
 
-    public static boolean render(GuiGraphics graphics, ItemStack stack, int left, int top, int size, float flow) {
+    @Override
+    public boolean render(GuiGraphics graphics, ItemStack stack, int left, int top, int size, float flow) {
         var config = ConfigManager.getInstance();
         if (!config.isEnabled()) {
             return false;

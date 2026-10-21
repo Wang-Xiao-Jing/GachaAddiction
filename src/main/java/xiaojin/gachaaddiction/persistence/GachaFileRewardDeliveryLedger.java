@@ -4,9 +4,10 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.*;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.cardpool.GachaRewardDeliveryMode;
-import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardDeliveryLedger;
+import xiaojin.gachaaddiction.cardpool.delivery.IGachaRewardDeliveryLedger;
 import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardDeliveryLedgerEntry;
 import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardDeliveryLedgerStage;
+import xiaojin.gachaaddiction.cardpool.delivery.GachaRewardDeliveryAttempt;
 import xiaojin.gachaaddiction.cardpool.transaction.GachaTransactionId;
 
 import java.io.*;
@@ -15,8 +16,9 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.*;
 
-public class GachaFileRewardDeliveryLedger implements GachaRewardDeliveryLedger {
-    public static final int FORMAT_VERSION = 3;
+public class GachaFileRewardDeliveryLedger implements IGachaRewardDeliveryLedger {
+    public static final int FORMAT_VERSION = 4;
+    private static final int PRE_CHECKPOINT_FORMAT_VERSION = 3;
 
     private static final String FILE_EXTENSION = ".nbt";
     private static final String TEMP_FILE_PREFIX = "delivery-";
@@ -32,6 +34,8 @@ public class GachaFileRewardDeliveryLedger implements GachaRewardDeliveryLedger 
     private static final String RETURN_REWARDS_KEY = "return_rewards";
     private static final String RETURN_REWARDS_RECORDED_KEY = "return_rewards_recorded";
     private static final String DELIVERY_PROGRESS_RECORDED_KEY = "delivery_progress_recorded";
+    private static final String ATTEMPT_KEY = "attempt";
+    private static final String INBOX_ENTRY_ID_KEY = "inbox_entry_id";
 
     private final Path root;
     private final int maximumEntryBytes;
@@ -110,7 +114,7 @@ public class GachaFileRewardDeliveryLedger implements GachaRewardDeliveryLedger 
                 Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE,
                         StandardCopyOption.REPLACE_EXISTING);
             } catch (AtomicMoveNotSupportedException unsupported) {
-                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+                throw new IOException("Reward delivery ledger requires atomic replacement", unsupported);
             }
         } finally {
             Files.deleteIfExists(temporary);
@@ -139,6 +143,8 @@ public class GachaFileRewardDeliveryLedger implements GachaRewardDeliveryLedger 
         encoded.put(RETURN_REWARDS_KEY, returnRewards);
         encoded.putBoolean(RETURN_REWARDS_RECORDED_KEY, entry.returnRewardsRecorded());
         encoded.putBoolean(DELIVERY_PROGRESS_RECORDED_KEY, entry.deliveryProgressRecorded());
+        entry.attempt().ifPresent(attempt -> encoded.put(ATTEMPT_KEY, attempt.encode()));
+        entry.inboxEntryId().ifPresent(id -> encoded.putUUID(INBOX_ENTRY_ID_KEY, id.value()));
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try (DataOutputStream output = new DataOutputStream(bytes)) {
             NbtIo.write(encoded, output);
@@ -154,9 +160,13 @@ public class GachaFileRewardDeliveryLedger implements GachaRewardDeliveryLedger 
             encoded = NbtIo.read(input, NbtAccounter.create(maximumEntryBytes));
         }
         int formatVersion = encoded.getInt(FORMAT_VERSION_KEY);
-        if (formatVersion < 1 || formatVersion > FORMAT_VERSION) {
+        if (formatVersion != FORMAT_VERSION && formatVersion != PRE_CHECKPOINT_FORMAT_VERSION) {
             throw new IOException("Unsupported reward delivery ledger entry version: "
                     + formatVersion);
+        }
+        if (formatVersion == PRE_CHECKPOINT_FORMAT_VERSION
+                && (encoded.contains(ATTEMPT_KEY) || encoded.contains(INBOX_ENTRY_ID_KEY))) {
+            throw new IOException("Delivery receipt metadata requires ledger version " + FORMAT_VERSION);
         }
         UUID playerId = encoded.getUUID(PLAYER_ID_KEY);
         GachaTransactionId transactionId = new GachaTransactionId(encoded.getUUID(TRANSACTION_ID_KEY));
@@ -174,30 +184,33 @@ public class GachaFileRewardDeliveryLedger implements GachaRewardDeliveryLedger 
             remainderCounts.add(encodedRemainderCounts.getCompound(index).getInt(REMAINDER_COUNT_KEY));
         }
         List<ItemStack> returnRewards = new ArrayList<>();
-        if (formatVersion >= 2) {
-            ListTag encodedReturnRewards = encoded.getList(RETURN_REWARDS_KEY, Tag.TAG_COMPOUND);
-            for (int index = 0; index < encodedReturnRewards.size(); index++) {
-                returnRewards.add(ItemStack.parseOptional(registries, encodedReturnRewards.getCompound(index)));
-            }
+        ListTag encodedReturnRewards = encoded.getList(RETURN_REWARDS_KEY, Tag.TAG_COMPOUND);
+        for (int index = 0; index < encodedReturnRewards.size(); index++) {
+            returnRewards.add(ItemStack.parseOptional(registries, encodedReturnRewards.getCompound(index)));
         }
-        boolean returnRewardsRecorded = formatVersion >= 2
-                && encoded.getBoolean(RETURN_REWARDS_RECORDED_KEY);
-        boolean deliveryProgressRecorded = formatVersion == FORMAT_VERSION
-                && encoded.getBoolean(DELIVERY_PROGRESS_RECORDED_KEY);
+        boolean returnRewardsRecorded = encoded.getBoolean(RETURN_REWARDS_RECORDED_KEY);
+        boolean deliveryProgressRecorded = encoded.getBoolean(DELIVERY_PROGRESS_RECORDED_KEY);
         try {
+            Optional<GachaRewardDeliveryAttempt> attempt = Optional.empty();
+            if (encoded.contains(ATTEMPT_KEY)) {
+                if (!encoded.contains(ATTEMPT_KEY, Tag.TAG_COMPOUND)) {
+                    throw new IllegalArgumentException("Delivery attempt must be a compound");
+                }
+                attempt = Optional.of(GachaRewardDeliveryAttempt.decode(encoded.getCompound(ATTEMPT_KEY)));
+            }
+            Optional<GachaTransactionId> inboxEntryId = Optional.empty();
+            if (encoded.contains(INBOX_ENTRY_ID_KEY)) {
+                if (!encoded.hasUUID(INBOX_ENTRY_ID_KEY)) {
+                    throw new IllegalArgumentException("Inbox entry identity must be a UUID");
+                }
+                inboxEntryId = Optional.of(new GachaTransactionId(encoded.getUUID(INBOX_ENTRY_ID_KEY)));
+            }
             GachaRewardDeliveryMode mode = GachaRewardDeliveryMode.valueOf(encoded.getString(MODE_KEY));
             GachaRewardDeliveryLedgerStage stage = GachaRewardDeliveryLedgerStage.valueOf(
                     encoded.getString(STAGE_KEY));
-            if (stage == GachaRewardDeliveryLedgerStage.ONLINE_APPLIED && formatVersion < FORMAT_VERSION) {
-                deliveryProgressRecorded = true;
-            }
-            if (stage == GachaRewardDeliveryLedgerStage.RETURN_PENDING && !returnRewardsRecorded) {
-                returnRewards = rewards;
-                returnRewardsRecorded = true;
-            }
             return new GachaRewardDeliveryLedgerEntry(transactionId, playerId, mode, stage,
                     rewards, remainderCounts, deliveryProgressRecorded,
-                    returnRewards, returnRewardsRecorded);
+                    returnRewards, returnRewardsRecorded, attempt, inboxEntryId);
         } catch (IllegalArgumentException failure) {
             throw new IOException("Invalid reward delivery ledger entry", failure);
         }

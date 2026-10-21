@@ -5,10 +5,10 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.*;
 
 public final class GachaExecutionStepTypeRegistry {
-    private final Map<ResourceLocation, GachaExecutionStepType> types = new LinkedHashMap<>();
+    private final Map<ResourceLocation, IGachaExecutionStepType> types = new LinkedHashMap<>();
     private boolean frozen;
 
-    public synchronized void register(ResourceLocation id, GachaExecutionStepType type) {
+    public synchronized void register(ResourceLocation id, IGachaExecutionStepType type) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(type, "type");
         if (frozen) {
@@ -19,12 +19,12 @@ public final class GachaExecutionStepTypeRegistry {
         }
     }
 
-    public synchronized Map<ResourceLocation, GachaExecutionStepType> freeze() {
+    public synchronized Map<ResourceLocation, IGachaExecutionStepType> freeze() {
         frozen = true;
         return Collections.unmodifiableMap(new LinkedHashMap<>(types));
     }
 
-    public synchronized Optional<GachaExecutionStepType> resolve(ResourceLocation id) {
+    public synchronized Optional<IGachaExecutionStepType> resolve(ResourceLocation id) {
         return Optional.ofNullable(types.get(Objects.requireNonNull(id, "id")));
     }
 }

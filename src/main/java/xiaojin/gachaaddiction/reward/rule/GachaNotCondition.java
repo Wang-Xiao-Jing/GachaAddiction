@@ -6,7 +6,7 @@ import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 import java.util.List;
 import java.util.Objects;
 
-public record GachaNotCondition(GachaRuleCondition condition) implements GachaRuleCondition {
+public record GachaNotCondition(IGachaRuleCondition condition) implements IGachaRuleCondition {
     public GachaNotCondition {
         Objects.requireNonNull(condition, "condition");
     }

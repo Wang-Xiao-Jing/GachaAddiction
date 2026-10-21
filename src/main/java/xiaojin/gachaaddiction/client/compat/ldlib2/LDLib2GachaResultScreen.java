@@ -9,8 +9,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.client.GachaPresentationClient;
+import xiaojin.gachaaddiction.GachaConstants;
+import xiaojin.gachaaddiction.client.presentation.GachaPresentationClient;
 import xiaojin.gachaaddiction.client.compat.ldlib2.element.LDLib2GachaRewardElement;
 import xiaojin.gachaaddiction.client.gui.screen.CardPoolResultScreen;
 import xiaojin.gachaaddiction.util.TranslationKeys;
@@ -97,7 +97,7 @@ public class LDLib2GachaResultScreen extends ModularUIScreen {
             return;
         }
         fallbackStarted = true;
-        GachaAddiction.LOGGER.warn(LDLib2GachaUiConstants.FALLBACK_LOG, failure);
+        GachaConstants.LOGGER.warn(LDLib2GachaUiConstants.FALLBACK_LOG, failure);
         Minecraft.getInstance().setScreen(new CardPoolResultScreen(transactionId, cardPoolId, packageId, rewards));
     }
 }

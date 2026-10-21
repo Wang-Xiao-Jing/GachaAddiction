@@ -1,7 +1,7 @@
 package xiaojin.gachaaddiction.persistence;
 
 import xiaojin.gachaaddiction.cardpool.GachaCardPoolDefinition;
-import xiaojin.gachaaddiction.cardpool.GachaCardPoolSnapshotManager;
+import xiaojin.gachaaddiction.cardpool.IGachaCardPoolSnapshotManager;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -10,12 +10,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class GachaCardPoolSnapshotStore implements GachaCardPoolSnapshotManager {
-    private final GachaPoolSnapshotArchive archive;
-    private final GachaCardPoolSnapshotCodec codec;
+public final class GachaCardPoolSnapshotStore implements IGachaCardPoolSnapshotManager {
+    private final IGachaPoolSnapshotArchive archive;
+    private final IGachaCardPoolSnapshotCodec codec;
     private final Map<String, GachaCardPoolDefinition> cache = new ConcurrentHashMap<>();
 
-    public GachaCardPoolSnapshotStore(GachaPoolSnapshotArchive archive, GachaCardPoolSnapshotCodec codec) {
+    public GachaCardPoolSnapshotStore(IGachaPoolSnapshotArchive archive, IGachaCardPoolSnapshotCodec codec) {
         this.archive = Objects.requireNonNull(archive, "archive");
         this.codec = Objects.requireNonNull(codec, "codec");
     }

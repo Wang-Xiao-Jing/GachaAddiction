@@ -4,12 +4,12 @@ import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
 import xiaojin.gachaaddiction.reward.model.GachaResultEditor;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
-import xiaojin.gachaaddiction.reward.rule.GachaRuleAction;
+import xiaojin.gachaaddiction.reward.rule.IGachaRuleAction;
 import xiaojin.gachaaddiction.reward.rule.GachaRuleContext;
 
 import java.util.Objects;
 
-public record GachaQuantityRuleAction(GachaQuantityPipeline pipeline) implements GachaRuleAction {
+public record GachaQuantityRuleAction(GachaQuantityPipeline pipeline) implements IGachaRuleAction {
     public GachaQuantityRuleAction {
         Objects.requireNonNull(pipeline, "pipeline");
     }

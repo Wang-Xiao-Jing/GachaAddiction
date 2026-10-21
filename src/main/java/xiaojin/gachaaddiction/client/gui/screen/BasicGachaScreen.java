@@ -12,9 +12,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
-import xiaojin.gachaaddiction.api.client.GachaRewardPhase;
-import xiaojin.gachaaddiction.api.client.ReelHost;
-import xiaojin.gachaaddiction.client.GachaAnnouncementClient;
+import xiaojin.gachaaddiction.client.api.GachaRewardPhase;
+import xiaojin.gachaaddiction.client.api.IReelHost;
+import xiaojin.gachaaddiction.client.announcement.GachaAnnouncementClient;
 import xiaojin.gachaaddiction.config.ClientConfig;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 
-public abstract class BasicGachaScreen extends Screen implements ReelHost {
+public abstract class BasicGachaScreen extends Screen implements IReelHost {
     private static final Set<GachaRewardPhase> DEFAULT_AUTO_TAKE_PHASES =
             Set.of(GachaRewardPhase.OPEN);
     private static final float SOURCE_TITLE_HEIGHT_FRACTION = 0.06F;

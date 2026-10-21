@@ -4,7 +4,7 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.client.compat.ldlib2.element.SearchConfigEntryElement;
 
 public class LDLib2Util {
@@ -17,7 +17,7 @@ public class LDLib2Util {
             try {
                 return LDLib2ConfigScreen.create(modContainer, parent);
             } catch (RuntimeException | LinkageError failure) {
-                GachaAddiction.LOGGER.warn(CONFIGURATION_FALLBACK_LOG, failure);
+                GachaConstants.LOGGER.warn(CONFIGURATION_FALLBACK_LOG, failure);
                 return new ConfigurationScreen(modContainer, parent);
             }
         };

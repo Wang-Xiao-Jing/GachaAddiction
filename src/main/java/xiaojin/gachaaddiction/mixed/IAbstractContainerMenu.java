@@ -2,7 +2,7 @@ package xiaojin.gachaaddiction.mixed;
 
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.api.GachaaData;
+import xiaojin.gachaaddiction.api.GachaData;
 
 public interface IAbstractContainerMenu {
     static IAbstractContainerMenu of(AbstractContainerMenu menu) {
@@ -10,7 +10,7 @@ public interface IAbstractContainerMenu {
     }
 
     @Nullable
-    GachaaData gachaaddiction$getGachaaData();
+    GachaData gachaaddiction$getGachaaData();
 
-    void gachaaddiction$setGachaaData(GachaaData data);
+    void gachaaddiction$setGachaaData(GachaData data);
 }

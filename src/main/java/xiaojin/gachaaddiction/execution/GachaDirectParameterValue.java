@@ -5,7 +5,7 @@ import xiaojin.gachaaddiction.reward.parameter.GachaParameterKey;
 
 import java.util.Objects;
 
-public record GachaDirectParameterValue(GachaParameterKey source) implements GachaParameterValue {
+public record GachaDirectParameterValue(GachaParameterKey source) implements IGachaParameterValue {
     public GachaDirectParameterValue {
         Objects.requireNonNull(source, "source");
     }

@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
+import xiaojin.gachaaddiction.config.GachaPresentationDefaults;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -27,7 +28,7 @@ public final class LDLib2GachaDesignerFiles {
     }
 
     public static String defaultFileName() {
-        return Path.of(LDLib2GachaUiConstants.DEFAULT_TEMPLATE_ID.getPath()).getFileName().toString();
+        return Path.of(GachaPresentationDefaults.DEFAULT_TEMPLATE_ID.getPath()).getFileName().toString();
     }
 
     public static Path resolve(String name) throws IOException {
@@ -36,7 +37,7 @@ public final class LDLib2GachaDesignerFiles {
         }
         Path game = Platform.getGamePath().toRealPath();
         Path directory = game.resolve(LOCAL_ASSETS)
-                .resolve(LDLib2GachaUiConstants.DEFAULT_TEMPLATE_ID.getNamespace()).resolve(UI_DIRECTORY);
+                .resolve(GachaPresentationDefaults.DEFAULT_TEMPLATE_ID.getNamespace()).resolve(UI_DIRECTORY);
         Path target = directory.resolve(name).normalize();
         for (Path current = target; current != null && !current.equals(game); current = current.getParent()) {
             if (Files.isSymbolicLink(current)) {

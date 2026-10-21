@@ -1,15 +1,15 @@
 package xiaojin.gachaaddiction.reward.rule;
 
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
-import xiaojin.gachaaddiction.reward.number.GachaDoubleProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaDoubleProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
-import xiaojin.gachaaddiction.reward.number.GachaNumberExpression;
+import xiaojin.gachaaddiction.reward.number.IGachaNumberExpression;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 
 import java.util.List;
 import java.util.Objects;
 
-public record GachaChanceCondition(GachaDoubleProvider chance) implements GachaProbabilityCondition {
+public record GachaChanceCondition(IGachaDoubleProvider chance) implements IGachaProbabilityCondition {
     public GachaChanceCondition {
         Objects.requireNonNull(chance, "chance");
     }
@@ -26,7 +26,7 @@ public record GachaChanceCondition(GachaDoubleProvider chance) implements GachaP
     }
 
     @Override
-    public GachaNumberExpression probabilityExpression() {
+    public IGachaNumberExpression probabilityExpression() {
         return chance.expression();
     }
 }

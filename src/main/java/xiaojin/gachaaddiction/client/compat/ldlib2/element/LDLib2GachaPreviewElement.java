@@ -10,7 +10,7 @@ import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
-import xiaojin.gachaaddiction.api.client.ReelHost;
+import xiaojin.gachaaddiction.client.api.IReelHost;
 import xiaojin.gachaaddiction.client.gui.screen.SlotMachineScreen;
 import xiaojin.gachaaddiction.client.gui.widget.VerticalReelWidget;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
@@ -19,7 +19,7 @@ import xiaojin.gachaaddiction.config.entry.BasicConfigEntry;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LDLib2GachaPreviewElement extends UIElement implements ReelHost {
+public class LDLib2GachaPreviewElement extends UIElement implements IReelHost {
     private static final List<Item> SAMPLE_ITEMS = List.of(Items.STONE, Items.GLASS, Items.ENCHANTED_BOOK);
     private static final int SAMPLE_COUNT = 1;
     private static final int SAMPLE_WEIGHT = 1;

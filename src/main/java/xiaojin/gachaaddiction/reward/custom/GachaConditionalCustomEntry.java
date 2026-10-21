@@ -2,7 +2,7 @@ package xiaojin.gachaaddiction.reward.custom;
 
 import net.minecraft.resources.ResourceLocation;
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
-import xiaojin.gachaaddiction.reward.rule.GachaRuleCondition;
+import xiaojin.gachaaddiction.reward.rule.IGachaRuleCondition;
 import xiaojin.gachaaddiction.reward.rule.GachaRuleContext;
 
 import java.util.List;
@@ -10,8 +10,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-public record GachaConditionalCustomEntry(GachaCustomEntry delegate,
-                                          List<GachaRuleCondition> conditions) implements GachaCustomEntry {
+public record GachaConditionalCustomEntry(IGachaCustomEntry delegate,
+                                          List<IGachaRuleCondition> conditions) implements IGachaCustomEntry {
     public GachaConditionalCustomEntry {
         Objects.requireNonNull(delegate, "delegate");
         conditions = List.copyOf(conditions);

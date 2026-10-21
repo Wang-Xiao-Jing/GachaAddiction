@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public record GachaNamedLongProvider(GachaParameterKey parameter,
-                                     GachaParameterView view) implements GachaLongProvider {
+                                     GachaParameterView view) implements IGachaLongProvider {
     public GachaNamedLongProvider {
         Objects.requireNonNull(parameter, "parameter");
         Objects.requireNonNull(view, "view");
@@ -27,7 +27,7 @@ public record GachaNamedLongProvider(GachaParameterKey parameter,
     }
 
     @Override
-    public GachaNumberExpression expression() {
-        return new GachaNumberExpression.Parameter(parameter, view, Optional.empty());
+    public IGachaNumberExpression expression() {
+        return new IGachaNumberExpression.Parameter(parameter, view, Optional.empty());
     }
 }

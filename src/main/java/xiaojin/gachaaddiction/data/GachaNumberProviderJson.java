@@ -16,7 +16,7 @@ public final class GachaNumberProviderJson {
     private GachaNumberProviderJson() {
     }
 
-    public static GachaDoubleProvider doubleProvider(JsonElement json, String location) {
+    public static IGachaDoubleProvider doubleProvider(JsonElement json, String location) {
         if (json == null || json.isJsonNull()) {
             throw new JsonParseException("Double provider is missing in " + location);
         }
@@ -53,7 +53,7 @@ public final class GachaNumberProviderJson {
         };
     }
 
-    public static GachaLongProvider longProvider(JsonElement json, String location) {
+    public static IGachaLongProvider longProvider(JsonElement json, String location) {
         if (json == null || json.isJsonNull()) {
             throw new JsonParseException("Long provider is missing in " + location);
         }

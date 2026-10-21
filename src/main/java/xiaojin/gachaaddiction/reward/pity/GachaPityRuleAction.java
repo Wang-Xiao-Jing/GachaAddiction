@@ -1,22 +1,22 @@
 package xiaojin.gachaaddiction.reward.pity;
 
 import xiaojin.gachaaddiction.reward.model.GachaResultEditor;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterDefinition;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterDirection;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
-import xiaojin.gachaaddiction.reward.rule.GachaRuleAction;
-import xiaojin.gachaaddiction.reward.rule.GachaRuleCondition;
+import xiaojin.gachaaddiction.reward.rule.IGachaRuleAction;
+import xiaojin.gachaaddiction.reward.rule.IGachaRuleCondition;
 import xiaojin.gachaaddiction.reward.rule.GachaRuleContext;
 
 import java.util.Objects;
 
 public record GachaPityRuleAction(GachaParameterDefinition<Long> missCounter,
-                                  GachaLongProvider hardPityDraw,
-                                  GachaRuleCondition hitCondition,
-                                  GachaRuleAction hardPityAction,
-                                  GachaPityOutputs outputs) implements GachaRuleAction {
+                                  IGachaLongProvider hardPityDraw,
+                                  IGachaRuleCondition hitCondition,
+                                  IGachaRuleAction hardPityAction,
+                                  GachaPityOutputs outputs) implements IGachaRuleAction {
     public GachaPityRuleAction {
         Objects.requireNonNull(missCounter, "missCounter");
         Objects.requireNonNull(hardPityDraw, "hardPityDraw");

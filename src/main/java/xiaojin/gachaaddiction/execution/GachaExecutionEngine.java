@@ -4,10 +4,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootTable;
 import xiaojin.gachaaddiction.reward.GachaLogicalRewardPoolResult;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
+import xiaojin.gachaaddiction.reward.IGachaRewardPool;
 import xiaojin.gachaaddiction.reward.GachaRewardPoolRequest;
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
@@ -18,16 +18,16 @@ import xiaojin.gachaaddiction.reward.rule.GachaRulePhase;
 import xiaojin.gachaaddiction.reward.rule.GachaRulePipeline;
 import xiaojin.gachaaddiction.reward.rule.GachaRuleScope;
 import xiaojin.gachaaddiction.reward.source.GachaCustomLootTableSource;
-import xiaojin.gachaaddiction.reward.source.GachaRewardSource;
+import xiaojin.gachaaddiction.reward.source.IGachaRewardSource;
 import xiaojin.gachaaddiction.reward.source.GachaVanillaLootTableSource;
 
 import java.util.*;
 
 public final class GachaExecutionEngine {
-    private final GachaExecutionComponentResolver components;
+    private final IGachaExecutionComponentResolver components;
     private final GachaStandaloneRewardExecutor standaloneRewards;
 
-    public GachaExecutionEngine(GachaExecutionComponentResolver components) {
+    public GachaExecutionEngine(IGachaExecutionComponentResolver components) {
         this.components = Objects.requireNonNull(components, "components");
         this.standaloneRewards = new GachaStandaloneRewardExecutor(components);
     }
@@ -72,7 +72,7 @@ public final class GachaExecutionEngine {
         try {
             GachaParameterEditor parameters = new GachaParameterEditor(request.inputFingerprint(), inputs);
             GachaExecutionState state = new GachaExecutionState(parameters, plan.limits());
-            for (GachaExecutionStep step : plan.steps()) {
+            for (IGachaExecutionStep step : plan.steps()) {
                 executeStep(plan, step, request, inputs, state, path);
             }
             return state;
@@ -81,7 +81,7 @@ public final class GachaExecutionEngine {
         }
     }
 
-    private void executeStep(GachaExecutionPlanDefinition plan, GachaExecutionStep step,
+    private void executeStep(GachaExecutionPlanDefinition plan, IGachaExecutionStep step,
                              GachaExecutionRequest request, GachaParameterSet initialParameters,
                              GachaExecutionState state, Deque<ResourceLocation> path) {
         GachaNumberContext numbers = new GachaNumberContext(initialParameters,
@@ -162,7 +162,7 @@ public final class GachaExecutionEngine {
     private void executeRewardPool(GachaExecutionPlanDefinition plan, GachaRewardPoolExecutionStep step,
                                    GachaExecutionRequest request, GachaExecutionState state,
                                    GachaNumberContext numbers) {
-        GachaRewardPool rewardPool = components.resolveRewardPool(step.target()).orElseThrow(() ->
+        IGachaRewardPool rewardPool = components.resolveRewardPool(step.target()).orElseThrow(() ->
                 new IllegalArgumentException("Unknown reward pool: " + step.target()));
         int rounds = request.roundsOverride().orElseGet(() -> Math.toIntExact(step.rounds().get(numbers)));
         requireRoundsWithinLimit(rounds, plan.limits(), plan.id());
@@ -175,7 +175,7 @@ public final class GachaExecutionEngine {
                 plan.parameterSchema(), state.parameters());
     }
 
-    private void executeRewardSource(GachaRewardSource source, GachaLongProvider roundsProvider,
+    private void executeRewardSource(IGachaRewardSource source, IGachaLongProvider roundsProvider,
                                      GachaExecutionLimits limits, Optional<GachaExecutionLimits> planLimits,
                                      GachaExecutionRequest request,
                                      GachaParameterSet initialParameters, GachaExecutionState state,

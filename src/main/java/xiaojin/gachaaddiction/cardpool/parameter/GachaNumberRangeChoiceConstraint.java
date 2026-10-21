@@ -6,7 +6,7 @@ import java.util.Objects;
 public record GachaNumberRangeChoiceConstraint<T extends Number>(BigDecimal minimum,
                                                                  BigDecimal maximum,
                                                                  BigDecimal step)
-        implements GachaPlayerChoiceConstraint<T> {
+        implements IGachaPlayerChoiceConstraint<T> {
     public GachaNumberRangeChoiceConstraint {
         Objects.requireNonNull(minimum, "minimum");
         Objects.requireNonNull(maximum, "maximum");

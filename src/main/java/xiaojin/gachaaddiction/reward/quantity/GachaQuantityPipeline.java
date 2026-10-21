@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Objects;
 
 public final class GachaQuantityPipeline {
-    private final List<GachaQuantityOperation> operations;
+    private final List<IGachaQuantityOperation> operations;
 
-    public GachaQuantityPipeline(List<GachaQuantityOperation> operations) {
+    public GachaQuantityPipeline(List<IGachaQuantityOperation> operations) {
         if (operations.isEmpty()) {
             throw new IllegalArgumentException("Quantity pipeline requires at least one operation");
         }
@@ -19,7 +19,7 @@ public final class GachaQuantityPipeline {
         }
         Objects.requireNonNull(context, "context");
         long quantity = initialQuantity;
-        for (GachaQuantityOperation operation : operations) {
+        for (IGachaQuantityOperation operation : operations) {
             quantity = operation.apply(quantity, context);
             if (quantity < 0) {
                 throw new IllegalArgumentException("Quantity operation produced a negative value: "

@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.client.compat.ldlib2.element.LDLib2GachaReelElement;
@@ -207,7 +207,7 @@ public class LDLib2GachaScreen extends BasicGachaScreen {
             return;
         }
         fallbackStarted = true;
-        GachaAddiction.LOGGER.warn(LDLib2GachaUiConstants.FALLBACK_LOG, failure);
+        GachaConstants.LOGGER.warn(LDLib2GachaUiConstants.FALLBACK_LOG, failure);
         var fallback = new SlotMachineScreen(originalScreen, lootTableId, itemStackEntries);
         transferPresentationTo(fallback);
         NonNullList<ItemStack> stacks = NonNullList.create();

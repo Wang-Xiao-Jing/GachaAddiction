@@ -4,16 +4,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
-import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescribable;
+import xiaojin.gachaaddiction.reward.probability.IGachaProbabilityDescribable;
 import xiaojin.gachaaddiction.reward.probability.GachaProbabilityDescription;
 import xiaojin.gachaaddiction.reward.quantity.GachaExecutionLimits;
 
 import java.util.*;
 
 public final class GachaExecutionPreviewService {
-    private final GachaExecutionComponentResolver components;
+    private final IGachaExecutionComponentResolver components;
 
-    public GachaExecutionPreviewService(GachaExecutionComponentResolver components) {
+    public GachaExecutionPreviewService(IGachaExecutionComponentResolver components) {
         this.components = Objects.requireNonNull(components, "components");
     }
 
@@ -96,7 +96,7 @@ public final class GachaExecutionPreviewService {
         path.addLast(plan.id());
         try {
             GachaNumberContext numbers = new GachaNumberContext(parameters, parameters, random);
-            for (GachaExecutionStep step : plan.steps()) {
+            for (IGachaExecutionStep step : plan.steps()) {
                 if (step instanceof GachaRewardPoolExecutionStep rewardPool) {
                     long rounds = roundsOverride.isPresent() ? roundsOverride.getAsInt() : rewardPool.rounds().get(numbers);
                     if (rounds <= 0) {
@@ -109,9 +109,9 @@ public final class GachaExecutionPreviewService {
                     steps.add(new GachaExecutionStepPreview(step.type(), Optional.of(rewardPool.target()),
                             OptionalLong.of(rounds), List.of()));
                     components.resolveRewardPool(rewardPool.target())
-                            .filter(GachaProbabilityDescribable.class::isInstance)
-                            .map(GachaProbabilityDescribable.class::cast)
-                            .map(GachaProbabilityDescribable::describeProbability)
+                            .filter(IGachaProbabilityDescribable.class::isInstance)
+                            .map(IGachaProbabilityDescribable.class::cast)
+                            .map(IGachaProbabilityDescribable::describeProbability)
                             .ifPresent(probabilityDescriptions::add);
                     if (rewardPool.writes().contains(GachaExecutionChannel.PARAMETERS)) {
                         addIssue(issues, GachaExecutionPreviewIssue.STATE_DEPENDENT_OUTPUTS);

@@ -17,7 +17,7 @@ sourceSets.main.resources {
     srcDir('src/generated/resources')
     exclude("**/*.bbmodel")
     exclude("**/*.zip")
-    exclude("src/generated/**/.cache")
+    exclude("**/.cache/**")
 }
 
 boolean onlyCompile = false // 仅编译
@@ -81,8 +81,6 @@ repositories {
         url = uri("https://modmaven.dev")
     }
 
-    maven { url = uri("https://api.modrinth.com/maven") }
-
     maven {
         url = uri("https://www.cursemaven.com")
         content { includeGroup "curse.maven" }
@@ -93,10 +91,6 @@ repositories {
 
     // JitPack - GitHub 项目打包
     maven { url = 'https://jitpack.io' }
-    maven {
-        url 'https://jitpack.io'
-        content { includeGroup "com.github.rtyley" }
-    }
     maven {
         name "magicTeam MavenReleases"
         url "https://maven.confluence.ink/releases"
@@ -131,6 +125,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
     version = project.neo_version
+    addModdingDependenciesTo(sourceSets.test)
 
     parchment {
         mappingsVersion = project.parchment_mappings_version
@@ -192,21 +187,10 @@ configurations {
 
 dependencies {
     compileOnly "com.lowdragmc.ldlib2:ldlib2-neoforge-${minecraft_version}:${ldlib2_version}:all"
-    compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixinsquared_version}"))
-    implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixinsquared_version}"))
-    implementation "maven.modrinth:jade:${jade_version}+neoforge"
-
-    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
-
     compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
-
     compileOnly "maven.modrinth:colortooltips:${colortooltips_version}"
     compileOnly "maven.modrinth:raritycore:${raritycore_version}"
-
     compileOnly "org.confluence.lib:Confluence-Magic-Lib:${confluence_lib_version}"
-
     compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
     compileOnly "dev.ftb.mods:ftb-library:${ftb_library_version}"
     compileOnly "dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}"
@@ -217,21 +201,20 @@ dependencies {
     compileOnly "dev.ftb.mods:ftb-filter-system:${ftb_filter_version}"
     compileOnly "dev.ftb.mods:ftb-ultimine-neoforge:${ftb_ultimine_version}"
     compileOnly "dev.ftb.mods:ftb-ultimine:${ftb_ultimine_version}"
-
     compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
-
     compileOnly "curse.maven:kubejs-238086:${kubejs_version}"
     compileOnly "curse.maven:rhino-416294:${rhino_version}"
-
-    compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
-
     compileOnly "curse.maven:clavis-1296431:${clavis_version}"
     compileOnly "curse.maven:shatterbyte-lib-916747:${shatterbyte_lib_version}"
-
     compileOnly "curse.maven:treasure-bags-318299:${treasurebags_version}"
     compileOnly "curse.maven:silent-lib-242998:${silentlib_version}"
-
     compileOnly "maven.modrinth:loot-bundles:${lootbundles_version}"
+    compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixinsquared_version}"))
+    implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixinsquared_version}"))
+    implementation "maven.modrinth:jade:${jade_version}+neoforge"
+
+    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
 
     if (!onlyCompile) {
         if (ldlib2) {

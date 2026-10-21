@@ -9,10 +9,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 public record GachaExecutionPlanDefinition(ResourceLocation id, GachaParameterSchema parameterSchema,
-                                           List<GachaExecutionStep> steps,
+                                           List<IGachaExecutionStep> steps,
                                            Optional<GachaExecutionLimits> limits) {
     public GachaExecutionPlanDefinition(ResourceLocation id, GachaParameterSchema parameterSchema,
-                                        List<GachaExecutionStep> steps) {
+                                        List<IGachaExecutionStep> steps) {
         this(id, parameterSchema, steps, Optional.empty());
     }
 

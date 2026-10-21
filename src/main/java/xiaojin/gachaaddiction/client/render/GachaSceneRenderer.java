@@ -1,17 +1,14 @@
 package xiaojin.gachaaddiction.client.render;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -20,11 +17,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -32,13 +27,11 @@ import net.minecraft.world.level.block.state.properties.ChestType;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.registry.item.GachaDrawItems;
 
 
 public class GachaSceneRenderer implements AutoCloseable {
-    private static final long SOURCE_LIFETIME_MILLIS = 5000;
-    private static final float NO_OVERRIDE = -1.0F;
     private static final float CHEST_PITCH = 15.0F;
     private static final float CHEST_YAW = 45.0F;
     private static final float SCENE_SCALE = 0.42F;
@@ -78,7 +71,7 @@ public class GachaSceneRenderer implements AutoCloseable {
     private static final Vector3f FRONT_LIGHT = new Vector3f(0.25F, 0.5F, 1.0F).normalize();
     private static final Vector3f FRONT_FILL_LIGHT = new Vector3f(-0.25F, 0.2F, 1.0F).normalize();
     private static final String CHEST_RENDER_WARNING = "Cannot render source chest in gacha scene; using a vanilla chest";
-    private static final RenderType LIGHT = RenderType.create(GachaAddiction.MODID + ":gacha_scene_light",
+    private static final RenderType LIGHT = RenderType.create(GachaConstants.MODID + ":gacha_scene_light",
             DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 1024, false, true,
             RenderType.CompositeState.builder()
                     .setShaderState(RenderType.POSITION_COLOR_SHADER)
@@ -87,10 +80,7 @@ public class GachaSceneRenderer implements AutoCloseable {
                     .setDepthTestState(RenderType.LEQUAL_DEPTH_TEST)
                     .setWriteMaskState(RenderType.COLOR_WRITE)
                     .createCompositeState(false));
-    private static final ThreadLocal<ActiveChest> ACTIVE_CHEST = new ThreadLocal<>();
-    private static @Nullable PendingSource pending;
-    private @Nullable RenderTarget chestTarget;
-    private @Nullable RenderTarget reflectionTarget;
+    private final GachaSceneTargets targets = new GachaSceneTargets();
     private final GachaObjectOutline outline = new GachaObjectOutline();
     private @Nullable RenderTarget outputOverride;
     private float interactionYaw = CHEST_YAW;
@@ -110,68 +100,11 @@ public class GachaSceneRenderer implements AutoCloseable {
             Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.SOUTH));
 
     public GachaSceneRenderer(@Nullable Screen parent) {
-        Minecraft minecraft = Minecraft.getInstance();
-        PendingSource candidate = pending;
-        pending = null;
-        if (candidate == null || minecraft.level != candidate.level
-                || Util.getMillis() - candidate.createdAt > SOURCE_LIFETIME_MILLIS) {
-            return;
+        GachaSceneSources.CapturedSource captured = GachaSceneSources.takeSource(parent);
+        if (captured != null) {
+            triggerItem = captured.display();
+            source = captured.chest();
         }
-
-        if (candidate.requiresNewMenu && (!(parent instanceof MenuAccess<?> menu)
-                || minecraft.player == null || menu.getMenu() != minecraft.player.containerMenu
-                || menu.getMenu().containerId == candidate.previousMenuId)) {
-            return;
-        }
-
-        triggerItem = candidate.display;
-        if (candidate.chest != null && !candidate.chest.isRemoved()) {
-            source = candidate.chest;
-        }
-    }
-
-    public static void rememberSource(BlockPos position) {
-        pending = null;
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level != null && minecraft.player != null) {
-            ChestBlockEntity chest = minecraft.level.getBlockEntity(position) instanceof ChestBlockEntity holder
-                    ? holder : null;
-            pending = new PendingSource(chest, new ItemStack(minecraft.level.getBlockState(position).getBlock()),
-                    minecraft.level, minecraft.player.containerMenu.containerId, true, Util.getMillis());
-        }
-    }
-
-    public static void rememberItemSource(ItemStack item) {
-        pending = null;
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level != null && minecraft.player != null && !item.isEmpty()) {
-            pending = new PendingSource(null, item.copyWithCount(1), minecraft.level,
-                    minecraft.player.containerMenu.containerId, false, Util.getMillis());
-        }
-    }
-
-    public static void rememberEntitySource(Entity entity) {
-        pending = null;
-        Minecraft minecraft = Minecraft.getInstance();
-        ItemStack display = entity.getPickResult();
-        if (minecraft.level != null && minecraft.player != null && display != null && !display.isEmpty()) {
-            pending = new PendingSource(null, display.copyWithCount(1), minecraft.level,
-                    minecraft.player.containerMenu.containerId, true, Util.getMillis());
-        }
-    }
-
-    public static void clearSource() {
-        pending = null;
-    }
-
-    public static float overrideOpenNess(ChestBlockEntity chest) {
-        ActiveChest active = ACTIVE_CHEST.get();
-        return active != null && (active.first == chest || active.second == chest) ? active.opening : NO_OVERRIDE;
-    }
-
-    public static float overrideRenderedOpenNess() {
-        ActiveChest active = ACTIVE_CHEST.get();
-        return active == null ? NO_OVERRIDE : active.opening;
     }
 
     public static boolean isChestItem(ItemStack trigger) {
@@ -198,11 +131,7 @@ public class GachaSceneRenderer implements AutoCloseable {
     }
 
     public void rememberForReplacement(ItemStack display) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level != null && minecraft.player != null) {
-            pending = new PendingSource(source, display.copyWithCount(1), minecraft.level,
-                    minecraft.player.containerMenu.containerId, false, Util.getMillis());
-        }
+        GachaSceneSources.rememberReplacement(source, display);
     }
 
     public ItemStack getTriggerItem() {
@@ -211,6 +140,7 @@ public class GachaSceneRenderer implements AutoCloseable {
 
     public void renderChest(GuiGraphics graphics, GachaAnimationRenderer.Layout layout,
                             float seconds, float opening, ItemStack trigger, int color) {
+        RenderTarget chestTarget = targets.chest();
         if (frameScoped && cachedFrame == frameRevision && cachedOpening == opening && cachedColor == color && cachedYaw == interactionYaw
                 && ItemStack.isSameItemSameComponents(cachedTrigger, trigger) && chestTarget != null
                 && chestTarget.width == Minecraft.getInstance().getMainRenderTarget().width
@@ -236,13 +166,7 @@ public class GachaSceneRenderer implements AutoCloseable {
             RenderSystem.colorMask(true, true, true, true);
             RenderSystem.depthMask(true);
 
-            if (chestTarget == null || chestTarget.width != mainTarget.width || chestTarget.height != mainTarget.height) {
-                if (chestTarget != null) {
-                    chestTarget.destroyBuffers();
-                }
-                chestTarget = new TextureTarget(mainTarget.width, mainTarget.height, true, Minecraft.ON_OSX);
-                chestTarget.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
-            }
+            chestTarget = targets.prepareChest(mainTarget);
             chestTarget.clear(Minecraft.ON_OSX);
             chestTarget.bindWrite(true);
             float aspect = chestTarget.width / (float) chestTarget.height;
@@ -277,7 +201,7 @@ public class GachaSceneRenderer implements AutoCloseable {
                 if (chest == fallback) {
                     throw failure;
                 }
-                GachaAddiction.LOGGER.warn(CHEST_RENDER_WARNING, failure);
+                GachaConstants.LOGGER.warn(CHEST_RENDER_WARNING, failure);
                 source = null;
                 renderChestModel(graphics, fallback, null, opening);
             }
@@ -385,18 +309,13 @@ public class GachaSceneRenderer implements AutoCloseable {
             return;
         }
 
+        RenderTarget reflectionTarget;
         try (GachaRenderState previousState = new GachaRenderState()) {
             graphics.flush();
             RenderSystem.disableScissor();
             RenderSystem.colorMask(true, true, true, true);
             RenderSystem.depthMask(true);
-            if (reflectionTarget == null || reflectionTarget.width != mainTarget.width || reflectionTarget.height != mainTarget.height) {
-                if (reflectionTarget != null) {
-                    reflectionTarget.destroyBuffers();
-                }
-                reflectionTarget = new TextureTarget(mainTarget.width, mainTarget.height, true, Minecraft.ON_OSX);
-                reflectionTarget.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
-            }
+            reflectionTarget = targets.prepareReflection(mainTarget);
             reflectionTarget.clear(Minecraft.ON_OSX);
             reflectionTarget.bindWrite(true);
             outputOverride = reflectionTarget;
@@ -434,6 +353,7 @@ public class GachaSceneRenderer implements AutoCloseable {
     }
 
     private void compositeChest(GuiGraphics graphics) {
+        RenderTarget chestTarget = targets.chest();
         if (chestTarget == null) {
             return;
         }
@@ -461,25 +381,8 @@ public class GachaSceneRenderer implements AutoCloseable {
 
     @Override
     public void close() {
-        outline.close();
-        outputOverride = null;
-        if (chestTarget == null && reflectionTarget == null) {
-            return;
-        }
-
-        try (GachaRenderState previousState = new GachaRenderState()) {
-            try {
-                if (reflectionTarget != null) {
-                    reflectionTarget.destroyBuffers();
-                    reflectionTarget = null;
-                }
-                if (chestTarget != null) {
-                    chestTarget.destroyBuffers();
-                    chestTarget = null;
-                }
-            } finally {
-                Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
-            }
+        try (GachaSceneTargets ownedTargets = targets; GachaObjectOutline ownedOutline = outline) {
+            outputOverride = null;
         }
     }
 
@@ -498,26 +401,18 @@ public class GachaSceneRenderer implements AutoCloseable {
 
     private void renderChestModel(GuiGraphics graphics, ChestBlockEntity chest,
                                   @Nullable ChestBlockEntity neighbor, float opening) {
-        ActiveChest previous = ACTIVE_CHEST.get();
-        ACTIVE_CHEST.set(new ActiveChest(chest, neighbor, opening));
-        PoseStack pose = new PoseStack();
-        pose.last().pose().set(graphics.pose().last().pose());
-        pose.last().normal().set(graphics.pose().last().normal());
-        float dx = neighbor == null ? 0 : neighbor.getBlockPos().getX() - chest.getBlockPos().getX();
-        float dz = neighbor == null ? 0 : neighbor.getBlockPos().getZ() - chest.getBlockPos().getZ();
-        try {
+        try (GachaChestRenderOverride override = new GachaChestRenderOverride(chest, neighbor, opening)) {
+            PoseStack pose = new PoseStack();
+            pose.last().pose().set(graphics.pose().last().pose());
+            pose.last().normal().set(graphics.pose().last().normal());
+            float dx = neighbor == null ? 0 : neighbor.getBlockPos().getX() - chest.getBlockPos().getX();
+            float dz = neighbor == null ? 0 : neighbor.getBlockPos().getZ() - chest.getBlockPos().getZ();
             pose.mulPose(Axis.YP.rotationDegrees(chest.getBlockState().getValue(ChestBlock.FACING).toYRot()));
             pose.translate(-CENTER - dx * CENTER, 0.0F, -CENTER - dz * CENTER);
             renderBlockEntity(graphics, pose, chest);
             if (neighbor != null) {
                 pose.translate(dx, 0.0F, dz);
                 renderBlockEntity(graphics, pose, neighbor);
-            }
-        } finally {
-            if (previous == null) {
-                ACTIVE_CHEST.remove();
-            } else {
-                ACTIVE_CHEST.set(previous);
             }
         }
     }
@@ -640,10 +535,4 @@ public class GachaSceneRenderer implements AutoCloseable {
         }
     }
 
-    private record PendingSource(@Nullable ChestBlockEntity chest, ItemStack display, Level level,
-                                 int previousMenuId, boolean requiresNewMenu, long createdAt) {
-    }
-
-    private record ActiveChest(ChestBlockEntity first, @Nullable ChestBlockEntity second, float opening) {
-    }
 }

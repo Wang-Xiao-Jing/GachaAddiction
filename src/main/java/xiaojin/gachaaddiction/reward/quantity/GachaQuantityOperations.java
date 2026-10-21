@@ -1,7 +1,7 @@
 package xiaojin.gachaaddiction.reward.quantity;
 
-import xiaojin.gachaaddiction.reward.number.GachaDoubleProvider;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaDoubleProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 
 import java.util.Objects;
 
@@ -9,7 +9,7 @@ public final class GachaQuantityOperations {
     private GachaQuantityOperations() {
     }
 
-    public record Keep(boolean stopAfter) implements GachaQuantityOperation {
+    public record Keep(boolean stopAfter) implements IGachaQuantityOperation {
         @Override
         public GachaQuantityOperationType type() {
             return GachaQuantityOperationType.KEEP;
@@ -21,7 +21,7 @@ public final class GachaQuantityOperations {
         }
     }
 
-    public record Set(GachaLongProvider value, boolean stopAfter) implements GachaQuantityOperation {
+    public record Set(IGachaLongProvider value, boolean stopAfter) implements IGachaQuantityOperation {
         public Set {
             Objects.requireNonNull(value, "value");
         }
@@ -37,7 +37,7 @@ public final class GachaQuantityOperations {
         }
     }
 
-    public record Add(GachaLongProvider value, boolean stopAfter) implements GachaQuantityOperation {
+    public record Add(IGachaLongProvider value, boolean stopAfter) implements IGachaQuantityOperation {
         public Add {
             Objects.requireNonNull(value, "value");
         }
@@ -53,8 +53,8 @@ public final class GachaQuantityOperations {
         }
     }
 
-    public record Multiply(GachaDoubleProvider factor, GachaQuantityRounding rounding,
-                           boolean stopAfter) implements GachaQuantityOperation {
+    public record Multiply(IGachaDoubleProvider factor, GachaQuantityRounding rounding,
+                           boolean stopAfter) implements IGachaQuantityOperation {
         public Multiply {
             Objects.requireNonNull(factor, "factor");
             Objects.requireNonNull(rounding, "rounding");
@@ -79,7 +79,7 @@ public final class GachaQuantityOperations {
         }
     }
 
-    public record Min(GachaLongProvider value, boolean stopAfter) implements GachaQuantityOperation {
+    public record Min(IGachaLongProvider value, boolean stopAfter) implements IGachaQuantityOperation {
         public Min {
             Objects.requireNonNull(value, "value");
         }
@@ -95,7 +95,7 @@ public final class GachaQuantityOperations {
         }
     }
 
-    public record Max(GachaLongProvider value, boolean stopAfter) implements GachaQuantityOperation {
+    public record Max(IGachaLongProvider value, boolean stopAfter) implements IGachaQuantityOperation {
         public Max {
             Objects.requireNonNull(value, "value");
         }
@@ -111,8 +111,8 @@ public final class GachaQuantityOperations {
         }
     }
 
-    public record Clamp(GachaLongProvider minimum, GachaLongProvider maximum,
-                        boolean stopAfter) implements GachaQuantityOperation {
+    public record Clamp(IGachaLongProvider minimum, IGachaLongProvider maximum,
+                        boolean stopAfter) implements IGachaQuantityOperation {
         public Clamp {
             Objects.requireNonNull(minimum, "minimum");
             Objects.requireNonNull(maximum, "maximum");
@@ -134,8 +134,8 @@ public final class GachaQuantityOperations {
         }
     }
 
-    public record Roll(GachaLongProvider minimum, GachaLongProvider maximum,
-                       boolean stopAfter) implements GachaQuantityOperation {
+    public record Roll(IGachaLongProvider minimum, IGachaLongProvider maximum,
+                       boolean stopAfter) implements IGachaQuantityOperation {
         public Roll {
             Objects.requireNonNull(minimum, "minimum");
             Objects.requireNonNull(maximum, "maximum");

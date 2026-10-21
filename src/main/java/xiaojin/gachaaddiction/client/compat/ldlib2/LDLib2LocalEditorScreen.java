@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.admin.GachaDefinitionDocumentKey;
-import xiaojin.gachaaddiction.client.GachaLocalWorkspace;
+import xiaojin.gachaaddiction.client.workspace.GachaLocalWorkspace;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.io.IOException;

@@ -25,7 +25,7 @@ import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.NeoForgeRenderTypes;
 import net.neoforged.neoforge.client.model.pipeline.VertexConsumerWrapper;
 import org.jetbrains.annotations.NotNull;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 
 public class GuiItemRenderer {
     private static final float OPAQUE_ALPHA = 1.0F;
@@ -37,7 +37,7 @@ public class GuiItemRenderer {
             ResourceLocation.withDefaultNamespace("trident"));
     private static final ModelResourceLocation SPYGLASS_GUI_MODEL = ModelResourceLocation.inventory(
             ResourceLocation.withDefaultNamespace("spyglass"));
-    private static final String TRANSLUCENT_LAYER_NAME = GachaAddiction.MODID + ":gui_item_translucent";
+    private static final String TRANSLUCENT_LAYER_NAME = GachaConstants.MODID + ":gui_item_translucent";
     private static final RenderType TRANSLUCENT_LAYER = RenderType.create(TRANSLUCENT_LAYER_NAME,
             DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
             Sheets.translucentCullBlockSheet().bufferSize(), true, true,

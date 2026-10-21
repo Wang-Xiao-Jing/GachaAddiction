@@ -1,10 +1,10 @@
 package xiaojin.gachaaddiction.client.compat.ldlib2;
 
 import com.lowdragmc.lowdraglib2.editor.resource.IResourcePath;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 
 public final class LDLib2Templates {
-    private static final String ROOT = "pack(" + GachaAddiction.MODID + ":ui/";
+    private static final String ROOT = "pack(" + GachaConstants.MODID + ":ui/";
     public static final IResourcePath CONFIG_SCREEN = path("config_screen.ui.nbt");
     public static final IResourcePath FIELD_CONFIG_ENTRY = path("field_config_entry.ui.nbt");
     public static final IResourcePath LIST_CONFIG_ENTRY = path("list_config_entry.ui.nbt");

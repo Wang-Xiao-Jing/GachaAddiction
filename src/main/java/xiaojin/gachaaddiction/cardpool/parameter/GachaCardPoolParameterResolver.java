@@ -15,7 +15,7 @@ public final class GachaCardPoolParameterResolver {
                                                   GachaParameterSet requestParameters,
                                                   GachaRequestAuthority authority,
                                                   GachaParameterBindingContext context,
-                                                  GachaParameterStateReader stateReader) {
+                                                  IGachaParameterStateReader stateReader) {
         GachaParameterDefinition<T> definition = binding.parameter();
         Optional<T> baseValue = baseValue(binding, requestParameters, context, stateReader);
         Optional<T> packageValue = packageParameters.get(definition);
@@ -40,7 +40,7 @@ public final class GachaCardPoolParameterResolver {
     private static <T> Optional<T> baseValue(GachaParameterBinding<T> binding,
                                              GachaParameterSet requestParameters,
                                              GachaParameterBindingContext context,
-                                             GachaParameterStateReader stateReader) {
+                                             IGachaParameterStateReader stateReader) {
         return switch (binding.source()) {
             case CONSTANT -> binding.boundValue();
             case REQUEST -> requestParameters.get(binding.parameter());
@@ -53,8 +53,8 @@ public final class GachaCardPoolParameterResolver {
                                             GachaParameterSet packageParameters,
                                             GachaParameterSet requestParameters, GachaRequestAuthority authority,
                                             GachaParameterBindingContext context,
-                                            GachaParameterStateReader stateReader,
-                                            GachaParameterFingerprint fingerprint) {
+                                            IGachaParameterStateReader stateReader,
+                                            IGachaParameterFingerprint fingerprint) {
         Objects.requireNonNull(bindings, "bindings");
         Objects.requireNonNull(schema, "schema");
         Objects.requireNonNull(packageParameters, "packageParameters");

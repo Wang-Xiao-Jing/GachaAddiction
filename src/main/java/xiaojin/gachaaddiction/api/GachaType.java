@@ -3,9 +3,7 @@ package xiaojin.gachaaddiction.api;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.api.client.GachaTypeClient;
 import xiaojin.gachaaddiction.registry.GachaTypes;
-import xiaojin.gachaaddiction.registry.client.GachaTypeClients;
 
 public class GachaType {
     public static final StreamCodec<RegistryFriendlyByteBuf, GachaType> STREAM_CODEC = StreamCodec.composite(
@@ -22,10 +20,6 @@ public class GachaType {
 
     public ResourceLocation getId() {
         return id;
-    }
-
-    public GachaTypeClient<?, ?> getClientData() {
-        return GachaTypeClients.get(this);
     }
 
     @Override

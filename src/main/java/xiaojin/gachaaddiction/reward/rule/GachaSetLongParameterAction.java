@@ -1,7 +1,7 @@
 package xiaojin.gachaaddiction.reward.rule;
 
 import xiaojin.gachaaddiction.reward.model.GachaResultEditor;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterDefinition;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
@@ -9,7 +9,7 @@ import xiaojin.gachaaddiction.reward.parameter.GachaParameterEditor;
 import java.util.Objects;
 
 public record GachaSetLongParameterAction(GachaParameterDefinition<Long> parameter,
-                                          GachaLongProvider value) implements GachaRuleAction {
+                                          IGachaLongProvider value) implements IGachaRuleAction {
     public GachaSetLongParameterAction {
         Objects.requireNonNull(parameter, "parameter");
         Objects.requireNonNull(value, "value");

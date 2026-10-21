@@ -1,12 +1,7 @@
 package xiaojin.gachaaddiction.registry;
 
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import xiaojin.gachaaddiction.network.IToPayload;
 import xiaojin.gachaaddiction.network.cts.*;
 import xiaojin.gachaaddiction.network.stc.*;
 
@@ -17,10 +12,6 @@ public class Payloads {
         PayloadRegistrar registrar = event.registrar(NETWORK_PROTOCOL_VERSION);
         server(registrar);
         client(registrar);
-        clientAndServer(registrar);
-    }
-
-    private static void clientAndServer(PayloadRegistrar registrar) {
     }
 
     private static void client(PayloadRegistrar registrar) {
@@ -80,18 +71,4 @@ public class Payloads {
                 ClaimRewardInboxPayload::handle);
     }
 
-    private static <T extends IToPayload> @NonNull PayloadRegistrar playToServer(
-            PayloadRegistrar registrar, CustomPacketPayload.Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
-        return registrar.playToServer(type, codec, IToPayload::handle);
-    }
-
-    private static <T extends IToPayload> @NonNull PayloadRegistrar playToClient(
-            PayloadRegistrar registrar, CustomPacketPayload.Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
-        return registrar.playToClient(type, codec, IToPayload::handle);
-    }
-
-    private static <T extends IToPayload> @NonNull PayloadRegistrar playBidirectional(
-            PayloadRegistrar registrar, CustomPacketPayload.Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
-        return registrar.playBidirectional(type, codec, IToPayload::handle);
-    }
 }

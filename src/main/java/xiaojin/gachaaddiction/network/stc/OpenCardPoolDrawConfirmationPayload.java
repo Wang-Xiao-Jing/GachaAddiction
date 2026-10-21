@@ -1,17 +1,12 @@
 package xiaojin.gachaaddiction.network.stc;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
-import xiaojin.gachaaddiction.client.GachaPresentationClient;
-import xiaojin.gachaaddiction.client.gui.screen.CardPoolDrawConfirmationScreen;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.execution.GachaExecutionPreviewIssue;
 import xiaojin.gachaaddiction.execution.GachaExecutionStepPreview;
 import xiaojin.gachaaddiction.network.IToClientPayload;
@@ -29,7 +24,7 @@ public record OpenCardPoolDrawConfirmationPayload(
         long expiresAtEpochMillis
 ) implements IToClientPayload {
     public static final Type<OpenCardPoolDrawConfirmationPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "open_card_pool_draw_confirmation"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "open_card_pool_draw_confirmation"));
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenCardPoolDrawConfirmationPayload> STREAM_CODEC =
             new StreamCodec<>() {
                 @Override
@@ -124,9 +119,4 @@ public record OpenCardPoolDrawConfirmationPayload(
         return TYPE;
     }
 
-    @Override
-    public void work(IPayloadContext context, AbstractClientPlayer player) {
-        GachaPresentationClient.rememberCardPool(cardPoolId, titleTranslationKey);
-        Minecraft.getInstance().setScreen(new CardPoolDrawConfirmationScreen(this));
-    }
 }

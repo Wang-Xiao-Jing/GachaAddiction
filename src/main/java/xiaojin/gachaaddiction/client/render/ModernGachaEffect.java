@@ -7,7 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.api.RewardData;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 public class ModernGachaEffect implements AutoCloseable {
     private static final ResourceLocation EFFECT =
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "shaders/post/modern.json");
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "shaders/post/modern.json");
     private static final String ITEM_TARGET = "item";
     private static final String REVEAL_UNIFORM = "RevealProgress";
     private static final String TIME_UNIFORM = "EffectTime";
@@ -130,7 +130,7 @@ public class ModernGachaEffect implements AutoCloseable {
             chain.process(0.0F);
             return true;
         } catch (RuntimeException failure) {
-            GachaAddiction.LOGGER.warn(RENDER_WARNING, EFFECT, failure);
+            GachaConstants.LOGGER.warn(RENDER_WARNING, EFFECT, failure);
             release();
             return false;
         } finally {
@@ -161,7 +161,7 @@ public class ModernGachaEffect implements AutoCloseable {
             chain.resize(targetWidth, targetHeight);
             return true;
         } catch (IOException | RuntimeException failure) {
-            GachaAddiction.LOGGER.warn(LOAD_WARNING, EFFECT, failure);
+            GachaConstants.LOGGER.warn(LOAD_WARNING, EFFECT, failure);
             release();
             return false;
         } finally {

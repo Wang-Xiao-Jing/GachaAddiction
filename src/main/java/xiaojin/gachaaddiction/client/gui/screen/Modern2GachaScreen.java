@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
@@ -20,7 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class Modern2GachaScreen extends ModernGachaScreen {
+public class Modern2GachaScreen extends GachaSummaryScreen {
     private static final int MINIMUM_WIDTH = 64;
     private static final int ITEM_GAP = 8;
     private static final float REGION_WIDTH = 0.8F;
@@ -43,7 +44,6 @@ public class Modern2GachaScreen extends ModernGachaScreen {
     private final Set<Integer> pressedKeys = new HashSet<>();
     private int page;
     private boolean ready;
-    private boolean summary;
     private boolean revealing;
     private long revealStartedAt;
     private long effectStartedAt;
@@ -99,9 +99,9 @@ public class Modern2GachaScreen extends ModernGachaScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        if (!ready || summary) {
-            super.render(graphics, mouseX, mouseY, partialTick);
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        if (!ready || isShowingSummary()) {
+            renderSummaryScreen(graphics, mouseX, mouseY, partialTick);
             return;
         }
 
@@ -193,7 +193,6 @@ public class Modern2GachaScreen extends ModernGachaScreen {
     }
 
     private void finishPages() {
-        summary = true;
         beginSummary();
     }
 
@@ -239,7 +238,7 @@ public class Modern2GachaScreen extends ModernGachaScreen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (!ready || summary || button != GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+        if (!ready || isShowingSummary() || button != GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             return super.mouseClicked(mouseX, mouseY, button);
         }
         advance(false);
@@ -248,7 +247,7 @@ public class Modern2GachaScreen extends ModernGachaScreen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (!ready || summary) {
+        if (!ready || isShowingSummary()) {
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
         double direction = scrollY != 0.0 ? scrollY : scrollX;
@@ -261,7 +260,7 @@ public class Modern2GachaScreen extends ModernGachaScreen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!ready || summary) {
+        if (!ready || isShowingSummary()) {
             return super.keyPressed(keyCode, scanCode, modifiers);
         }
         if (keyCode == GLFW.GLFW_KEY_SPACE || keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT

@@ -9,21 +9,21 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.cardpool.GachaCardPoolTransactionSource;
 import xiaojin.gachaaddiction.cardpool.GachaPublicCardPoolEndpoint;
 import xiaojin.gachaaddiction.cardpool.GachaServerRuntimeManager;
 import xiaojin.gachaaddiction.cardpool.transaction.GachaCommittedTransaction;
 import xiaojin.gachaaddiction.network.IToServerPayload;
 import xiaojin.gachaaddiction.network.stc.OpenCardPoolResultPayload;
-import xiaojin.gachaaddiction.util.GachaPresentations;
+import xiaojin.gachaaddiction.presentation.GachaPresentations;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.util.UUID;
 
 public record ConfirmCardPoolDrawPayload(UUID token) implements IToServerPayload {
     public static final Type<ConfirmCardPoolDrawPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "confirm_card_pool_draw"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "confirm_card_pool_draw"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ConfirmCardPoolDrawPayload> STREAM_CODEC =
             StreamCodec.composite(UUIDUtil.STREAM_CODEC, ConfirmCardPoolDrawPayload::token,
                     ConfirmCardPoolDrawPayload::new);
@@ -32,7 +32,7 @@ public record ConfirmCardPoolDrawPayload(UUID token) implements IToServerPayload
                                    GachaCommittedTransaction committed,
                                    Throwable effectFailure) {
         if (effectFailure != null) {
-            GachaAddiction.LOGGER.error("Card pool reward delivery failed for transaction {}",
+            GachaConstants.LOGGER.error("Card pool reward delivery failed for transaction {}",
                     committed.context().transactionId().value(), effectFailure);
             player.sendSystemMessage(Component.translatable(TranslationKeys.GUI_GACHA_DRAW_FAILED));
             return;
@@ -42,7 +42,7 @@ public record ConfirmCardPoolDrawPayload(UUID token) implements IToServerPayload
                 committed.context().source().snapshotHash().orElseThrow(() ->
                         new IllegalStateException("Card pool transaction source has no snapshot"))).orElse(null);
         if (snapshot == null) {
-            GachaAddiction.LOGGER.error("Missing presentation snapshot for transaction {}",
+            GachaConstants.LOGGER.error("Missing presentation snapshot for transaction {}",
                     committed.context().transactionId().value());
             player.sendSystemMessage(Component.translatable(TranslationKeys.GUI_GACHA_DRAW_FAILED));
             return;
@@ -66,7 +66,7 @@ public record ConfirmCardPoolDrawPayload(UUID token) implements IToServerPayload
         }
         GachaPublicCardPoolEndpoint.confirm(player, token).whenComplete((committed, failure) -> player.getServer().execute(() -> {
             if (failure != null) {
-                GachaAddiction.LOGGER.error("Public card pool draw confirmation failed for player {}",
+                GachaConstants.LOGGER.error("Public card pool draw confirmation failed for player {}",
                         player.getUUID(), failure);
                 player.sendSystemMessage(Component.translatable(TranslationKeys.GUI_GACHA_DRAW_FAILED));
                 return;

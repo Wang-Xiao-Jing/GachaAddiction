@@ -3,7 +3,7 @@ package xiaojin.gachaaddiction.reward.parameter;
 import com.mojang.serialization.Codec;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 
 public final class GachaParameterTypes {
     public static final GachaParameterType<Boolean> BOOLEAN = type("boolean", Boolean.class, Codec.BOOL);
@@ -24,6 +24,6 @@ public final class GachaParameterTypes {
     }
 
     private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, path);
     }
 }

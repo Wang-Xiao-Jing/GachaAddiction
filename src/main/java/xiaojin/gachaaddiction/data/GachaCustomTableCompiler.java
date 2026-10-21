@@ -16,8 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.reward.custom.*;
 import xiaojin.gachaaddiction.reward.number.GachaConstantDoubleProvider;
 import xiaojin.gachaaddiction.reward.number.GachaConstantLongProvider;
-import xiaojin.gachaaddiction.reward.number.GachaLongProvider;
-import xiaojin.gachaaddiction.reward.rule.GachaRuleCondition;
+import xiaojin.gachaaddiction.reward.number.IGachaLongProvider;
+import xiaojin.gachaaddiction.reward.rule.IGachaRuleCondition;
 import xiaojin.gachaaddiction.reward.source.GachaTableSelectionStrategy;
 
 import java.util.*;
@@ -32,7 +32,7 @@ public final class GachaCustomTableCompiler {
     private final GachaRuleConditionJson conditions;
     private final Map<ResourceLocation, GachaCustomLootTable> compiled = new LinkedHashMap<>();
     private final Set<ResourceLocation> references = new LinkedHashSet<>();
-    private final GachaCustomTableResolver resolver = id -> Optional.ofNullable(compiled.get(id));
+    private final IGachaCustomTableResolver resolver = id -> Optional.ofNullable(compiled.get(id));
 
     public GachaCustomTableCompiler(HolderLookup.Provider registries,
                                     GachaSharedDefinitionExpander sharedDefinitions) {
@@ -72,7 +72,7 @@ public final class GachaCustomTableCompiler {
         GachaJson.requireOnly(json, TABLE_FIELDS, location);
         GachaTableSelectionStrategy strategy = GachaTableSelectionStrategy.valueOf(
                 GachaJson.string(json, "strategy", location));
-        GachaLongProvider selectionCount = json.has("selection_count")
+        IGachaLongProvider selectionCount = json.has("selection_count")
                 ? GachaNumberProviderJson.longProvider(json.get("selection_count"), location + ".selection_count")
                 : new GachaConstantLongProvider(1);
         JsonArray entries = GachaJson.array(json, "entries", location);
@@ -80,7 +80,7 @@ public final class GachaCustomTableCompiler {
         for (int index = 0; index < entries.size(); index++) {
             JsonObject entry = requireObject(entries.get(index), location + ".entries[" + index + "]");
             String entryLocation = location + ".entries[" + index + "]";
-            GachaCustomEntry compiledEntry = compileEntry(entry, entryLocation);
+            IGachaCustomEntry compiledEntry = compileEntry(entry, entryLocation);
             compiledEntries.add(new GachaWeightedCustomEntry(compiledEntry, entry.has("weight")
                     ? GachaNumberProviderJson.doubleProvider(entry.get("weight"), entryLocation + ".weight")
                     : new GachaConstantDoubleProvider(1)));
@@ -88,10 +88,10 @@ public final class GachaCustomTableCompiler {
         return new GachaCustomLootTable(id, strategy, selectionCount, compiledEntries);
     }
 
-    private GachaCustomEntry compileEntry(JsonObject json, String location) {
+    private IGachaCustomEntry compileEntry(JsonObject json, String location) {
         ResourceLocation id = ResourceLocation.parse(GachaJson.string(json, "id", location));
         String type = GachaJson.string(json, "type", location);
-        GachaCustomEntry entry = switch (type) {
+        IGachaCustomEntry entry = switch (type) {
             case "item" -> itemEntry(id, json, location);
             case "item_tag" -> itemTagEntry(id, json, location);
             case "vanilla_loot_table" -> vanillaLootTableEntry(id, json, location);
@@ -106,14 +106,14 @@ public final class GachaCustomTableCompiler {
             default -> throw new JsonParseException("Unknown custom entry type '" + type + "' in " + location);
         };
         if (json.has("conditions")) {
-            List<GachaRuleCondition> entryConditions = conditions.customEntryArray(
+            List<IGachaRuleCondition> entryConditions = conditions.customEntryArray(
                     GachaJson.array(json, "conditions", location), location + ".conditions");
             entry = new GachaConditionalCustomEntry(entry, entryConditions);
         }
         return entry;
     }
 
-    private GachaCustomEntry itemEntry(ResourceLocation id, JsonObject json, String location) {
+    private IGachaCustomEntry itemEntry(ResourceLocation id, JsonObject json, String location) {
         requireEntryFields(json, location, Set.of("item", "stack", "quantity"));
         boolean hasItem = json.has("item");
         boolean hasStack = json.has("stack");
@@ -129,17 +129,17 @@ public final class GachaCustomTableCompiler {
                     .orElseThrow(() -> new JsonParseException("Unknown item '" + itemId + "' in " + location));
             stack = new ItemStack(item);
         }
-        GachaLongProvider quantity = json.has("quantity")
+        IGachaLongProvider quantity = json.has("quantity")
                 ? GachaNumberProviderJson.longProvider(json.get("quantity"), location + ".quantity")
                 : new GachaConstantLongProvider(stack.getCount());
         return new GachaItemCustomEntry(id, stack, quantity);
     }
 
-    private GachaCustomEntry itemTagEntry(ResourceLocation id, JsonObject json, String location) {
+    private IGachaCustomEntry itemTagEntry(ResourceLocation id, JsonObject json, String location) {
         requireEntryFields(json, location, Set.of("tag", "quantity"));
         TagKey<Item> tag = TagKey.create(Registries.ITEM,
                 ResourceLocation.parse(GachaJson.string(json, "tag", location)));
-        GachaLongProvider quantity = json.has("quantity")
+        IGachaLongProvider quantity = json.has("quantity")
                 ? GachaNumberProviderJson.longProvider(json.get("quantity"), location + ".quantity")
                 : new GachaConstantLongProvider(1);
         return new GachaItemTagCustomEntry(id, tag, quantity, requested -> {
@@ -149,24 +149,24 @@ public final class GachaCustomTableCompiler {
         });
     }
 
-    private GachaCustomEntry vanillaLootTableEntry(ResourceLocation id, JsonObject json, String location) {
+    private IGachaCustomEntry vanillaLootTableEntry(ResourceLocation id, JsonObject json, String location) {
         requireEntryFields(json, location, Set.of("table"));
         ResourceLocation table = ResourceLocation.parse(GachaJson.string(json, "table", location));
         return new GachaVanillaLootTableCustomEntry(id, ResourceKey.create(Registries.LOOT_TABLE, table));
     }
 
-    private GachaCustomEntry customTableEntry(ResourceLocation id, JsonObject json, String location) {
+    private IGachaCustomEntry customTableEntry(ResourceLocation id, JsonObject json, String location) {
         requireEntryFields(json, location, Set.of("table"));
         ResourceLocation table = ResourceLocation.parse(GachaJson.string(json, "table", location));
         references.add(table);
         return new GachaCustomTableReferenceEntry(id, table, resolver);
     }
 
-    private GachaCustomEntry compositeEntry(ResourceLocation id, GachaCompositeEntryMode mode,
-                                            JsonObject json, String location) {
+    private IGachaCustomEntry compositeEntry(ResourceLocation id, GachaCompositeEntryMode mode,
+                                             JsonObject json, String location) {
         requireEntryFields(json, location, Set.of("children"));
         JsonArray children = GachaJson.array(json, "children", location);
-        List<GachaCustomEntry> compiledChildren = new ArrayList<>();
+        List<IGachaCustomEntry> compiledChildren = new ArrayList<>();
         for (int index = 0; index < children.size(); index++) {
             compiledChildren.add(compileEntry(requireObject(children.get(index), location + ".children[" + index + "]"),
                     location + ".children[" + index + "]"));

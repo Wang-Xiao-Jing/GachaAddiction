@@ -14,18 +14,18 @@ import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
 public final class GachaTransactionRecovery {
-    private final GachaTransactionJournal journal;
-    private final GachaConsumptionHandlerResolver handlerResolver;
+    private final IGachaTransactionJournal journal;
+    private final IGachaConsumptionHandlerResolver handlerResolver;
     private final GachaTransactionNbtPayloadDecoder payloadDecoder;
-    private final GachaTransactionParticipant participant;
-    private final GachaTransactionEffects effects;
+    private final IGachaTransactionParticipant participant;
+    private final IGachaTransactionEffects effects;
     private final Executor mainThreadExecutor;
 
-    public GachaTransactionRecovery(GachaTransactionJournal journal,
-                                    GachaConsumptionHandlerResolver handlerResolver,
+    public GachaTransactionRecovery(IGachaTransactionJournal journal,
+                                    IGachaConsumptionHandlerResolver handlerResolver,
                                     GachaTransactionNbtPayloadDecoder payloadDecoder,
-                                    GachaTransactionParticipant participant,
-                                    GachaTransactionEffects effects, Executor mainThreadExecutor) {
+                                    IGachaTransactionParticipant participant,
+                                    IGachaTransactionEffects effects, Executor mainThreadExecutor) {
         this.journal = Objects.requireNonNull(journal, "journal");
         this.handlerResolver = Objects.requireNonNull(handlerResolver, "handlerResolver");
         this.payloadDecoder = Objects.requireNonNull(payloadDecoder, "payloadDecoder");
@@ -110,13 +110,13 @@ public final class GachaTransactionRecovery {
     private List<GachaConsumptionReservation> findUnrecordedReservations(GachaDecodedTransactionPayload payload) {
         List<GachaConsumptionReservation> reservations = new ArrayList<>();
         for (GachaConsumptionSpec specification : payload.consumption()) {
-            GachaConsumptionHandler handler = resolveHandler(specification.type());
+            IGachaConsumptionHandler handler = resolveHandler(specification.type());
             handler.findReservation(payload.context(), specification).ifPresent(reservations::add);
         }
         return List.copyOf(reservations);
     }
 
-    private GachaConsumptionHandler resolveHandler(ResourceLocation type) {
+    private IGachaConsumptionHandler resolveHandler(ResourceLocation type) {
         return handlerResolver.resolve(type).orElseThrow(() ->
                 new IllegalStateException("Missing consumption handler during recovery: " + type));
     }

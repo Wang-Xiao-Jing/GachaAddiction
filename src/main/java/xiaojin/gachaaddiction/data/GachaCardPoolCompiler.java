@@ -6,19 +6,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import xiaojin.gachaaddiction.cardpool.*;
 import xiaojin.gachaaddiction.cardpool.parameter.*;
-import xiaojin.gachaaddiction.cardpool.transaction.GachaConsumptionSpec;
 import xiaojin.gachaaddiction.cardpool.transaction.GachaDurability;
-import xiaojin.gachaaddiction.execution.*;
-import xiaojin.gachaaddiction.reward.GachaRewardPool;
-import xiaojin.gachaaddiction.reward.number.GachaConstantLongProvider;
+import xiaojin.gachaaddiction.execution.GachaExecutionPlanDefinition;
 import xiaojin.gachaaddiction.reward.parameter.*;
 
 import java.math.BigDecimal;
@@ -26,15 +20,14 @@ import java.time.Instant;
 import java.util.*;
 
 public final class GachaCardPoolCompiler {
-    private static final Set<String> ROOT_FIELDS = Set.of("format_version", "execution_plan", "reward_pool", "parameter_bindings",
+    private static final Set<String> ROOT_FIELDS = Set.of("format_version", "execution_plan", "parameter_bindings",
             "packages", "presentation", "availability", "delivery");
     private static final Set<String> BINDING_FIELDS = Set.of("parameter", "source", "override_policy", "value",
             "player_choice");
     private static final Set<String> PLAYER_CHOICE_FIELDS = Set.of("label", "minimum", "maximum", "step",
             "values");
-    private static final Set<String> PACKAGE_FIELDS = Set.of("id", "rounds", "parameters", "consumption",
+    private static final Set<String> PACKAGE_FIELDS = Set.of("id", "parameters",
             "minimum_durability");
-    private static final Set<String> CONSUMPTION_FIELDS = Set.of("type", "data");
     private static final Set<String> PRESENTATION_FIELDS = Set.of(
             "title", "description", "icon", "result_style");
     private static final Set<String> AVAILABILITY_FIELDS = Set.of("enabled", "minimum_permission_level", "opens_at",
@@ -100,52 +93,6 @@ public final class GachaCardPoolCompiler {
         }
     }
 
-    private static GachaExecutionPlanDefinition legacyPlan(ResourceLocation planId, ResourceLocation rewardPoolId,
-                                                           GachaParameterSchema schema, int rounds,
-                                                           List<GachaConsumptionSpec> consumption) {
-        List<GachaParameterMappingEntry> mappings = schema.definitions().stream()
-                .map(definition -> new GachaParameterMappingEntry(definition.key(),
-                        new GachaDirectParameterValue(definition.key())))
-                .toList();
-        List<xiaojin.gachaaddiction.execution.GachaExecutionStep> steps = new ArrayList<>();
-        steps.add(new GachaRewardPoolExecutionStep(GachaBuiltinExecutionSteps.REWARD_POOL, rewardPoolId,
-                new GachaConstantLongProvider(rounds), new GachaParameterMapping(mappings),
-                Set.of(GachaExecutionChannel.PARAMETERS, GachaExecutionChannel.PROVENANCE),
-                Set.of(GachaExecutionChannel.REWARDS, GachaExecutionChannel.PARAMETERS,
-                        GachaExecutionChannel.DIAGNOSTICS, GachaExecutionChannel.PROVENANCE)));
-        if (!consumption.isEmpty()) {
-            steps.add(new GachaConsumptionExecutionStep(GachaBuiltinExecutionSteps.CONSUMPTION, consumption,
-                    Set.of(GachaExecutionChannel.PARAMETERS),
-                    Set.of(GachaExecutionChannel.CONSUMPTION, GachaExecutionChannel.DIAGNOSTICS)));
-        }
-        return new GachaExecutionPlanDefinition(planId, schema, steps);
-    }
-
-    private static ResourceLocation generatedPlanId(ResourceLocation cardPoolId, ResourceLocation packageId) {
-        return ResourceLocation.fromNamespaceAndPath(cardPoolId.getNamespace(),
-                "generated/card_pool/" + cardPoolId.getPath() + "/" + packageId.getNamespace()
-                        + "/" + packageId.getPath());
-    }
-
-    private static List<GachaConsumptionSpec> consumption(JsonArray encoded, String location) {
-        List<GachaConsumptionSpec> consumption = new ArrayList<>();
-        for (int index = 0; index < encoded.size(); index++) {
-            String consumptionLocation = location + ".consumption[" + index + "]";
-            JsonObject specification = requireObject(encoded.get(index), consumptionLocation);
-            GachaJson.requireOnly(specification, CONSUMPTION_FIELDS, consumptionLocation);
-            JsonObject data = GachaJson.object(specification, "data", consumptionLocation);
-            Tag convertedData = JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, data);
-            if (!(convertedData instanceof CompoundTag encodedData)) {
-                throw new JsonParseException("Consumption data must encode to a compound tag in "
-                        + consumptionLocation);
-            }
-            consumption.add(new GachaConsumptionSpec(
-                    ResourceLocation.parse(GachaJson.string(specification, "type", consumptionLocation)),
-                    encodedData));
-        }
-        return List.copyOf(consumption);
-    }
-
     private static JsonObject requireObject(JsonElement json, String location) {
         if (json == null || !json.isJsonObject()) {
             throw new JsonParseException("Card pool entry must be an object in " + location);
@@ -153,44 +100,27 @@ public final class GachaCardPoolCompiler {
         return json.getAsJsonObject();
     }
 
-    public GachaCardPoolCompilation compile(
+    public Map<ResourceLocation, GachaCardPoolDefinition> compile(
             Map<ResourceLocation, GachaRawDefinition> definitions,
-            Map<ResourceLocation, GachaRewardPool> rewardPools,
             Map<ResourceLocation, GachaExecutionPlanDefinition> executionPlans) {
         Map<ResourceLocation, GachaCardPoolDefinition> compiled = new LinkedHashMap<>();
-        Map<ResourceLocation, GachaExecutionPlanDefinition> generatedPlans = new LinkedHashMap<>();
-        definitions.forEach((id, definition) -> compiled.put(id, compileCardPool(id, definition.data(), rewardPools,
-                executionPlans, generatedPlans)));
-        return new GachaCardPoolCompilation(compiled, generatedPlans);
+        definitions.forEach((id, definition) -> compiled.put(id, compileCardPool(id, definition.data(),
+                executionPlans)));
+        return Map.copyOf(compiled);
     }
 
     private GachaCardPoolDefinition compileCardPool(ResourceLocation id, JsonObject json,
-                                                    Map<ResourceLocation, GachaRewardPool> rewardPools,
-                                                    Map<ResourceLocation, GachaExecutionPlanDefinition> executionPlans,
-                                                    Map<ResourceLocation, GachaExecutionPlanDefinition> generatedPlans) {
+                                                    Map<ResourceLocation, GachaExecutionPlanDefinition> executionPlans) {
         String location = "card pool " + id;
         GachaJson.requireOnly(json, ROOT_FIELDS, location);
-        if (json.has("execution_plan") == json.has("reward_pool")) {
-            throw new JsonParseException("Card pool must declare exactly one of execution_plan or reward_pool in "
-                    + location);
+        ResourceLocation planId = ResourceLocation.parse(GachaJson.string(json, "execution_plan", location));
+        GachaExecutionPlanDefinition plan = executionPlans.get(planId);
+        if (plan == null) {
+            throw new JsonParseException("Unknown execution plan '" + planId + "' in " + location);
         }
-        if (json.has("execution_plan")) {
-            ResourceLocation planId = ResourceLocation.parse(GachaJson.string(json, "execution_plan", location));
-            GachaExecutionPlanDefinition plan = executionPlans.get(planId);
-            if (plan == null) {
-                throw new JsonParseException("Unknown execution plan '" + planId + "' in " + location);
-            }
-            return compileCardPool(id, json, planId, plan.parameterSchema(),
-                    packages(planId, plan.parameterSchema(), GachaJson.array(json, "packages", location), location));
-        }
-        ResourceLocation rewardPoolId = ResourceLocation.parse(GachaJson.string(json, "reward_pool", location));
-        GachaRewardPool rewardPool = rewardPools.get(rewardPoolId);
-        if (rewardPool == null) {
-            throw new JsonParseException("Unknown reward pool '" + rewardPoolId + "' in " + location);
-        }
-        Map<ResourceLocation, GachaDrawPackage> packages = legacyPackages(id, rewardPoolId,
-                rewardPool.parameterSchema(), GachaJson.array(json, "packages", location), location, generatedPlans);
-        return compileCardPool(id, json, rewardPoolId, rewardPool.parameterSchema(), packages);
+
+        return compileCardPool(id, json, planId, plan.parameterSchema(),
+                packages(planId, plan.parameterSchema(), GachaJson.array(json, "packages", location), location));
     }
 
     private GachaCardPoolDefinition compileCardPool(ResourceLocation id, JsonObject json,
@@ -224,14 +154,14 @@ public final class GachaCardPoolCompiler {
                 icon, resultStyle);
     }
 
-    private List<GachaParameterBinding<?>> bindings(ResourceLocation rewardPoolId, GachaParameterSchema schema,
+    private List<GachaParameterBinding<?>> bindings(ResourceLocation parameterOwner, GachaParameterSchema schema,
                                                     JsonArray encoded, String location) {
         List<GachaParameterBinding<?>> bindings = new ArrayList<>();
         for (int index = 0; index < encoded.size(); index++) {
             String bindingLocation = location + ".parameter_bindings[" + index + "]";
             JsonObject binding = requireObject(encoded.get(index), bindingLocation);
             GachaJson.requireOnly(binding, BINDING_FIELDS, bindingLocation);
-            GachaParameterDefinition<?> definition = schema.require(new GachaParameterKey(rewardPoolId,
+            GachaParameterDefinition<?> definition = schema.require(new GachaParameterKey(parameterOwner,
                     GachaJson.string(binding, "parameter", bindingLocation)));
             bindings.add(binding(definition, binding, bindingLocation));
         }
@@ -293,7 +223,7 @@ public final class GachaCardPoolCompiler {
         for (int index = 0; index < encoded.size(); index++) {
             String packageLocation = location + ".packages[" + index + "]";
             JsonObject drawPackage = requireObject(encoded.get(index), packageLocation);
-            GachaJson.requireOnly(drawPackage, Set.of("id", "parameters", "minimum_durability"), packageLocation);
+            GachaJson.requireOnly(drawPackage, PACKAGE_FIELDS, packageLocation);
             ResourceLocation packageId = ResourceLocation.parse(GachaJson.string(drawPackage, "id", packageLocation));
             GachaParameterSet parameters = drawPackage.has("parameters")
                     ? parameterValues(executionPlanId, schema,
@@ -308,48 +238,11 @@ public final class GachaCardPoolCompiler {
         return packages;
     }
 
-    private Map<ResourceLocation, GachaDrawPackage> legacyPackages(ResourceLocation cardPoolId,
-                                                                   ResourceLocation rewardPoolId,
-                                                                   GachaParameterSchema schema, JsonArray encoded,
-                                                                   String location,
-                                                                   Map<ResourceLocation, GachaExecutionPlanDefinition>
-                                                                           generatedPlans) {
-        Map<ResourceLocation, GachaDrawPackage> packages = new LinkedHashMap<>();
-        for (int index = 0; index < encoded.size(); index++) {
-            String packageLocation = location + ".packages[" + index + "]";
-            JsonObject drawPackage = requireObject(encoded.get(index), packageLocation);
-            GachaJson.requireOnly(drawPackage, PACKAGE_FIELDS, packageLocation);
-            ResourceLocation packageId = ResourceLocation.parse(GachaJson.string(drawPackage, "id", packageLocation));
-            GachaParameterSet parameters = drawPackage.has("parameters")
-                    ? parameterValues(rewardPoolId, schema,
-                    GachaJson.object(drawPackage, "parameters", packageLocation), packageLocation + ".parameters")
-                    : GachaParameterSet.EMPTY;
-            List<GachaConsumptionSpec> consumption = drawPackage.has("consumption")
-                    ? consumption(GachaJson.array(drawPackage, "consumption", packageLocation), packageLocation)
-                    : List.of();
-            ResourceLocation planId = generatedPlanId(cardPoolId, packageId);
-            int rounds = GachaJson.integer(drawPackage, "rounds", packageLocation);
-            if (rounds <= 0) {
-                throw new JsonParseException("Card pool package rounds must be positive in " + packageLocation);
-            }
-            GachaExecutionPlanDefinition plan = legacyPlan(planId, rewardPoolId, schema, rounds, consumption);
-            if (generatedPlans.putIfAbsent(planId, plan) != null) {
-                throw new JsonParseException("Duplicate generated execution plan: " + planId);
-            }
-            GachaDrawPackage compiledPackage = new GachaDrawPackage(packageId, planId, parameters,
-                    GachaDurability.valueOf(GachaJson.string(drawPackage, "minimum_durability", packageLocation)));
-            if (packages.putIfAbsent(packageId, compiledPackage) != null) {
-                throw new JsonParseException("Duplicate draw package '" + packageId + "' in " + location);
-            }
-        }
-        return packages;
-    }
-
-    private GachaParameterSet parameterValues(ResourceLocation rewardPoolId, GachaParameterSchema schema,
+    private GachaParameterSet parameterValues(ResourceLocation parameterOwner, GachaParameterSchema schema,
                                               JsonObject json, String location) {
         GachaParameterSet.Builder values = GachaParameterSet.builder();
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
-            GachaParameterDefinition<?> definition = schema.require(new GachaParameterKey(rewardPoolId,
+            GachaParameterDefinition<?> definition = schema.require(new GachaParameterKey(parameterOwner,
                     entry.getKey()));
             values.put(definition, decodeValue(definition, entry.getValue(), location + "." + entry.getKey()));
         }

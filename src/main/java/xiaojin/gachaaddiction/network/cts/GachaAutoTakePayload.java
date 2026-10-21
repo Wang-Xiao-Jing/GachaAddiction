@@ -8,14 +8,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xiaojin.gachaaddiction.GachaAddiction;
+import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
 import xiaojin.gachaaddiction.network.IToServerPayload;
 
 public record GachaAutoTakePayload(int menuId, int slotId, ItemStack expected) implements IToServerPayload {
     public static final Type<GachaAutoTakePayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(GachaAddiction.MODID, "auto_take_reward"));
+            ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "auto_take_reward"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GachaAutoTakePayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, GachaAutoTakePayload::menuId,
             ByteBufCodecs.VAR_INT, GachaAutoTakePayload::slotId,

@@ -1,15 +1,15 @@
 package xiaojin.gachaaddiction.reward.rule;
 
 import xiaojin.gachaaddiction.reward.model.GachaLogicalReward;
-import xiaojin.gachaaddiction.reward.number.GachaDoubleProvider;
+import xiaojin.gachaaddiction.reward.number.IGachaDoubleProvider;
 import xiaojin.gachaaddiction.reward.number.GachaNumberContext;
 import xiaojin.gachaaddiction.reward.parameter.GachaParameterSet;
 
 import java.util.List;
 import java.util.Objects;
 
-public record GachaNumberComparisonCondition(GachaDoubleProvider left, GachaComparisonOperator operator,
-                                             GachaDoubleProvider right) implements GachaRuleCondition {
+public record GachaNumberComparisonCondition(IGachaDoubleProvider left, GachaComparisonOperator operator,
+                                             IGachaDoubleProvider right) implements IGachaRuleCondition {
     public GachaNumberComparisonCondition {
         Objects.requireNonNull(left, "left");
         Objects.requireNonNull(operator, "operator");
