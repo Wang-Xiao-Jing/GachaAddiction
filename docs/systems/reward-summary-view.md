@@ -48,9 +48,9 @@ flowchart TD
 
 ## 背景资源所有权
 
-- 现代界面将既有 ModernGachaEffect、ModernGachaEntrance 和开始时间交给汇总视图使用；视图记录借用关系，关闭时不重复销毁借用特效。
-- 其他完整汇总在首次需要背景时才创建自己的 ModernGachaEffect，由视图关闭。
-- 仅绘制网格的箱子结束页和小总览不额外分配汇总背景目标。
+- 现代与现代2将既有 ModernGachaEffect、ModernGachaEntrance 和开始时间交给汇总视图使用；视图记录借用关系，关闭时不重复销毁借用特效。
+- 图腾／箱子来源界面、前置动画和循环老虎机在原界面继续绘制自己的背景，再叠加共享奖励网格；进入总览不提前关闭或重建背景。
+- 汇总视图不再创建新的 ModernGachaEffect；小总览与大总览共用物品、边框、入场与裁剪实现，不额外分配背景目标。
 - 各前置演出的 scene、backdrop、reelFade、pageEffect 继续由原宿主关闭；本批未重写它们的内部 GL 状态恢复实现。
 
 GachaChestAnimation、GachaTotemImpact、ModernGachaEntrance 和 GachaSceneRenderer 的文件 SHA256 均与本批开始前备份一致。950ms 箱子时序、图腾柔光冲击、曲线及场景渲染公式没有在本批改动。
@@ -71,3 +71,12 @@ GachaChestAnimation、GachaTotemImpact、ModernGachaEntrance 和 GachaSceneRende
 
 两次备份的 HEAD 与原索引校验保持一致；没有提交或重置既有暂存内容。
 
+## 2026-10-21 小总览裁剪与背景延续
+
+用户反馈图腾动画结束后的奖励不可见，大小总览需共用渲染，最终总览继续使用当前动画背景。核对当前 1.21.1 GuiGraphics.enableScissor 后确认该方法只接收屏幕坐标，不自动应用 PoseStack。RoundView 在居中区域平移绘制，网格原先仍用局部坐标设置裁剪，导致物品被错误裁掉；最终总览没有该平移，所以表现不同。
+
+共享网格现将单元边界通过绘制矩阵转换到屏幕坐标，再设置裁剪；大小总览使用同一条绘制路径，小总览的区域尺寸、Tooltip 坐标与逐轮返回逻辑保留。现代2借用既有页面背景与时钟；前置动画、循环老虎机保留原背景到界面移除时关闭。图腾／箱子来源界面原有背景及真实多轮奖励分组未修改。
+
+修改前备份 patches/refactor-baseline-20261021-093510-552 保存 701 个文件及当前索引。本次只允许 IDEA 静态检查，不沿用上次重构的构建／Data／测试授权；没有运行游戏、构建、Data、测试、同步或重载。
+
+本次统一 IDEA 分析覆盖四个修改类、三个共享调用类及本文，共 8 文件，全部 analyzed、complete=true，0 错误、18 条警告，无截断。警告位于既有空值约定、整数除法、未使用字段及写法建议；未为消除提示扩大修改。差异检查确认只改变裁剪坐标与背景接入／释放时点，没有改动网络、发奖、轮次状态或 950ms 箱子参数。视觉和显卡状态仍待游戏内实际观察。

@@ -1,0 +1,21 @@
+{
+    "format_version": 1,
+    "rules": [
+        {
+            "id": "gacha_test:silhouette_append",
+            "phase": "APPEND",
+            "scope": "RESULT_SET",
+            "conditions": [],
+            "actions": [
+                {
+                    "type": "append_item",
+                    "id": "gacha_test:silhouette_star",
+                    "item": "minecraft:nether_star",
+                    "quantity": 1
+                }
+            ],
+            "failure_policy": "FAIL_DRAW",
+            "fallback_actions": []
+        }
+    ]
+}

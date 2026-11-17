@@ -16,6 +16,7 @@ import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.api.GachaData;
 import xiaojin.gachaaddiction.client.announcement.GachaAnnouncementClient;
 import xiaojin.gachaaddiction.client.announcement.GachaAnnouncementTextures;
+import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 import xiaojin.gachaaddiction.client.presentation.GachaItemPresentationClient;
 import xiaojin.gachaaddiction.client.presentation.GachaPresentationClient;
 import xiaojin.gachaaddiction.client.render.*;
@@ -84,6 +85,9 @@ public class GachaClientEvents {
     @SubscribeEvent
     public static void onScreenRenderPost(ScreenEvent.Render.Post event) {
         GachaAnnouncementClient.INSTANCE.render(event.getGuiGraphics(), event.getMouseX(), event.getMouseY());
+        if (event.getScreen() instanceof BasicGachaScreen screen) {
+            screen.renderEntranceCover(event.getGuiGraphics());
+        }
     }
 
     @SubscribeEvent
@@ -129,6 +133,9 @@ public class GachaClientEvents {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         GachaPresentationClient.tick();
+        if (Minecraft.getInstance().screen instanceof BasicGachaScreen screen) {
+            screen.dispatchFirstFrameActions();
+        }
     }
 
 }

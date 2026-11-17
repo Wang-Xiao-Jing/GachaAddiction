@@ -1,0 +1,14 @@
+{
+    "format_version": 1,
+    "parameters": [],
+    "steps": [
+        {
+            "type": "gachaaddiction:reward_pool",
+            "data": {
+                "target": "gacha_test:silhouette_demo",
+                "rounds": 3,
+                "parameters": []
+            }
+        }
+    ]
+}

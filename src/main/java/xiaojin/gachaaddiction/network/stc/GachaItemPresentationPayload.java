@@ -20,7 +20,8 @@ public record GachaItemPresentationPayload(
         boolean success,
         long lifetimeMillis,
         List<ItemStack> items,
-        List<List<ItemStack>> rewardRounds
+        List<List<ItemStack>> rewardRounds,
+        List<ItemStack> possibleItems
 ) implements IToClientPayload {
     public static final Type<GachaItemPresentationPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(GachaConstants.MODID, "item_draw_presentation"));
@@ -29,7 +30,8 @@ public record GachaItemPresentationPayload(
                 @Override
                 public GachaItemPresentationPayload decode(RegistryFriendlyByteBuf buffer) {
                     return new GachaItemPresentationPayload(buffer.readUUID(), GachaType.STREAM_CODEC.decode(buffer),
-                            buffer.readBoolean(), buffer.readBoolean(), buffer.readVarLong(), ITEMS.decode(buffer), ROUNDS.decode(buffer));
+                            buffer.readBoolean(), buffer.readBoolean(), buffer.readVarLong(), ITEMS.decode(buffer), ROUNDS.decode(buffer),
+                            POSSIBLE_ITEMS.decode(buffer));
                 }
 
                 @Override
@@ -41,12 +43,22 @@ public record GachaItemPresentationPayload(
                     buffer.writeVarLong(value.lifetimeMillis);
                     ITEMS.encode(buffer, value.items);
                     ROUNDS.encode(buffer, value.rewardRounds);
+                    POSSIBLE_ITEMS.encode(buffer, value.possibleItems);
                 }
             };
     private static final int MAXIMUM_STACKS = 4096;
+    private static final int MAXIMUM_POSSIBLE_ITEMS = 65536;
+    private static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> POSSIBLE_ITEMS =
+            ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list(MAXIMUM_POSSIBLE_ITEMS));
     private static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> ITEMS =
             ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list(MAXIMUM_STACKS));
     private static final StreamCodec<RegistryFriendlyByteBuf, List<List<ItemStack>>> ROUNDS = ITEMS.apply(ByteBufCodecs.list(MAXIMUM_STACKS));
+
+    public GachaItemPresentationPayload(UUID session, GachaType animation, boolean completed,
+                                        boolean success, long lifetimeMillis, List<ItemStack> items,
+                                        List<List<ItemStack>> rewardRounds) {
+        this(session, animation, completed, success, lifetimeMillis, items, rewardRounds, List.of());
+    }
 
     public GachaItemPresentationPayload(UUID session, GachaType animation, boolean completed,
                                         boolean success, long lifetimeMillis, List<ItemStack> items) {
@@ -56,6 +68,10 @@ public record GachaItemPresentationPayload(
     public GachaItemPresentationPayload {
         items = items.stream().map(ItemStack::copy).toList();
         rewardRounds = rewardRounds.stream().map(round -> round.stream().map(ItemStack::copy).toList()).toList();
+        possibleItems = possibleItems.stream().map(ItemStack::copy).toList();
+        if (possibleItems.size() > MAXIMUM_POSSIBLE_ITEMS) {
+            throw new IllegalArgumentException("Too many possible reward items");
+        }
         if (rewardRounds.size() > MAXIMUM_STACKS
                 || rewardRounds.stream().mapToLong(List::size).sum() > MAXIMUM_STACKS) {
             throw new IllegalArgumentException("Too many grouped reward stacks");
@@ -70,6 +86,11 @@ public record GachaItemPresentationPayload(
     @Override
     public List<List<ItemStack>> rewardRounds() {
         return rewardRounds.stream().map(round -> round.stream().map(ItemStack::copy).toList()).toList();
+    }
+
+    @Override
+    public List<ItemStack> possibleItems() {
+        return possibleItems.stream().map(ItemStack::copy).toList();
     }
 
     @Override

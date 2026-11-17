@@ -1,9 +1,2 @@
 {
-  "ftbquests.reward.ftbquests.loot.gachaaddiction:gacha_type": "抽卡样式",
-  "gacha_type.gachaaddiction:empty": "无",
-  "gacha_type.gachaaddiction:slot_machine": "老虎机",
-  "commands.gachaaddiction.gacha.invalid_type": "无效的抽奖类型: %s",
-  "commands.gachaaddiction.gacha.invalid_loot_table": "无效的战利品表: %s",
-  "commands.gachaaddiction.gacha.success": "已为 %s 名玩家执行 %s 次战利品表: %s",
-  "commands.gachaaddiction.gacha.error": "执行命令时出错: %s"
 }

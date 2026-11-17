@@ -9,11 +9,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
+import xiaojin.gachaaddiction.api.GachaRandomType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.client.render.GachaAnimationRenderer;
 import xiaojin.gachaaddiction.client.render.ModernGachaEffect;
 import xiaojin.gachaaddiction.client.render.ModernGachaEntrance;
+import xiaojin.gachaaddiction.client.render.ModernGachaSilhouette;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.util.Comparator;
@@ -40,6 +42,7 @@ public class Modern2GachaScreen extends GachaSummaryScreen {
     private static final float MILLIS_PER_SECOND = 1000.0F;
     private final ModernGachaEffect pageEffect = new ModernGachaEffect();
     private final ModernGachaEntrance pageEntrance = new ModernGachaEntrance();
+    private final ModernGachaSilhouette silhouette = new ModernGachaSilhouette();
     private final Set<RewardData> revealedRewards = new HashSet<>();
     private final Set<Integer> pressedKeys = new HashSet<>();
     private int page;
@@ -115,13 +118,20 @@ public class Modern2GachaScreen extends GachaSummaryScreen {
         if (reveal >= 1.0F) {
             completePage(layout);
         }
-        int color = rewards.subList(layout.first, layout.first + layout.count).stream()
+        boolean concealed = reveal <= 0.0F && getRandomType() != GachaRandomType.NONE;
+        int color = concealed ? ModernGachaSilhouette.HIDDEN_COLOR : rewards.subList(layout.first, layout.first + layout.count).stream()
                 .max(Comparator.comparingInt(RewardData::getRarityLevel)).map(RewardData::getRarityColor).orElse(DEFAULT_COLOR);
         float seconds = (now - effectStartedAt) / MILLIS_PER_SECOND;
         if (!pageEffect.renderItems(graphics, color, seconds, reveal,
-                target -> renderPageItems(target, layout, 1.0F, 1.0F, entry), entry)) {
+                target -> renderPageItems(target, layout, 1.0F, 1.0F, entry, concealed), entry)) {
             graphics.fill(0, 0, width, height, GachaAnimationRenderer.backgroundColor());
-            renderPageItems(graphics, layout, reveal, entry.opacity(), entry);
+            renderPageItems(graphics, layout, reveal, entry.opacity(), entry, concealed);
+        }
+        if (concealed) {
+            for (int local = 0; local < layout.count; local++) {
+                silhouette.renderQuestion(graphics, font, layout.left + local * (layout.width + ITEM_GAP),
+                        layout.top, layout.width, layout.height, entry);
+            }
         }
         renderLabels(graphics, layout, mouseX, mouseY, reveal >= 1.0F && pageEntrance.isComplete(), entry);
         renderSourceTitle(graphics);
@@ -133,7 +143,7 @@ public class Modern2GachaScreen extends GachaSummaryScreen {
     }
 
     private void renderPageItems(GuiGraphics graphics, PageLayout layout, float brightness, float opacity,
-                                 ModernGachaEntrance.Frame entry) {
+                                 ModernGachaEntrance.Frame entry, boolean concealed) {
         int size = Math.max(layout.width, layout.height);
         for (int local = 0; local < layout.count; local++) {
             int left = layout.left + local * (layout.width + ITEM_GAP);
@@ -145,7 +155,9 @@ public class Modern2GachaScreen extends GachaSummaryScreen {
                 float scale = size / (float) NATIVE_ITEM_SIZE;
                 graphics.pose().scale(scale, scale, 1.0F);
                 graphics.setColor(brightness, brightness, brightness, opacity);
-                graphics.renderFakeItem(rewards.get(layout.first + local).getItemStack(), 0, 0);
+                RewardData reward = rewards.get(layout.first + local);
+                graphics.renderFakeItem(concealed ? silhouette.item(reward, getRandomType(), itemStackEntries)
+                        : reward.getItemStack(), 0, 0);
                 graphics.flush();
             } finally {
                 graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -166,8 +178,10 @@ public class Modern2GachaScreen extends GachaSummaryScreen {
             try {
                 graphics.pose().translate(0.0F, 0.0F, OVERLAY_DEPTH);
                 int borderAlpha = (int) (255 * entry.opacity() * entry.rim());
+                int color = revealProgress(layout) <= 0.0F && getRandomType() != GachaRandomType.NONE
+                        ? ModernGachaSilhouette.HIDDEN_COLOR : reward.getRarityColor();
                 graphics.renderOutline(left, layout.top, layout.width, layout.height,
-                        reward.getRarityColor() & 0xFFFFFF | borderAlpha << 24);
+                        color & 0xFFFFFF | borderAlpha << 24);
                 if (revealed) {
                     var lines = font.split(reward.getItemStack().getHoverName(), Math.max(1, layout.width - LABEL_INSET * 2));
                     int count = Math.min(MAXIMUM_NAME_LINES, lines.size());
@@ -190,6 +204,11 @@ public class Modern2GachaScreen extends GachaSummaryScreen {
         if (!hovered.isEmpty()) {
             renderSummaryTooltip(graphics, hovered, mouseX, mouseY);
         }
+    }
+
+    @Override
+    protected void beginSummary() {
+        effectStartedAt = beginSummary(pageEffect, pageEntrance, effectStartedAt);
     }
 
     private void finishPages() {

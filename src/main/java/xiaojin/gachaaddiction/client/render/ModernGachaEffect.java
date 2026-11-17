@@ -48,6 +48,11 @@ public class ModernGachaEffect implements AutoCloseable {
         return renderLayer(graphics, reward, reward.getRarityColor(), left, top, size, seconds, reveal, 0.0F, null, entrance);
     }
 
+    public boolean render(GuiGraphics graphics, RewardData reward, int color, int left, int top, int size,
+                          float seconds, float reveal, ModernGachaEntrance.Frame entrance) {
+        return renderLayer(graphics, reward, color, left, top, size, seconds, reveal, 0.0F, null, entrance);
+    }
+
     public boolean renderBackdrop(GuiGraphics graphics, int color, float seconds) {
         return renderLayer(graphics, null, color, 0, 0, 0, seconds, 0.0F);
     }

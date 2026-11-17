@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import xiaojin.gachaaddiction.api.GachaRandomType;
 import xiaojin.gachaaddiction.api.GachaSourceSettings;
 import xiaojin.gachaaddiction.api.IGachaSource;
 import xiaojin.gachaaddiction.mixed.IMenuProviderLootExtension;
@@ -52,7 +53,8 @@ public abstract class ChestBlock_2_1Mixin implements IMenuProviderLootExtension 
                 var left = first.getSettings();
                 var right = second.getSettings();
                 return new GachaSourceSettings(left.gachaType().or(right::gachaType), left.forceWatch() || right.forceWatch(),
-                        left.secondaryType().or(right::secondaryType), left.secondaryType().isPresent() ? left.choiceCount() : right.choiceCount());
+                        left.secondaryType().or(right::secondaryType), left.secondaryType().isPresent() ? left.choiceCount() : right.choiceCount(),
+                        left.randomType() != GachaRandomType.NONE ? left.randomType() : right.randomType());
             }
 
             @Override

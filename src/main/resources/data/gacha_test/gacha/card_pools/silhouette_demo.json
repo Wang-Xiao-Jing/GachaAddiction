@@ -1,0 +1,19 @@
+{
+    "format_version": 1,
+    "execution_plan": "gacha_test:silhouette_demo",
+    "parameter_bindings": [],
+    "packages": [
+        {
+            "id": "gacha_test:triple",
+            "parameters": {},
+            "minimum_durability": "SYNC"
+        }
+    ],
+    "presentation": {
+        "title": "block.minecraft.chest",
+        "icon": {"id": "minecraft:bedrock", "count": 1},
+        "result_style": "SUMMARY"
+    },
+    "availability": {"enabled": true, "minimum_permission_level": 2},
+    "delivery": {"mode": "INVENTORY"}
+}

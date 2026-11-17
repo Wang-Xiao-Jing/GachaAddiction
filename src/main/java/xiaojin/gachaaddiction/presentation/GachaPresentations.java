@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
+import xiaojin.gachaaddiction.api.GachaRandomType;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
 import xiaojin.gachaaddiction.api.GachaSourceSettings;
 import xiaojin.gachaaddiction.api.GachaType;
@@ -159,7 +160,8 @@ public class GachaPresentations {
             targets.forEach(target -> LOCKS.put(target, player.getUUID()));
         }
         GachaPresentationPayload rules = new GachaPresentationPayload(token, menuId, forced, false,
-                source == null ? display : source.getDisplayItem(), animation, secondary, count);
+                source == null ? display : source.getDisplayItem(), animation, secondary, count,
+                effective == GachaTypes.MODERN || effective == GachaTypes.MODERN_2 ? settings.randomType() : GachaRandomType.NONE);
         SESSIONS.put(player.getUUID(), new Session(rules, targets, System.currentTimeMillis(), player.level().dimension()));
         PacketDistributor.sendToPlayer(player, rules);
     }

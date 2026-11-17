@@ -1,0 +1,11 @@
+{
+    "format_version": 1,
+    "sources": [
+        {
+            "id": "gacha_test:silhouette_source",
+            "type": "custom_table",
+            "table": "gacha_test:silhouette_demo",
+            "weight": 1
+        }
+    ]
+}

@@ -6,6 +6,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
+import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.client.gui.screen.BasicGachaScreen;
 import xiaojin.gachaaddiction.client.gui.screen.GachaAnimationScreen;
 import xiaojin.gachaaddiction.client.gui.screen.GachaSourceInteractionScreen;
@@ -26,6 +27,18 @@ public class GachaItemPresentationClient {
         pendingSession = null;
         pendingScreen = null;
         pendingParent = null;
+    }
+
+    public static void cancelPendingScreen(BasicGachaScreen screen) {
+        if (screen != pendingScreen || pendingSession == null) {
+            return;
+        }
+
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.getConnection() != null && minecraft.getConnection().hasChannel(FinishGachaItemDrawPayload.TYPE)) {
+            PacketDistributor.sendToServer(new FinishGachaItemDrawPayload(pendingSession, true));
+        }
+        clear();
     }
 
     public static void receive(GachaItemPresentationPayload payload) {
@@ -58,14 +71,20 @@ public class GachaItemPresentationClient {
                 minecraft.setScreen(GachaPresentationClient.apply(new GachaAnimationScreen(minecraft.screen,
                         animation, payload.session(), payload.items(), payload.lifetimeMillis()), -1, animation));
             } else {
+                List<ItemStack> candidates = animation == GachaTypes.MODERN || animation == GachaTypes.MODERN_2
+                        ? payload.possibleItems() : payload.items();
                 pendingSession = payload.session();
                 pendingParent = minecraft.screen;
                 pendingScreen = animation.isEmpty() ? null : GachaPresentationClient.apply(
-                        GachaTypeClients.get(animation).create(minecraft.screen, List.of(), List.of()), -1, animation);
+                        GachaTypeClients.get(animation).create(minecraft.screen, List.of(),
+                                candidates.stream().map(stack -> new ItemStackEntry(stack.copy(), 1)).toList()), -1, animation);
                 if (pendingScreen != null) {
                     minecraft.setScreen(pendingScreen);
+                    UUID session = payload.session();
+                    pendingScreen.afterFirstFrame(() -> PacketDistributor.sendToServer(new FinishGachaItemDrawPayload(session, false)));
+                } else {
+                    PacketDistributor.sendToServer(new FinishGachaItemDrawPayload(payload.session(), false));
                 }
-                PacketDistributor.sendToServer(new FinishGachaItemDrawPayload(payload.session(), false));
             }
         }
     }

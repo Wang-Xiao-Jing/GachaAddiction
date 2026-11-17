@@ -1,5 +1,6 @@
 package xiaojin.gachaaddiction.client.gui.screen;
 
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
@@ -10,11 +11,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
+import xiaojin.gachaaddiction.api.GachaRandomType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.client.api.GachaRewardPhase;
 import xiaojin.gachaaddiction.client.api.IReelHost;
 import xiaojin.gachaaddiction.client.announcement.GachaAnnouncementClient;
+import xiaojin.gachaaddiction.client.presentation.GachaItemPresentationClient;
 import xiaojin.gachaaddiction.config.ClientConfig;
 import xiaojin.gachaaddiction.config.GachaAddictionConfig;
 import xiaojin.gachaaddiction.mixed.IAbstractContainerMenu;
@@ -31,6 +34,9 @@ public abstract class BasicGachaScreen extends Screen implements IReelHost {
             Set.of(GachaRewardPhase.OPEN);
     private static final float SOURCE_TITLE_HEIGHT_FRACTION = 0.06F;
     private static final int SOURCE_TITLE_COLOR = 0xFFFFFF;
+    private static final int ENTRANCE_COVER_COLOR = 0x080A10;
+    private static final int ENTRANCE_COVER_DEPTH = 10000;
+    private static final long ENTRANCE_COVER_FADE_MILLIS = 180;
     protected final ClientConfig clientConfig = GachaAddictionConfig.CLIENT;
     protected final boolean isMerge = clientConfig.mergeItem.get();
     protected final boolean raritySorting = clientConfig.raritySorting.get();
@@ -46,6 +52,9 @@ public abstract class BasicGachaScreen extends Screen implements IReelHost {
     private boolean presentationComplete;
     private ItemStack triggerItem = ItemStack.EMPTY;
     private int presentationMenuId = Integer.MIN_VALUE;
+    private final List<Runnable> firstFrameActions = new ArrayList<>();
+    private boolean firstFrameRendered;
+    private long firstFrameAt;
 
     protected BasicGachaScreen(
             Component title,
@@ -103,6 +112,49 @@ public abstract class BasicGachaScreen extends Screen implements IReelHost {
         presentationMenuId = menuId;
     }
 
+    public void afterFirstFrame(Runnable action) {
+        firstFrameActions.add(action);
+    }
+
+    public void renderEntranceCover(GuiGraphics graphics) {
+        long now = Util.getMillis();
+        if (!firstFrameRendered) {
+            firstFrameAt = now;
+        }
+
+        float progress = Math.clamp((float) (now - firstFrameAt) / ENTRANCE_COVER_FADE_MILLIS, 0.0F, 1.0F);
+        int alpha = (int) (255 * (1.0F - progress));
+        if (alpha > 0) {
+            graphics.flush();
+            graphics.pose().pushPose();
+            try {
+                graphics.pose().translate(0, 0, ENTRANCE_COVER_DEPTH);
+                graphics.fill(0, 0, width, height, alpha << 24 | ENTRANCE_COVER_COLOR);
+                graphics.flush();
+            } finally {
+                graphics.pose().popPose();
+            }
+        }
+
+        firstFrameRendered = true;
+    }
+
+    public void dispatchFirstFrameActions() {
+        if (!firstFrameRendered || minecraft == null || minecraft.screen != this || firstFrameActions.isEmpty()) {
+            return;
+        }
+
+        List<Runnable> actions = List.copyOf(firstFrameActions);
+        firstFrameActions.clear();
+        for (Runnable action : actions) {
+            if (minecraft.screen != this) {
+                break;
+            }
+
+            action.run();
+        }
+    }
+
     public boolean acceptsPresentationMenu(int menuId) {
         return presentationMenuId == menuId && !presentationComplete;
     }
@@ -156,6 +208,10 @@ public abstract class BasicGachaScreen extends Screen implements IReelHost {
         return presentation != null && presentation.forceWatch() && !presentationComplete;
     }
 
+    protected GachaRandomType getRandomType() {
+        return presentation == null ? GachaRandomType.NONE : presentation.randomType();
+    }
+
     public ItemStack getTriggerItem() {
         return triggerItem;
     }
@@ -190,6 +246,8 @@ public abstract class BasicGachaScreen extends Screen implements IReelHost {
 
     @Override
     public void removed() {
+        firstFrameActions.clear();
+        GachaItemPresentationClient.cancelPendingScreen(this);
         if (!presentationComplete) {
             sendPresentationControl(false);
         }
@@ -218,8 +276,8 @@ public abstract class BasicGachaScreen extends Screen implements IReelHost {
 
     protected void handleRewardPhase(GachaRewardPhase phase, RewardData reward) {
         if (getAutoTakePhases().contains(phase)) {
-            GachaRewardClientUtil.requestAutoTake(this, reward,
-                    autoTakeRequests.computeIfAbsent(phase, ignored -> new HashSet<>()));
+            afterFirstFrame(() -> GachaRewardClientUtil.requestAutoTake(this, reward,
+                    autoTakeRequests.computeIfAbsent(phase, ignored -> new HashSet<>())));
         }
     }
 

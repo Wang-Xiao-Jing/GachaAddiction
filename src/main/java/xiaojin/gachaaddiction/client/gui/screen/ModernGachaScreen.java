@@ -8,10 +8,12 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
+import xiaojin.gachaaddiction.api.GachaRandomType;
 import xiaojin.gachaaddiction.api.ItemStackEntry;
 import xiaojin.gachaaddiction.api.RewardData;
 import xiaojin.gachaaddiction.client.render.ModernGachaEffect;
 import xiaojin.gachaaddiction.client.render.ModernGachaEntrance;
+import xiaojin.gachaaddiction.client.render.ModernGachaSilhouette;
 import xiaojin.gachaaddiction.registry.GachaTypes;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
@@ -28,6 +30,7 @@ public class ModernGachaScreen extends GachaSummaryScreen {
     private static final float MILLISECONDS_PER_SECOND = 1000.0F;
     private final ModernGachaEffect effect = new ModernGachaEffect();
     private final ModernGachaEntrance entrance = new ModernGachaEntrance();
+    private final ModernGachaSilhouette silhouette = new ModernGachaSilhouette();
     private List<RewardData> singleRewards = List.of();
     private Stage stage = Stage.WAITING;
     private int currentItem;
@@ -124,8 +127,15 @@ public class ModernGachaScreen extends GachaSummaryScreen {
         int left = (width - size) / 2;
         int top = (height - size) / 2;
         float seconds = (now - effectStartedAt) / MILLISECONDS_PER_SECOND;
-        if (!effect.render(graphics, reward, left, top, size, seconds, reveal, entry)) {
-            renderFallback(graphics, reward, left, top, size, reveal, entry);
+        boolean concealed = stage == Stage.SILHOUETTE && getRandomType() != GachaRandomType.NONE;
+        RewardData displayed = concealed
+                ? new RewardData(silhouette.item(reward, getRandomType(), itemStackEntries), 1) : reward;
+        int color = concealed ? ModernGachaSilhouette.HIDDEN_COLOR : reward.getRarityColor();
+        if (!effect.render(graphics, displayed, color, left, top, size, seconds, reveal, entry)) {
+            renderFallback(graphics, displayed, color, left, top, size, reveal, entry);
+        }
+        if (concealed) {
+            silhouette.renderQuestion(graphics, font, left, top, size, size, entry);
         }
 
         if (stage == Stage.REVEALED && entrance.isComplete()) {
@@ -137,9 +147,8 @@ public class ModernGachaScreen extends GachaSummaryScreen {
         renderSourceTitle(graphics);
     }
 
-    private void renderFallback(GuiGraphics graphics, RewardData reward, int left, int top, int size, float reveal,
-                                 ModernGachaEntrance.Frame entry) {
-        int color = reward.getRarityColor();
+    private void renderFallback(GuiGraphics graphics, RewardData reward, int color, int left, int top, int size, float reveal,
+                                ModernGachaEntrance.Frame entry) {
         float strength = FALLBACK_TINT_STRENGTH * entry.backdrop();
         int tint = OPAQUE_ALPHA | (int) ((color >> 16 & 255) * strength) << 16
                 | (int) ((color >> 8 & 255) * strength) << 8

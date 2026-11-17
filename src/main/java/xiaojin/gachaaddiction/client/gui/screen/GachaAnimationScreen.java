@@ -140,9 +140,6 @@ public class GachaAnimationScreen extends GachaSummaryScreen {
         super.updateRewards(result, true);
         updateChestLightColor();
         frontStage = FrontStage.SUMMARY;
-        if (animation != GachaTypes.CHEST) {
-            backdrop.close();
-        }
     }
 
     private void updateChestLightColor() {
@@ -162,8 +159,8 @@ public class GachaAnimationScreen extends GachaSummaryScreen {
         return animation == GachaTypes.CHEST ? chestLightColor : GachaAnimationRenderer.accentColor();
     }
 
-    private void renderChestBackground(GuiGraphics graphics) {
-        if (!backdrop.renderBackdrop(graphics, chestLightColor,
+    private void renderAnimationBackground(GuiGraphics graphics) {
+        if (!backdrop.renderBackdrop(graphics, frontColor(),
                 (Util.getMillis() - startedAt) / MILLIS_PER_SECOND)) {
             graphics.fill(0, 0, width, height, GachaAnimationRenderer.backgroundColor());
         }
@@ -184,13 +181,9 @@ public class GachaAnimationScreen extends GachaSummaryScreen {
         }
         updateFront();
         if (frontStage == FrontStage.SUMMARY) {
-            if (animation == GachaTypes.CHEST) {
-                renderChestBackground(graphics);
-                renderSourceTitle(graphics);
-                renderSummaryItems(graphics, mouseX, mouseY, partialTick);
-                return;
-            }
-            renderSummaryScreen(graphics, mouseX, mouseY, partialTick);
+            renderAnimationBackground(graphics);
+            renderSourceTitle(graphics);
+            renderSummaryItems(graphics, mouseX, mouseY, partialTick);
             return;
         }
 
@@ -201,7 +194,7 @@ public class GachaAnimationScreen extends GachaSummaryScreen {
             drop = 0.0F;
         }
         if (animation == GachaTypes.CHEST && frontStage == FrontStage.WAITING) {
-            renderChestBackground(graphics);
+            renderAnimationBackground(graphics);
         } else if (frontStage == FrontStage.WAITING || frontStage == FrontStage.FAILED
                 || !backdrop.renderBackdrop(graphics, frontColor(), seconds)) {
             graphics.fill(0, 0, width, height, GachaAnimationRenderer.backgroundColor());
@@ -337,8 +330,6 @@ public class GachaAnimationScreen extends GachaSummaryScreen {
         }
         if (animation == GachaTypes.CHEST) {
             scene.close();
-        } else {
-            backdrop.close();
         }
         reelFade.close();
         dragging = false;

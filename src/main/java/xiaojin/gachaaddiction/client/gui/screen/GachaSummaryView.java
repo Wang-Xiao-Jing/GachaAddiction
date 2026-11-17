@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 import xiaojin.gachaaddiction.GachaConstants;
 import xiaojin.gachaaddiction.GachaModPresence;
 import xiaojin.gachaaddiction.api.RewardData;
@@ -99,10 +100,7 @@ public class GachaSummaryView implements AutoCloseable {
 
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         ModernGachaEntrance.Frame entry = entrance.sample(Util.getMillis());
-        if (effect == null) {
-            effect = new ModernGachaEffect();
-        }
-        if (!effect.renderBackdrop(graphics, summaryColor,
+        if (effect == null || !effect.renderBackdrop(graphics, summaryColor,
                 (Util.getMillis() - effectStartedAt) / MILLISECONDS_PER_SECOND, entry)) {
             int tint = OPAQUE_ALPHA | (int) ((summaryColor >> 16 & 255) * FALLBACK_TINT_STRENGTH) << 16
                     | (int) ((summaryColor >> 8 & 255) * FALLBACK_TINT_STRENGTH) << 8
@@ -160,8 +158,7 @@ public class GachaSummaryView implements AutoCloseable {
             int row = localIndex / grid.columns;
             int centerX = grid.left + localIndex % grid.columns * grid.pitch + NATIVE_BORDER_HALF;
             int centerY = grid.top + row * grid.pitch + NATIVE_BORDER_HALF;
-            graphics.enableScissor(centerX - NATIVE_BORDER_HALF, centerY - NATIVE_BORDER_HALF,
-                    centerX + NATIVE_BORDER_HALF, centerY + NATIVE_BORDER_HALF);
+            enableItemScissor(graphics, centerX, centerY);
             graphics.pose().pushPose();
             try {
                 graphics.pose().translate(centerX, centerY, 0);
@@ -205,6 +202,14 @@ public class GachaSummaryView implements AutoCloseable {
         if (!hovered.isEmpty()) {
             screen.renderSummaryTooltip(graphics, hovered, mouseX, mouseY);
         }
+    }
+
+    private void enableItemScissor(GuiGraphics graphics, int centerX, int centerY) {
+        var pose = graphics.pose().last().pose();
+        Vector3f minimum = pose.transformPosition(new Vector3f(centerX - NATIVE_BORDER_HALF, centerY - NATIVE_BORDER_HALF, 0.0F));
+        Vector3f maximum = pose.transformPosition(new Vector3f(centerX + NATIVE_BORDER_HALF, centerY + NATIVE_BORDER_HALF, 0.0F));
+        graphics.enableScissor((int) Math.floor(Math.min(minimum.x, maximum.x)), (int) Math.floor(Math.min(minimum.y, maximum.y)),
+                (int) Math.ceil(Math.max(minimum.x, maximum.x)), (int) Math.ceil(Math.max(minimum.y, maximum.y)));
     }
 
     private void renderHint(GuiGraphics graphics, String key) {

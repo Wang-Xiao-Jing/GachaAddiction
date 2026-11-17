@@ -10,15 +10,18 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import xiaojin.gachaaddiction.GachaConstants;
+import xiaojin.gachaaddiction.api.GachaRandomType;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
 import xiaojin.gachaaddiction.api.GachaType;
 import xiaojin.gachaaddiction.cardpool.GachaPreparedCardPoolDraw;
 import xiaojin.gachaaddiction.cardpool.GachaPublicCardPoolEndpoint;
 import xiaojin.gachaaddiction.cardpool.GachaServerRuntimeManager;
 import xiaojin.gachaaddiction.data.GachaDefinitionRepository;
+import xiaojin.gachaaddiction.data.GachaPossibleRewardItems;
 import xiaojin.gachaaddiction.network.cts.FinishGachaItemDrawPayload;
 import xiaojin.gachaaddiction.network.stc.GachaItemPresentationPayload;
 import xiaojin.gachaaddiction.presentation.GachaPresentations;
+import xiaojin.gachaaddiction.registry.GachaSources;
 import xiaojin.gachaaddiction.util.TranslationKeys;
 
 import java.time.Duration;
@@ -63,11 +66,12 @@ public class GachaItemDraws {
             SESSIONS.put(player.getUUID(), session);
             long roundCount = prepared.preview().execution().steps().stream()
                     .filter(step -> step.rounds().isPresent()).mapToLong(step -> step.rounds().getAsLong()).sum();
+            List<ItemStack> possibleItems = possibleItems(player, cost, pool, drawPackage);
             GachaPresentations.beginDrawItem(player, player.getItemInHand(hand), session.id, animation,
                     Math.clamp(roundCount, 1, GachaSecondaryType.MAXIMUM_ROUNDS));
             PacketDistributor.sendToPlayer(player, new GachaItemPresentationPayload(session.id, animation, false,
                     true, Math.max(0, Duration.between(Instant.now(), prepared.expiresAt()).toMillis()),
-                    previewItems(binding, pool)));
+                    previewItems(binding, pool), List.of(), possibleItems));
             return true;
         } catch (RuntimeException failure) {
             forget(player.getUUID());
@@ -116,6 +120,19 @@ public class GachaItemDraws {
                                 reply(player, session, deliveryFailure == null, committed.result().rewards(), committed.result().rewardRounds());
                             }));
                 }));
+    }
+
+    private static List<ItemStack> possibleItems(ServerPlayer player, ItemStack cost, ResourceLocation pool,
+                                                 ResourceLocation drawPackage) {
+        var source = cost.getCapability(GachaSources.ITEM);
+        if (source == null || source.getSettings().randomType() == GachaRandomType.NONE) {
+            return List.of();
+        }
+
+        var repository = GachaDefinitionRepository.INSTANCE;
+        var definition = repository.resolveCardPool(pool).orElseThrow();
+        return new GachaPossibleRewardItems(player.serverLevel(), repository.raw())
+                .collect(definition.packages().get(drawPackage).executionPlan());
     }
 
     private static List<ItemStack> previewItems(CompoundTag binding, ResourceLocation pool) {

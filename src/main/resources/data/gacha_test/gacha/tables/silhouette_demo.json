@@ -1,0 +1,25 @@
+{
+    "format_version": 1,
+    "strategy": "SELECT_ONE",
+    "selection_count": 1,
+    "entries": [
+        {
+            "id": "gacha_test:silhouette_axe",
+            "type": "item",
+            "stack": {"id": "minecraft:diamond_axe", "count": 1, "components": {"minecraft:rarity": "rare"}},
+            "weight": 1
+        },
+        {
+            "id": "gacha_test:silhouette_nested",
+            "type": "custom_table",
+            "table": "gacha_test:silhouette_nested",
+            "weight": 1
+        },
+        {
+            "id": "gacha_test:silhouette_logs",
+            "type": "item_tag",
+            "tag": "minecraft:logs",
+            "weight": 1
+        }
+    ]
+}

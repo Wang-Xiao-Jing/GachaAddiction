@@ -25,6 +25,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.gachaaddiction.GachaConstants;
+import xiaojin.gachaaddiction.api.GachaRandomType;
 import xiaojin.gachaaddiction.api.GachaSecondaryType;
 import xiaojin.gachaaddiction.api.GachaSourceSettings;
 import xiaojin.gachaaddiction.api.IGachaSource;
@@ -123,7 +124,8 @@ public class GachaSources {
                             ? Optional.of(GachaSecondaryType.byName(data.getString(GachaSourceSettings.SECONDARY_TYPE_KEY))) : Optional.empty(),
                     data.contains(GachaSourceSettings.CHOICE_COUNT_KEY)
                             ? Math.clamp(data.getInt(GachaSourceSettings.CHOICE_COUNT_KEY), 2, GachaSecondaryType.MAXIMUM_CHOICES)
-                            : GachaSecondaryType.DEFAULT_CHOICES);
+                            : GachaSecondaryType.DEFAULT_CHOICES,
+                    GachaRandomType.byName(data.getString(GachaSourceSettings.RANDOM_TYPE_KEY)));
         }
 
         @Override
@@ -136,6 +138,7 @@ public class GachaSources {
                 settings.secondaryType().ifPresentOrElse(type -> data.putString(GachaSourceSettings.SECONDARY_TYPE_KEY,
                         type.getSerializedName()), () -> data.remove(GachaSourceSettings.SECONDARY_TYPE_KEY));
                 data.putInt(GachaSourceSettings.CHOICE_COUNT_KEY, settings.choiceCount());
+                data.putString(GachaSourceSettings.RANDOM_TYPE_KEY, settings.randomType().getSerializedName());
                 root.put(GachaConstants.MODID, data);
             });
         }

@@ -105,7 +105,6 @@ public class SlotMachineScreen extends GachaSummaryScreen {
     private void showModernSummary() {
         beginSummary();
         summary = true;
-        backdrop.close();
     }
 
     public boolean tryClaimPassSound() {
@@ -147,14 +146,15 @@ public class SlotMachineScreen extends GachaSummaryScreen {
                 }
             }
         }
-        if (summary) {
-            renderSummaryScreen(graphics, mouseX, mouseY, partialTick);
-            return;
-        }
-
         if (!backdrop.renderBackdrop(graphics, effectColor, (now - startedAt) / MILLISECONDS_PER_SECOND)) {
             graphics.fill(0, 0, width, height, BACKGROUND);
         }
+        if (summary) {
+            renderSourceTitle(graphics);
+            renderSummaryItems(graphics, mouseX, mouseY, partialTick);
+            return;
+        }
+
         ItemStack hovered = knownRewards
                 ? looping.render(graphics, width, height, mouseX, mouseY, partialTick) : ItemStack.EMPTY;
         String hint = !knownRewards ? TranslationKeys.GUI_ANIMATION_WAITING
